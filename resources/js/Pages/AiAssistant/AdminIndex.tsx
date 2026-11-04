@@ -123,7 +123,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
     // Gemini Settings Form State
     const [showApiKey, setShowApiKey] = useState(false);
     const initialModel = (!settings?.gemini_model || settings.gemini_model.includes('1.5') || settings.gemini_model.includes('2.0'))
-        ? 'gemini-3-flash'
+        ? 'gemini-3.1-flash-lite'
         : settings.gemini_model;
 
     const [geminiForm, setGeminiForm] = useState({
@@ -762,14 +762,15 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                                 </optgroup>
                                             )}
 
-                                            <optgroup label="লেটেস্ট Gemini 3.x ও 2.5 মডেলসমূহ">
-                                                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (সবচেয়ে দ্রুত ও লাইটেস্ট)</option>
-                                                <option value="gemini-3-flash">Gemini 3 Flash (গুগলের নতুন ফ্ল্যাগশিপ দ্রুত মডেল - Recommended)</option>
-                                                <option value="gemini-3.1-pro">Gemini 3.1 Pro (উন্নত চিন্তন ও জটিল রোগ নির্ণয়)</option>
-                                                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (সুপার ফাস্ট)</option>
-                                                <option value="gemini-2.5-flash">Gemini 2.5 Flash (স্ট্যাবল ও দ্রুত)</option>
-                                                <option value="gemini-2.5-pro">Gemini 2.5 Pro (পাওয়ারফুল মডেল)</option>
-                                            </optgroup>
+                                            <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fastest & Recommended)</option>
+                                            <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                                            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
+                                            <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option>
+                                            <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite</option>
+                                            <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+                                            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                                            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                                            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-lite</option>
                                         </select>
                                     )}
                                     <p className="text-[11px] text-slate-400 mt-1">

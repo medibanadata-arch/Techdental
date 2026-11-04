@@ -351,13 +351,21 @@ class AiAssistantController extends Controller
         $candidates = [];
         if (!empty($requested)) {
             $candidates[] = $requested;
+            if (str_contains($requested, '-preview')) {
+                $candidates[] = str_replace('-preview', '', $requested);
+            }
         }
-        // Latest 2026 models from Google AI Studio
-        $candidates[] = 'gemini-3-flash';
-        $candidates[] = 'gemini-3.5-flash-lite';
+        // Exact models supported by Google AI Studio
         $candidates[] = 'gemini-3.1-flash-lite';
+        $candidates[] = 'gemini-3.6-flash';
+        $candidates[] = 'gemini-3.5-flash';
+        $candidates[] = 'gemini-3.5-flash-lite';
+        $candidates[] = 'gemini-3.1-pro-preview';
         $candidates[] = 'gemini-3.1-pro';
+        $candidates[] = 'gemini-3-flash-preview';
+        $candidates[] = 'gemini-3-flash';
         $candidates[] = 'gemini-2.5-flash';
+        $candidates[] = 'gemini-2.5-flash-lite';
         $candidates[] = 'gemini-2.5-pro';
 
         return array_values(array_unique($candidates));
