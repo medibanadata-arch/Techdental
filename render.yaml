@@ -19,3 +19,4 @@ services:
         value: file
       - key: CACHE_STORE
         value: file
+
