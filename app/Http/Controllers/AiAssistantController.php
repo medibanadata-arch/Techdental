@@ -10,6 +10,30 @@ use Inertia\Inertia;
 
 class AiAssistantController extends Controller
 {
+    const DEFAULT_TRAINING_DATA = "
+[প্রতিষ্ঠান পরিচিতি]
+প্রতিষ্ঠান: টেক ডেন্টাল কেয়ার (Tech Dental Care)
+হটলাইন: 01400786162
+ওয়েবসাইট: techdentalcare.com
+রোগী দেখার সময়সূচী: প্রতিদিন সকাল ১০:০০ টা থেকে রাত ৯:০০ টা পর্যন্ত (শুক্রবার সাপ্তাহিক ছুটি)।
+
+[শাখাসমূহ ও লোকেশন]
+১. মিরপুর শাখা: ৮২৭ (২য় তলা), শেওড়াপাড়া, বেগম রোকেয়া সরণি, ঢাকা (মেট্রোরেল ৩১৮ নং পিলারের পূর্ব পাশে)। ফোন: 01400786162
+২. উত্তরা শাখা: হাউস ১৮, রোড ১৪, সেক্টর ৩, উত্তরা, ঢাকা। ফোন: 01400786162
+৩. বাড্ডা শাখা: হাজী আব্দুর রশিদ ম্যানশন (৩য় তলা), উত্তর বাড্ডা বাজার, ঢাকা। ফোন: 01400786162
+৪. যাত্রাবাড়ী শাখা: শহীদ ফারুক রোড, দক্ষিণ যাত্রাবাড়ী, ঢাকা। ফোন: 01400786162
+
+[চিকিৎসা সেবা ও আনুমানিক খরচ তালিকা]
+• ডেন্টাল স্কেলিং ও পলিশিং (দাঁত পরিষ্কার): ১,০০০ - ২,০০০ টাকা
+• রুট ক্যানেল ট্রিটমেন্ট (RCT): ৩,৫০০ - ৫,৫০০ টাকা (দাঁতের অবস্থা ভেদে)
+• ডেন্টাল ক্যাপ / ক্রাউন (পোরসেলিন / জিরকোনিয়া): ৩,০০০ - ১০,০০০ টাকা
+• দাঁত তোলা (Simple & Surgical Extraction): ১,০০০ - ৪,০০০ টাকা
+• দাঁত ফিলিং (Composite / Laser Filling): ১,০০০ - ২,৫০০ টাকা
+• ডেন্টাল ইমপ্ল্যান্ট (স্থায়ী কৃত্রিম দাঁত): ৩৫,০০০ - ৬০,০০০ টাকা
+• অর্থোডন্টিক ব্রেসেস ও ক্লিয়ার অ্যালাইনার্স: ৬০,০০০ - ১,৫০,০০০ টাকা
+• দাঁত সাদা করা (Teeth Whitening): ৮,০০০ - ১৫,০০০ টাকা
+• শিশুদের ডেন্টাল কেয়ার ও পরামর্শ: ৫০০ - ১,০০০ টাকা
+";
     /**
      * Admin Dashboard view for AI Assistant
      */
@@ -190,9 +214,123 @@ class AiAssistantController extends Controller
         }
 
         $settings = DB::table('ai_chat_settings')->first();
-        $cleanQuery = mb_strtolower($query, 'UTF-8');
+        $apiKey = trim($settings->gemini_api_key ?? env('GEMINI_API_KEY', ''));
 
-        // STEP 1: Search keyword-based rules
+        // STEP 1: Google Gemini AI with Company Training Data (PRIMARY ENGINE)
+        // If Gemini is enabled, every patient question is answered directly by Gemini using your company training data!
+        if ($settings && $settings->gemini_enabled && !empty($apiKey)) {
+            $systemPrompt = $settings->system_prompt ?: "You are Tech Dental's smart, warm, and helpful AI assistant for patients in Dhaka, Bangladesh. Answer patient inquiries politely and concisely in clear Bengali. Always prioritize Tech Dental's branches and pricing from the training data.";
+            $trainingData = !empty($settings->training_data) ? $settings->training_data : self::DEFAULT_TRAINING_DATA;
+
+            $instructionText = "ROLE & INSTRUCTIONS FOR TECH DENTAL AI ASSISTANT:\n{$systemPrompt}\n\n### TECH DENTAL OFFICIAL COMPANY TRAINING DATA & KNOWLEDGE BASE:\n{$trainingData}\n\nSTRICT GUIDELINES:
+1. Always answer the patient's questions using the above official company training data.
+2. For treatment costs (e.g. scaling, root canal, dental caps, implants), quote the exact prices from the training data (e.g. scaling: ১,০০০ - ২,০০০ টাকা).
+3. Mention our relevant branch locations (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী) and hotline 01400786162 when helpful.
+4. Keep the answer warm, concise (2-4 sentences), and in polite Bengali text format only.";
+
+            $candidateModels = array_values(array_unique(array_merge(
+                [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],
+                $this->resolveGeminiModelCandidates($settings->gemini_model ?? 'gemini-3.1-flash-lite')
+            )));
+
+            foreach ($candidateModels as $model) {
+                try {
+                    $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+                    $payload = [
+                        'contents' => [
+                            [
+                                'role' => 'user',
+                                'parts' => [
+                                    ['text' => "{$instructionText}\n\nPATIENT QUERY: {$query}"]
+                                ]
+                            ]
+                        ],
+                        'generationConfig' => [
+                            'temperature' => 0.4,
+                            'maxOutputTokens' => 700,
+                            'responseModalities' => ['TEXT'],
+                        ]
+                    ];
+
+                    $response = Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
+
+                    if ($response->successful()) {
+                        $resData = $response->json();
+                        $parts = $resData['candidates'][0]['content']['parts'] ?? [];
+                        $aiText = '';
+                        foreach ($parts as $part) {
+                            if (!empty($part['text'])) {
+                                $aiText .= $part['text'];
+                            }
+                        }
+                        $aiText = trim($aiText);
+
+                        if (!empty($aiText)) {
+                            DB::table('ai_chat_logs')->insert([
+                                'user_query' => $query,
+                                'reply' => $aiText,
+                                'matched_rule_id' => null,
+                                'source' => 'gemini',
+                                'ip_address' => $request->ip(),
+                                'created_at' => now(),
+                            ]);
+
+                            return response()->json([
+                                'success' => true,
+                                'source' => 'gemini',
+                                'title' => 'টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট',
+                                'reply' => $aiText,
+                                'icon' => 'fa-sparkles',
+                                'icon_color' => 'text-blue-600',
+                                'icon_bg' => 'bg-blue-100',
+                                'action_type' => 'appointment',
+                                'action_label' => 'অনলাইন সিরিয়াল নিন',
+                                'action_url' => '/appointment',
+                            ]);
+                        }
+                    }
+
+                    if ($response->status() !== 404) {
+                        Log::error("Gemini API Error for {$model}: " . $response->body());
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Gemini API Exception for {$model}: " . $e->getMessage());
+                }
+            }
+        }
+
+        // STEP 1.5: Direct Knowledge Base / Training Data Matcher
+        // Matches questions directly from the clinic's official training data (costs, branches, timings)
+        $trainingData = !empty($settings->training_data) ? $settings->training_data : self::DEFAULT_TRAINING_DATA;
+        $kbReply = $this->matchTrainingDataAnswer($trainingData, $query);
+        if ($kbReply) {
+            DB::table('ai_chat_logs')->insert([
+                'user_query' => $query,
+                'reply' => $kbReply['reply'],
+                'matched_rule_id' => null,
+                'source' => 'gemini',
+                'ip_address' => $request->ip(),
+                'created_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'source' => 'gemini',
+                'title' => $kbReply['title'],
+                'reply' => $kbReply['reply'],
+                'icon' => 'fa-sparkles',
+                'icon_color' => 'text-blue-600',
+                'icon_bg' => 'bg-blue-100',
+                'action_type' => 'appointment',
+                'action_label' => 'অনলাইন সিরিয়াল নিন',
+                'action_url' => '/appointment',
+            ]);
+        }
+
+        // STEP 2: Keyword-based rules fallback (if Gemini is offline, disabled or no API key)
+        $cleanQuery = mb_strtolower($query, 'UTF-8');
         $rules = DB::table('ai_chat_replies')
             ->where('is_active', 1)
             ->orderBy('priority', 'desc')
@@ -233,92 +371,6 @@ class AiAssistantController extends Controller
             }
         }
 
-        // STEP 2: If no keyword matched, try Google Gemini API with smart model fallback
-        if ($settings && $settings->gemini_enabled && !empty($settings->gemini_api_key)) {
-            $apiKey = $settings->gemini_api_key;
-            $systemPrompt = $settings->system_prompt ?: "You are Tech Dental's helpful Bengali AI assistant for patients in Dhaka. Answer clearly and concisely in Bengali. Branches: Mirpur, Uttara, Badda, Jatrabari. Hotline: 01400786162.";
-            $trainingData = $settings->training_data ?? '';
-
-            $instructionText = "ROLE & INSTRUCTIONS FOR DENTAL AI ASSISTANT:\n{$systemPrompt}";
-            if (!empty($trainingData)) {
-                $instructionText .= "\n\n### TECH DENTAL OFFICIAL COMPANY TRAINING DATA & KNOWLEDGE BASE:\n{$trainingData}\n\nSTRICT GUIDELINE: Always prioritize the above official company training data when answering questions about branches, services, doctor availability, costs, and clinic policies. Answer in clear, polite Bengali.";
-            }
-
-            $candidateModels = $this->resolveGeminiModelCandidates($settings->gemini_model ?? 'gemini-2.5-flash');
-
-            foreach ($candidateModels as $model) {
-                try {
-                    $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-
-                    $payload = [
-                        'contents' => [
-                            [
-                                'role' => 'user',
-                                'parts' => [
-                                    ['text' => "{$instructionText}\n\nPATIENT QUERY: {$query}"]
-                                ]
-                            ]
-                        ],
-                        'generationConfig' => [
-                            'temperature' => 0.4,
-                            'maxOutputTokens' => 700,
-                            'responseModalities' => ['TEXT'],
-                        ]
-                    ];
-
-                    $response = Http::timeout(10)->post($apiUrl, $payload);
-
-                    if ($response->successful()) {
-                        $resData = $response->json();
-                        $parts = $resData['candidates'][0]['content']['parts'] ?? [];
-                        $aiText = '';
-                        foreach ($parts as $part) {
-                            if (!empty($part['text'])) {
-                                $aiText .= $part['text'];
-                            }
-                        }
-                        $aiText = trim($aiText);
-
-                        if (empty($aiText) && !empty($parts)) {
-                            $aiText = "টেক ডেন্টালের পরামর্শে আপনাকে স্বাগতম। আপনি যেকোনো দাঁতের চিকিৎসা বা ব্রাঞ্চের তথ্যের জন্য নির্দ্বিধায় মেসেজ করতে পারেন।";
-                        }
-
-                        if (!empty($aiText)) {
-                            DB::table('ai_chat_logs')->insert([
-                                'user_query' => $query,
-                                'reply' => $aiText,
-                                'matched_rule_id' => null,
-                                'source' => 'gemini',
-                                'ip_address' => $request->ip(),
-                                'created_at' => now(),
-                            ]);
-
-                            return response()->json([
-                                'success' => true,
-                                'source' => 'gemini',
-                                'title' => 'টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট (Gemini)',
-                                'reply' => $aiText,
-                                'icon' => 'fa-robot',
-                                'icon_color' => 'text-indigo-600',
-                                'icon_bg' => 'bg-indigo-100',
-                                'action_type' => 'appointment',
-                                'action_label' => 'অনলাইন সিরিয়াল নিন',
-                                'action_url' => '/appointment',
-                            ]);
-                        }
-                    }
-
-                    // If not 404 (model deprecated/not found), break and stop trying
-                    if ($response->status() !== 404) {
-                        Log::error("Gemini API Error for {$model}: " . $response->body());
-                        break;
-                    }
-                } catch (\Exception $e) {
-                    Log::error("Gemini API Exception for {$model}: " . $e->getMessage());
-                }
-            }
-        }
-
         // STEP 3: Fallback Reply
         $fallback = $settings->fallback_reply ?? "টেক ডেন্টালের অভিজ্ঞ সার্জনগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিট সময় বা চিকিৎসকের সাথে কথা বলতে আমাদের হটলাইনে সরাসরি ডায়াল করুন অথবা অনলাইনে সিরিয়াল বুক করুন।";
 
@@ -343,6 +395,99 @@ class AiAssistantController extends Controller
             'action_label' => 'অনলাইন অ্যাপয়েন্টমেন্ট',
             'action_url' => '/appointment',
         ]);
+    }
+
+    /**
+     * Match queries directly against clinic training data knowledge base
+     */
+    protected function matchTrainingDataAnswer(?string $trainingData, string $query): ?array
+    {
+        if (empty($trainingData)) {
+            return null;
+        }
+
+        $qLower = mb_strtolower($query, 'UTF-8');
+        $lines = explode("\n", $trainingData);
+        $matchedLines = [];
+
+        $topics = [
+            'স্কেলিং' => ['স্কেলিং', 'scaling', 'পরিষ্কার', 'ওয়াশ', 'wash'],
+            'রুট ক্যানেল' => ['রুট ক্যানেল', 'rct', 'root canal', 'ব্যথা'],
+            'ক্যাপ' => ['ক্যাপ', 'cap', 'ক্রাউন', 'crown'],
+            'ইমপ্ল্যান্ট' => ['ইমপ্ল্যান্ট', 'implant', 'স্থায়ী কৃত্রিম দাঁত', 'স্থায়ী দাঁত', 'দাঁত বাঁধ'],
+            'ব্রেসেস' => ['ব্রেসেস', 'braces', 'বাঁকা', 'ফাঁকা', 'aligner', 'ক্লিপ', 'সোজা'],
+            'ফিলিং' => ['ফিলিং', 'filling'],
+            'তোলা' => ['তোলা', 'extraction', 'তুলে'],
+            'সাদা' => ['সাদা', 'whitening'],
+            'শিশু' => ['শিশু', 'বাচ্চা', 'kids', 'child'],
+            'মিরপুর' => ['মিরপুর', 'mirpur', 'শেওড়াপাড়া'],
+            'উত্তরা' => ['উত্তরা', 'uttara'],
+            'বাড্ডা' => ['বাড্ডা', 'badda'],
+            'যাত্রাবাড়ী' => ['যাত্রাবাড়ী', 'jatrabari', 'যাত্রাবাড়ি'],
+            'ঠিকানা' => ['ঠিকানা', 'শাখা', 'লোকেশন', 'location', 'branch', 'কোথায়', 'kothay'],
+            'সময়' => ['সময়', 'সময়', 'timing', 'time', 'কখন', 'খোলা'],
+            'খরচ' => ['খরচ', 'ফি', 'প্রাইস', 'price', 'cost', 'টাকা'],
+        ];
+
+        $matchedTopics = [];
+        foreach ($topics as $topic => $words) {
+            foreach ($words as $w) {
+                if (mb_strpos($qLower, $w) !== false) {
+                    $matchedTopics[$topic] = true;
+                    break;
+                }
+            }
+        }
+
+        if (empty($matchedTopics)) {
+            return null;
+        }
+
+        foreach ($lines as $line) {
+            $lineTrim = trim($line);
+            if (empty($lineTrim)) continue;
+
+            foreach ($matchedTopics as $top => $_) {
+                if (mb_stripos($lineTrim, $top) !== false && !str_starts_with($lineTrim, '[')) {
+                    $matchedLines[] = $lineTrim;
+                    break;
+                }
+            }
+        }
+
+        // If user asked generally about cost/price
+        if (empty($matchedLines) && isset($matchedTopics['খরচ'])) {
+            foreach ($lines as $line) {
+                $lineTrim = trim($line);
+                if (str_starts_with($lineTrim, '•')) {
+                    $matchedLines[] = $lineTrim;
+                }
+            }
+        }
+
+        // If user asked generally about branch / locations
+        if (empty($matchedLines) && isset($matchedTopics['ঠিকানা'])) {
+            foreach ($lines as $line) {
+                $lineTrim = trim($line);
+                if (preg_match('/^[১-৪1-4]\./u', $lineTrim)) {
+                    $matchedLines[] = $lineTrim;
+                }
+            }
+        }
+
+        if (empty($matchedLines)) {
+            return null;
+        }
+
+        $matchedLines = array_unique($matchedLines);
+        $extractedText = implode("\n", $matchedLines);
+
+        $reply = "টেক ডেন্টালের ট্রেনিং ডাটা অনুযায়ী আপনার প্রশ্নের তথ্য নিচে দেওয়া হলো:\n\n" . $extractedText . "\n\nআমাদের ৪টি শাখা (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী)-তে প্রতিদিন সকাল ১০টা থেকে রাত ৯টা পর্যন্ত বিশেষজ্ঞ ডাক্তার উপস্থিত থাকেন। সিরিয়াল বা যেকোনো তথ্যের জন্য কল করুন: 01400786162।";
+
+        return [
+            'title' => 'টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট',
+            'reply' => $reply,
+        ];
     }
 
     /**
@@ -400,7 +545,7 @@ class AiAssistantController extends Controller
         }
 
         try {
-            $response = Http::timeout(12)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
+            $response = Http::withoutVerifying()->timeout(12)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -469,7 +614,7 @@ class AiAssistantController extends Controller
 
         // Also attempt to dynamically pull Google's exact active models as backup
         try {
-            $listRes = Http::timeout(6)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
+            $listRes = Http::withoutVerifying()->timeout(6)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
             if ($listRes->successful()) {
                 $onlineModels = $listRes->json()['models'] ?? [];
                 foreach ($onlineModels as $om) {
@@ -507,7 +652,7 @@ class AiAssistantController extends Controller
 
             try {
                 $startTime = microtime(true);
-                $response = Http::timeout(15)->post($apiUrl, $payload);
+                $response = Http::withoutVerifying()->timeout(15)->post($apiUrl, $payload);
                 $latencyMs = round((microtime(true) - $startTime) * 1000);
 
                 if ($response->successful()) {

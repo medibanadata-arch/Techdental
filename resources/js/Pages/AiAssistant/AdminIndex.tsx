@@ -705,8 +705,8 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                             {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>
-                                    <p className="text-[11px] text-slate-400 mt-1">
-                                        গুগল এআই স্টুডিও থেকে ফ্রি Gemini API Key কপি করে এখানে বসিয়ে দিন।
+                                    <p className="text-[11px] text-slate-500 mt-1">
+                                        গুগল এআই স্টুডিও (<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 underline font-semibold">aistudio.google.com/app/apikey</a>) থেকে ফ্রি Gemini API Key কপি করে এখানে বসান (সাধারণত <code className="bg-slate-100 text-slate-800 px-1 py-0.5 rounded font-mono">AIzaSy...</code> দিয়ে শুরু হয়)।
                                     </p>
                                 </div>
 
