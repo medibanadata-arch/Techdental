@@ -259,6 +259,7 @@ Route::post('ai-assistant/rules', [AiAssistantController::class, 'storeRule'])->
 Route::put('ai-assistant/rules/{id}', [AiAssistantController::class, 'updateRule'])->name('ai-assistant.rules.update');
 Route::delete('ai-assistant/rules/{id}', [AiAssistantController::class, 'deleteRule'])->name('ai-assistant.rules.destroy');
 Route::post('ai-assistant/rules/{id}/toggle', [AiAssistantController::class, 'toggleRule'])->name('ai-assistant.rules.toggle');
+Route::post('ai-assistant/test-gemini', [AiAssistantController::class, 'testGemini'])->name('ai-assistant.test');
 });
 
 require __DIR__.'/auth.php';

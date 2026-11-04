@@ -325,5 +325,84 @@ class AiAssistantController extends Controller
             'action_url' => '/appointment',
         ]);
     }
+
+    /**
+     * Test Gemini API Connection directly from Admin Panel
+     */
+    public function testGemini(Request $request)
+    {
+        $settings = DB::table('ai_chat_settings')->first();
+        $apiKey = trim($request->input('gemini_api_key') ?: ($settings->gemini_api_key ?? ''));
+        $model = trim($request->input('gemini_model') ?: ($settings->gemini_model ?? 'gemini-1.5-flash'));
+        $testPrompt = trim($request->input('prompt') ?: 'হ্যালো, আপনি কি টেক ডেন্টালের এআই অ্যাসিস্ট্যান্ট হিসেবে ঠিকমত কাজ করছেন? সংক্ষেপে ১-২ লাইনে মিষ্টি করে বাংলায় উত্তর দিন।');
+        $trainingData = $request->input('training_data') ?: ($settings->training_data ?? '');
+
+        if (empty($apiKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'কোনো Gemini API Key পাওয়া যায়নি! দয়া করে ইনপুট বক্সে আপনার Google Gemini API Key দিন।',
+            ], 422);
+        }
+
+        $instructionText = "ROLE & INSTRUCTIONS: You are Tech Dental's official AI assistant in Dhaka, Bangladesh. Answer politely, accurately, and concisely in Bengali.";
+        if (!empty($trainingData)) {
+            $instructionText .= "\n\n### TECH DENTAL OFFICIAL TRAINING DATA:\n" . mb_substr($trainingData, 0, 3000);
+        }
+
+        $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+        $payload = [
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [
+                        ['text' => "{$instructionText}\n\nPATIENT TEST QUESTION: {$testPrompt}"]
+                    ]
+                ]
+            ],
+            'generationConfig' => [
+                'temperature' => 0.4,
+                'maxOutputTokens' => 300,
+            ]
+        ];
+
+        try {
+            $startTime = microtime(true);
+            $response = Http::timeout(15)->post($apiUrl, $payload);
+            $latencyMs = round((microtime(true) - $startTime) * 1000);
+
+            if ($response->successful()) {
+                $resData = $response->json();
+                $aiText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+                if (!empty($aiText)) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'অভিনন্দন! আপনার Google Gemini API সফলভাবে সংযুক্ত এবং সক্রিয় রয়েছে।',
+                        'reply' => $aiText,
+                        'model' => $model,
+                        'latency_ms' => $latencyMs,
+                        'status_code' => $response->status(),
+                    ]);
+                }
+            }
+
+            $errorData = $response->json();
+            $errorMessage = $errorData['error']['message'] ?? $response->body();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gemini API এরর: ' . $errorMessage,
+                'status_code' => $response->status(),
+                'raw_error' => $errorData,
+            ], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'কানেকশন এরর: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }
 

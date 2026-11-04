@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import axios from 'axios';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     Bot,
@@ -22,7 +23,13 @@ import {
     Hash,
     HelpCircle,
     GraduationCap,
-    BookOpen
+    BookOpen,
+    Zap,
+    Send,
+    Terminal,
+    AlertCircle,
+    Check,
+    Loader2
 } from 'lucide-react';
 
 const DEFAULT_TRAINING_TEMPLATE = `[প্রতিষ্ঠান পরিচিতি]
@@ -128,6 +135,49 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
     const initialChips = useMemoChips(settings?.chips);
     const [chipsList, setChipsList] = useState<string[]>(initialChips);
     const [newChipInput, setNewChipInput] = useState('');
+
+    // API Testing State
+    const [testPrompt, setTestPrompt] = useState('টেক ডেন্টালের শাখা কোথায় এবং স্কেলিং করার খরচ কত?');
+    const [isTesting, setIsTesting] = useState(false);
+    const [testResult, setTestResult] = useState<{
+        success: boolean;
+        message: string;
+        reply?: string;
+        model?: string;
+        latency_ms?: number;
+        status_code?: number;
+        raw_error?: any;
+    } | null>(null);
+
+    const handleRunApiTest = async () => {
+        const keyToTest = geminiForm.gemini_api_key.trim() || settings?.gemini_api_key?.trim();
+        if (!keyToTest) {
+            alert('অনুগ্রহ করে আগে Google Gemini API Key লিখুন অথবা সংরক্ষণ করুন!');
+            return;
+        }
+
+        setIsTesting(true);
+        setTestResult(null);
+
+        try {
+            const res = await axios.post('/ai-assistant/test-gemini', {
+                gemini_api_key: keyToTest,
+                gemini_model: geminiForm.gemini_model,
+                prompt: testPrompt,
+                training_data: geminiForm.training_data,
+            });
+            setTestResult(res.data);
+        } catch (err: any) {
+            setTestResult({
+                success: false,
+                message: err.response?.data?.message || err.message || 'API টেস্ট ব্যর্থ হয়েছে।',
+                status_code: err.response?.status,
+                raw_error: err.response?.data?.raw_error,
+            });
+        } finally {
+            setIsTesting(false);
+        }
+    };
 
     function useMemoChips(raw: any): string[] {
         if (Array.isArray(raw)) return raw;
@@ -529,134 +579,291 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 </div>
                             </div>
 
-                            <button
-                                type="submit"
-                                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm"
-                            >
-                                <Save size={18} />
-                                <span>ট্রেনিং ডাটা সেভ করুন</span>
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm"
+                                >
+                                    <Save size={18} />
+                                    <span>ট্রেনিং ডাটা সেভ করুন</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('gemini')}
+                                    className="px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer text-sm"
+                                >
+                                    <Zap size={16} className="text-yellow-400" />
+                                    <span>লাইভ এআই টেস্ট করুন</span>
+                                </button>
+                            </div>
                         </form>
                     </div>
                 )}
 
-                {/* TAB 2: GEMINI API SETTINGS */}
+                {/* TAB 2: GEMINI API SETTINGS & LIVE TEST CONSOLE */}
                 {activeTab === 'gemini' && (
-                    <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm max-w-3xl">
-                        <form onSubmit={handleSaveGemini} className="space-y-6">
-                            
-                            {/* Toggle Gemini */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start max-w-6xl">
+                        
+                        {/* LEFT: SETTINGS FORM */}
+                        <div className="lg:col-span-7 bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-sm space-y-6">
+                            <div className="border-b border-slate-100 pb-4">
+                                <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                                    <Sparkles className="text-blue-600" size={18} />
+                                    <span>Google Gemini API কনফিগারেশন</span>
+                                </h3>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Gemini AI সক্রিয় থাকলে কিওয়ার্ডের বাইরে যেকোনো প্রশ্নের জন্য এআই স্বয়ংক্রিয় বুদ্ধিমান উত্তর দেবে।
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleSaveGemini} className="space-y-5">
+                                {/* Toggle Gemini */}
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                                    <div>
+                                        <h4 className="font-bold text-slate-900 text-sm">Google Gemini AI সক্রিয় করুন</h4>
+                                        <p className="text-xs text-slate-500 mt-0.5">
+                                            রোগীদের সাধারণ জিজ্ঞাসা ও আলোচনার জন্য এআই চালু থাকবে।
+                                        </p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={geminiForm.gemini_enabled}
+                                            onChange={(e) => setGeminiForm({ ...geminiForm, gemini_enabled: e.target.checked })}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+
+                                {/* Gemini API Key */}
                                 <div>
-                                    <h4 className="font-bold text-slate-900 text-sm">Google Gemini AI সক্রিয় করুন</h4>
-                                    <p className="text-xs text-slate-500 mt-0.5">
-                                        যখন রোগীর প্রশ্ন কোনো কিওয়ার্ডের সাথে মিলবে না, তখন জেমিনি এআই বুদ্ধিমান উত্তর প্রদান করবে।
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                            <Key size={14} className="text-blue-600" />
+                                            <span>Google Gemini API Key</span>
+                                        </label>
+                                        <a
+                                            href="https://aistudio.google.com/app/apikey"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+                                        >
+                                            <span>ফ্রি API Key তৈরি করুন</span>
+                                            <ExternalLink size={12} />
+                                        </a>
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type={showApiKey ? 'text' : 'password'}
+                                            value={geminiForm.gemini_api_key}
+                                            onChange={(e) => setGeminiForm({ ...geminiForm, gemini_api_key: e.target.value })}
+                                            placeholder="AIzaSy..."
+                                            className="w-full px-4 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowApiKey(!showApiKey)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                                        </button>
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-1">
+                                        গুগল এআই স্টুডিও থেকে ফ্রি Gemini API Key কপি করে এখানে বসিয়ে দিন।
                                     </p>
                                 </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={geminiForm.gemini_enabled}
-                                        onChange={(e) => setGeminiForm({ ...geminiForm, gemini_enabled: e.target.checked })}
-                                        className="sr-only peer"
-                                    />
-                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
 
-                            {/* Gemini API Key */}
-                            <div>
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                        <Key size={14} className="text-blue-600" />
-                                        <span>Google Gemini API Key</span>
+                                {/* Gemini Model */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                                        Gemini Model
                                     </label>
-                                    <a
-                                        href="https://aistudio.google.com/app/apikey"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
+                                    <select
+                                        value={geminiForm.gemini_model}
+                                        onChange={(e) => setGeminiForm({ ...geminiForm, gemini_model: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                                     >
-                                        <span>ফ্রি API Key তৈরি করুন</span>
-                                        <ExternalLink size={12} />
-                                    </a>
+                                        <option value="gemini-1.5-flash">gemini-1.5-flash (সবচেয়ে দ্রুত এবং নির্ভুল - Recommended)</option>
+                                        <option value="gemini-2.0-flash">gemini-2.0-flash (লেটেস্ট দ্রুত মডেল)</option>
+                                        <option value="gemini-1.5-pro">gemini-1.5-pro (গভীর ও বিস্তারিত উত্তরের জন্য)</option>
+                                    </select>
                                 </div>
-                                <div className="relative">
-                                    <input
-                                        type={showApiKey ? 'text' : 'password'}
-                                        value={geminiForm.gemini_api_key}
-                                        onChange={(e) => setGeminiForm({ ...geminiForm, gemini_api_key: e.target.value })}
-                                        placeholder="AIzaSy..."
-                                        className="w-full px-4 py-2.5 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono"
+
+                                {/* System Prompt / Context Instructions */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                                        এআই অ্যাসিস্ট্যান্টের নির্দেশিকা (System Instructions / Clinic Context)
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={geminiForm.system_prompt}
+                                        onChange={(e) => setGeminiForm({ ...geminiForm, system_prompt: e.target.value })}
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white leading-relaxed font-sans"
+                                        placeholder="You are Tech Dental's friendly clinic assistant..."
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowApiKey(!showApiKey)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                    >
-                                        {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                                    </button>
+                                    <p className="text-[11px] text-slate-400 mt-1">
+                                        এখানে আপনি আপনার ক্লিনিকের ঠিকানা ও নীতি লিখে দিলে জেমিনি সবসময় সেই তথ্য অনুযায়ী উত্তর দেবে।
+                                    </p>
                                 </div>
-                                <p className="text-[11px] text-slate-400 mt-1">
-                                    গুগল এআই স্টুডিও থেকে ফ্রি Gemini API Key কপি করে এখানে বসিয়ে দিন।
-                                </p>
-                            </div>
 
-                            {/* Gemini Model */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                                    Gemini Model
-                                </label>
-                                <select
-                                    value={geminiForm.gemini_model}
-                                    onChange={(e) => setGeminiForm({ ...geminiForm, gemini_model: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                                {/* Fallback Message */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                                        ডিফল্ট ফলব্যাক উত্তর (Fallback Message)
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        value={geminiForm.fallback_reply}
+                                        onChange={(e) => setGeminiForm({ ...geminiForm, fallback_reply: e.target.value })}
+                                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white leading-relaxed"
+                                    />
+                                </div>
+
+                                {/* Submit */}
+                                <button
+                                    type="submit"
+                                    className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
                                 >
-                                    <option value="gemini-1.5-flash">gemini-1.5-flash (সবচেয়ে দ্রুত এবং নির্ভুল - Recommended)</option>
-                                    <option value="gemini-2.0-flash">gemini-2.0-flash (লেটেস্ট দ্রুত মডেল)</option>
-                                    <option value="gemini-1.5-pro">gemini-1.5-pro (গভীর ও বিস্তারিত উত্তরের জন্য)</option>
-                                </select>
+                                    <Save size={18} />
+                                    <span>সেটিংস সংরক্ষণ করুন</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* RIGHT: LIVE TEST CONSOLE */}
+                        <div className="lg:col-span-5 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 rounded-2xl p-6 text-white border border-slate-800 shadow-xl space-y-5">
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+                                        <Zap size={18} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-sm sm:text-base text-white">লাইভ API টেস্ট কনসোল</h3>
+                                        <p className="text-[11px] text-slate-400">এপিআই ঠিকমত রেসপন্স করছে কিনা পরীক্ষা করুন</p>
+                                    </div>
+                                </div>
+                                <span className={`w-2.5 h-2.5 rounded-full ${testResult?.success ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`}></span>
                             </div>
 
-                            {/* System Prompt / Context Instructions */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                                    এআই অ্যাসিস্ট্যান্টের নির্দেশিকা (System Instructions / Clinic Context)
+                            {/* Test Prompt Input */}
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                                    <span>পরীক্ষামূলক প্রশ্ন লিখুন:</span>
+                                    <span className="text-[10px] text-slate-400 font-mono">Model: {geminiForm.gemini_model}</span>
                                 </label>
-                                <textarea
-                                    rows={4}
-                                    value={geminiForm.system_prompt}
-                                    onChange={(e) => setGeminiForm({ ...geminiForm, system_prompt: e.target.value })}
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white leading-relaxed font-sans"
-                                    placeholder="You are Tech Dental's friendly clinic assistant..."
-                                />
-                                <p className="text-[11px] text-slate-400 mt-1">
-                                    এখানে আপনি আপনার ক্লিনিকের ঠিকানা, বিশেষজ্ঞ ডাক্তারদের সময়সূচি ও নীতি লিখে দিলে জেমিনি সবসময় সেই তথ্য অনুযায়ী উত্তর দেবে।
-                                </p>
+                                <div className="relative">
+                                    <textarea
+                                        rows={3}
+                                        value={testPrompt}
+                                        onChange={(e) => setTestPrompt(e.target.value)}
+                                        placeholder="যেকোনো প্রশ্ন লিখে টেস্ট করুন..."
+                                        className="w-full p-3 bg-slate-800/90 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                {/* Sample Question Quick Chips */}
+                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                    <span className="text-[10px] text-slate-400 self-center">নমুনা:</span>
+                                    {[
+                                        'শাখার ঠিকানা কোথায়?',
+                                        'দাঁতের স্কেলিং খরচ কত?',
+                                        'ডাক্তারের সিরিয়াল কীভাবে নিব?',
+                                    ].map((q, idx) => (
+                                        <button
+                                            key={idx}
+                                            type="button"
+                                            onClick={() => setTestPrompt(q)}
+                                            className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded-md transition cursor-pointer border border-slate-700/60"
+                                        >
+                                            {q}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            {/* Fallback Message */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                                    ডিফল্ট ফলব্যাক উত্তর (Fallback Message)
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    value={geminiForm.fallback_reply}
-                                    onChange={(e) => setGeminiForm({ ...geminiForm, fallback_reply: e.target.value })}
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white leading-relaxed"
-                                />
-                            </div>
-
-                            {/* Submit */}
+                            {/* Test Action Button */}
                             <button
-                                type="submit"
-                                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                                type="button"
+                                onClick={handleRunApiTest}
+                                disabled={isTesting}
+                                className={`w-full py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-md ${
+                                    isTesting
+                                        ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white hover:shadow-blue-500/25'
+                                }`}
                             >
-                                <Save size={18} />
-                                <span>সেটিংস সংরক্ষণ করুন</span>
+                                {isTesting ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={16} />
+                                        <span>Gemini API টেস্ট করা হচ্ছে...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Zap size={16} />
+                                        <span>API কানেকশন টেস্ট করুন (Test Now)</span>
+                                    </>
+                                )}
                             </button>
-                        </form>
+
+                            {/* Result Display Area */}
+                            {testResult && (
+                                <div
+                                    className={`p-4 rounded-xl border text-xs transition-all space-y-2.5 ${
+                                        testResult.success
+                                            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-100'
+                                            : 'bg-rose-950/40 border-rose-500/40 text-rose-100'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between font-bold">
+                                        <div className="flex items-center gap-1.5">
+                                            {testResult.success ? (
+                                                <>
+                                                    <CheckCircle2 size={16} className="text-emerald-400" />
+                                                    <span className="text-emerald-400">কানেকশন সফল!</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <AlertCircle size={16} className="text-rose-400" />
+                                                    <span className="text-rose-400">কানেকশন ব্যর্থ</span>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        {testResult.latency_ms && (
+                                            <span className="text-[10px] font-mono bg-slate-900/80 px-2 py-0.5 rounded text-slate-300 border border-slate-700">
+                                                ⚡ {testResult.latency_ms} ms
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <p className="text-[11px] leading-relaxed opacity-90">
+                                        {testResult.message}
+                                    </p>
+
+                                    {testResult.reply && (
+                                        <div className="mt-2 p-3 bg-slate-900/90 rounded-lg border border-slate-700/80 font-sans text-xs text-slate-200 leading-relaxed max-h-48 overflow-y-auto">
+                                            <div className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-1">
+                                                Gemini লাইভ উত্তর:
+                                            </div>
+                                            {testResult.reply}
+                                        </div>
+                                    )}
+
+                                    {!testResult.success && testResult.raw_error && (
+                                        <div className="mt-2 p-2.5 bg-rose-950/80 rounded border border-rose-800 text-[11px] font-mono text-rose-200 max-h-32 overflow-y-auto">
+                                            {JSON.stringify(testResult.raw_error, null, 2)}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Help / Guidance Box */}
+                            <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+                                💡 <strong className="text-slate-300">দ্রষ্টব্য:</strong> এখানে টেস্ট বাটনে চাপ দিলে আপনার বর্তমান ফর্মে দেওয়া API Key এবং মডেল দিয়ে সরাসরি গুগলের সার্ভারে রিকোয়েস্ট পাঠানো হবে। কোনো এরর থাকলে বিস্তারিত কারণ দেখতে পাবেন।
+                            </div>
+                        </div>
+
                     </div>
                 )}
 
