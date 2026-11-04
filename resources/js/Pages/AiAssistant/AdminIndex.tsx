@@ -122,8 +122,8 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
 
     // Gemini Settings Form State
     const [showApiKey, setShowApiKey] = useState(false);
-    const initialModel = (!settings?.gemini_model || settings.gemini_model === 'gemini-2.0-flash' || settings.gemini_model === 'gemini-2.0')
-        ? 'gemini-2.5-flash'
+    const initialModel = (!settings?.gemini_model || settings.gemini_model.includes('1.5') || settings.gemini_model.includes('2.0'))
+        ? 'gemini-3-flash'
         : settings.gemini_model;
 
     const [geminiForm, setGeminiForm] = useState({
@@ -143,6 +143,9 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
     // API Testing State
     const [testPrompt, setTestPrompt] = useState('টেক ডেন্টালের শাখা কোথায় এবং স্কেলিং করার খরচ কত?');
     const [isTesting, setIsTesting] = useState(false);
+    const [dynamicModels, setDynamicModels] = useState<{ id: string; displayName: string }[]>([]);
+    const [isFetchingModels, setIsFetchingModels] = useState(false);
+    const [customModelMode, setCustomModelMode] = useState(false);
     const [testResult, setTestResult] = useState<{
         success: boolean;
         message: string;
@@ -152,6 +155,32 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
         status_code?: number;
         raw_error?: any;
     } | null>(null);
+
+    const handleFetchModels = async () => {
+        const key = geminiForm.gemini_api_key.trim() || settings?.gemini_api_key?.trim();
+        if (!key) {
+            alert('অনুগ্রহ করে আগে আপনার Google Gemini API Key লিখুন!');
+            return;
+        }
+
+        setIsFetchingModels(true);
+        try {
+            const res = await axios.post('/ai-assistant/fetch-models', { gemini_api_key: key });
+            if (res.data?.success && res.data.models?.length) {
+                setDynamicModels(res.data.models);
+                if (res.data.models[0]?.id) {
+                    setGeminiForm((prev) => ({ ...prev, gemini_model: res.data.models[0].id }));
+                }
+                alert(`গুগল থেকে ${res.data.models.length}টি লাইভ অ্যাক্টিভ মডেল সফলভাবে লোড হয়েছে!`);
+            } else {
+                alert(res.data?.message || 'কোনো মডেল পাওয়া যায়নি।');
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'গুগল থেকে মডেল লোড করা যায়নি।');
+        } finally {
+            setIsFetchingModels(false);
+        }
+    };
 
     const handleRunApiTest = async () => {
         const keyToTest = geminiForm.gemini_api_key.trim() || settings?.gemini_api_key?.trim();
@@ -683,19 +712,69 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
 
                                 {/* Gemini Model */}
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                                        Gemini Model
-                                    </label>
-                                    <select
-                                        value={geminiForm.gemini_model}
-                                        onChange={(e) => setGeminiForm({ ...geminiForm, gemini_model: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-medium"
-                                    >
-                                        <option value="gemini-2.5-flash">gemini-2.5-flash (গুগলের লেটেস্ট দ্রুত মডেল - Recommended)</option>
-                                        <option value="gemini-1.5-flash">gemini-1.5-flash (সবচেয়ে নির্ভরযোগ্য ও দ্রুত)</option>
-                                        <option value="gemini-2.5-pro">gemini-2.5-pro (উন্নত চিন্তন ও গভীর বিশ্লেষণ)</option>
-                                        <option value="gemini-1.5-pro">gemini-1.5-pro (গভীর ও বিস্তারিত উত্তরের জন্য)</option>
-                                    </select>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                            <span>Gemini Model</span>
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleFetchModels}
+                                                disabled={isFetchingModels}
+                                                className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition cursor-pointer"
+                                                title="আপনার গুগল একাউন্টে যে যে মডেল অ্যাক্টিভ আছে সরাসরি লোড করুন"
+                                            >
+                                                <Sparkles size={12} className={isFetchingModels ? 'animate-spin' : ''} />
+                                                <span>{isFetchingModels ? 'লোড হচ্ছে...' : 'লাইভ মডেল ফেচ করুন'}</span>
+                                            </button>
+                                            <span className="text-slate-300">|</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setCustomModelMode(!customModelMode)}
+                                                className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline transition cursor-pointer"
+                                            >
+                                                {customModelMode ? 'লিস্ট থেকে বাছুন' : 'কাস্টম নাম লিখুন'}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {customModelMode ? (
+                                        <input
+                                            type="text"
+                                            value={geminiForm.gemini_model}
+                                            onChange={(e) => setGeminiForm({ ...geminiForm, gemini_model: e.target.value.trim() })}
+                                            placeholder="যেমন: gemini-3.5-flash-lite বা gemini-3-flash"
+                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono"
+                                        />
+                                    ) : (
+                                        <select
+                                            value={geminiForm.gemini_model}
+                                            onChange={(e) => setGeminiForm({ ...geminiForm, gemini_model: e.target.value })}
+                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-medium"
+                                        >
+                                            {dynamicModels.length > 0 && (
+                                                <optgroup label="গুগল লাইভ একাউন্টের মডেলসমূহ">
+                                                    {dynamicModels.map((m) => (
+                                                        <option key={m.id} value={m.id}>
+                                                            {m.displayName} ({m.id})
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            )}
+
+                                            <optgroup label="লেটেস্ট Gemini 3.x ও 2.5 মডেলসমূহ">
+                                                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (সবচেয়ে দ্রুত ও লাইটেস্ট)</option>
+                                                <option value="gemini-3-flash">Gemini 3 Flash (গুগলের নতুন ফ্ল্যাগশিপ দ্রুত মডেল - Recommended)</option>
+                                                <option value="gemini-3.1-pro">Gemini 3.1 Pro (উন্নত চিন্তন ও জটিল রোগ নির্ণয়)</option>
+                                                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (সুপার ফাস্ট)</option>
+                                                <option value="gemini-2.5-flash">Gemini 2.5 Flash (স্ট্যাবল ও দ্রুত)</option>
+                                                <option value="gemini-2.5-pro">Gemini 2.5 Pro (পাওয়ারফুল মডেল)</option>
+                                            </optgroup>
+                                        </select>
+                                    )}
+                                    <p className="text-[11px] text-slate-400 mt-1">
+                                        Google AI Studio-তে প্রদর্শিত আপনার পছন্দের মডেলটি নির্বাচন করুন।
+                                    </p>
                                 </div>
 
                                 {/* System Prompt / Context Instructions */}

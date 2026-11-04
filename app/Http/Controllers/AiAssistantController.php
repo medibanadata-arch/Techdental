@@ -340,24 +340,86 @@ class AiAssistantController extends Controller
     {
         $requested = trim($model ?: '');
 
-        // Auto-migrate deprecated 2.0-flash to 2.5-flash
-        if (in_array($requested, ['gemini-2.0-flash', 'gemini-2.0', 'gemini-2.0-flash-exp'])) {
-            $requested = 'gemini-2.5-flash';
+        // Auto-migrate deprecated 1.5 or 2.0 models to 3.x / 2.5
+        if (in_array($requested, ['gemini-2.0-flash', 'gemini-2.0', 'gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro'])) {
+            $requested = 'gemini-3-flash';
         }
         if (in_array($requested, ['gemini-2.0-pro', 'gemini-2.0-pro-exp'])) {
-            $requested = 'gemini-2.5-pro';
+            $requested = 'gemini-3.1-pro';
         }
 
         $candidates = [];
         if (!empty($requested)) {
             $candidates[] = $requested;
         }
+        // Latest 2026 models from Google AI Studio
+        $candidates[] = 'gemini-3-flash';
+        $candidates[] = 'gemini-3.5-flash-lite';
+        $candidates[] = 'gemini-3.1-flash-lite';
+        $candidates[] = 'gemini-3.1-pro';
         $candidates[] = 'gemini-2.5-flash';
-        $candidates[] = 'gemini-1.5-flash';
         $candidates[] = 'gemini-2.5-pro';
-        $candidates[] = 'gemini-1.5-pro';
 
         return array_values(array_unique($candidates));
+    }
+
+    /**
+     * Fetch Live Available Models directly from Google Gemini API
+     */
+    public function fetchModels(Request $request)
+    {
+        $settings = DB::table('ai_chat_settings')->first();
+        $apiKey = trim($request->input('gemini_api_key') ?: ($settings->gemini_api_key ?? ''));
+
+        if (empty($apiKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'API Key প্রদান করুন',
+                'models' => [],
+            ], 422);
+        }
+
+        try {
+            $response = Http::timeout(12)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $rawModels = $data['models'] ?? [];
+                $filtered = [];
+
+                foreach ($rawModels as $m) {
+                    $methods = $m['supportedGenerationMethods'] ?? [];
+                    if (in_array('generateContent', $methods)) {
+                        $cleanId = str_replace('models/', '', $m['name']);
+                        $filtered[] = [
+                            'id' => $cleanId,
+                            'name' => $cleanId,
+                            'displayName' => $m['displayName'] ?? $cleanId,
+                            'description' => $m['description'] ?? '',
+                        ];
+                    }
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'models' => $filtered,
+                ]);
+            }
+
+            $errorData = $response->json();
+            return response()->json([
+                'success' => false,
+                'message' => 'গুগল মডেল ফেচ ব্যর্থ: ' . ($errorData['error']['message'] ?? $response->body()),
+                'models' => [],
+            ], $response->status());
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'কানেকশন এরর: ' . $e->getMessage(),
+                'models' => [],
+            ], 500);
+        }
     }
 
     /**
@@ -367,7 +429,7 @@ class AiAssistantController extends Controller
     {
         $settings = DB::table('ai_chat_settings')->first();
         $apiKey = trim($request->input('gemini_api_key') ?: ($settings->gemini_api_key ?? ''));
-        $requestedModel = trim($request->input('gemini_model') ?: ($settings->gemini_model ?? 'gemini-2.5-flash'));
+        $requestedModel = trim($request->input('gemini_model') ?: ($settings->gemini_model ?? 'gemini-3-flash'));
         $testPrompt = trim($request->input('prompt') ?: 'হ্যালো, আপনি কি টেক ডেন্টালের এআই অ্যাসিস্ট্যান্ট হিসেবে ঠিকমত কাজ করছেন? সংক্ষেপে ১-২ লাইনে মিষ্টি করে বাংলায় উত্তর দিন।');
         $trainingData = $request->input('training_data') ?: ($settings->training_data ?? '');
 
@@ -384,6 +446,29 @@ class AiAssistantController extends Controller
         }
 
         $candidateModels = $this->resolveGeminiModelCandidates($requestedModel);
+
+        // Also attempt to dynamically pull Google's exact active models if needed
+        try {
+            $listRes = Http::timeout(8)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
+            if ($listRes->successful()) {
+                $onlineModels = $listRes->json()['models'] ?? [];
+                foreach ($onlineModels as $om) {
+                    if (in_array('generateContent', $om['supportedGenerationMethods'] ?? [])) {
+                        $cId = str_replace('models/', '', $om['name']);
+                        // Prioritize flash models
+                        if (str_contains($cId, 'flash')) {
+                            array_unshift($candidateModels, $cId);
+                        } else {
+                            $candidateModels[] = $cId;
+                        }
+                    }
+                }
+                $candidateModels = array_values(array_unique($candidateModels));
+            }
+        } catch (\Exception $e) {
+            // Ignore listModels error and proceed with candidate array
+        }
+
         $lastError = null;
         $lastErrorCode = 400;
 
@@ -424,7 +509,7 @@ class AiAssistantController extends Controller
                         }
 
                         $note = ($model !== $requestedModel)
-                            ? " (অপ্রচলিত {$requestedModel}-এর বদলে গুগল প্রস্তাবিত নতুন মডেল {$model} সফলভাবে সংযুক্ত হয়েছে)"
+                            ? " (অপ্রচলিত মডেলের বদলে অ্যাক্টিভ মডেল '{$model}' সফলভাবে ব্যবহৃত হয়েছে)"
                             : "";
 
                         return response()->json([

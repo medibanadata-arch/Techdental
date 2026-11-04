@@ -260,6 +260,7 @@ Route::put('ai-assistant/rules/{id}', [AiAssistantController::class, 'updateRule
 Route::delete('ai-assistant/rules/{id}', [AiAssistantController::class, 'deleteRule'])->name('ai-assistant.rules.destroy');
 Route::post('ai-assistant/rules/{id}/toggle', [AiAssistantController::class, 'toggleRule'])->name('ai-assistant.rules.toggle');
 Route::post('ai-assistant/test-gemini', [AiAssistantController::class, 'testGemini'])->name('ai-assistant.test');
+Route::post('ai-assistant/fetch-models', [AiAssistantController::class, 'fetchModels'])->name('ai-assistant.models');
 });
 
 require __DIR__.'/auth.php';
