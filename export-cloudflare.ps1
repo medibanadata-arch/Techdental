@@ -57,3 +57,4 @@ $redirectsContent = @"
 Set-Content -Path "$outDir\_redirects" -Value $redirectsContent -Encoding UTF8
 
 Write-Host "Cloudflare export completed successfully in $outDir!"
+
