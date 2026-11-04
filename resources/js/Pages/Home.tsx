@@ -54,6 +54,7 @@ export default function Home({
 }: HomeProps) {
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const [aiInputValue, setAiInputValue] = useState("");
+  const [lastQuery, setLastQuery] = useState("");
   const [currentAnswer, setCurrentAnswer] = useState<AiAnswer | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -177,7 +178,6 @@ export default function Home({
 
   // Handle Question Chips & AI input
   const handleSelectSuggestion = (text: string) => {
-    setAiInputValue(text);
     processAIQuestion(text);
   };
 
@@ -189,6 +189,7 @@ export default function Home({
 
   const handleClearAnswer = () => {
     setAiInputValue("");
+    setLastQuery("");
     setCurrentAnswer(null);
     setIsAiLoading(false);
   };
@@ -210,7 +211,9 @@ export default function Home({
   // Connected to Backend API: checks admin keywords first, then Gemini AI, then fallback
   const processAIQuestion = async (query: string) => {
     if (!query.trim()) return;
-    setAiInputValue(query.trim());
+    const cleanQuery = query.trim();
+    setLastQuery(cleanQuery);
+    setAiInputValue("");
     setIsAiLoading(true);
     setCurrentAnswer(null);
 
@@ -221,7 +224,7 @@ export default function Home({
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
-        body: JSON.stringify({ query: query.trim() }),
+        body: JSON.stringify({ query: cleanQuery }),
       });
 
       const data = await res.json();
@@ -247,7 +250,7 @@ export default function Home({
     // Fallback if offline/network issue
     setCurrentAnswer({
       title: "টেক ডেন্টাল এআই হেল্পডেস্ক",
-      reply: `আপনার প্রশ্ন: "${query}"\n\nটেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (01400786162) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
+      reply: `আপনার প্রশ্ন: "${cleanQuery}"\n\nটেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (01400786162) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
       icon: "fa-robot",
       iconColor: "text-blue-600",
       iconBg: "bg-blue-100",
@@ -336,69 +339,25 @@ export default function Home({
             ))}
           </div>
 
-          {/* Unified AI Ask Box & Answer Card — Directly connected to the top search field */}
+          {/* Unified AI Ask Box & Answer Card — Answer on TOP (opore), Message box at BOTTOM (niche)! */}
           <div
             className={`w-full relative shadow-xl shadow-blue-500/5 bg-white border border-slate-200/90 transition-all duration-300 text-left ${
               currentAnswer || isAiLoading ? "rounded-[24px] md:rounded-[28px]" : "rounded-full"
             }`}
           >
-            {/* Top Search Input Bar */}
-            <form
-              onSubmit={handleAISubmit}
-              className="w-full flex items-center px-5 md:px-6 py-3.5 md:py-4 transition-all"
-            >
-              <div className="text-blue-500 mr-3 shrink-0">
-                <i className="fa-solid fa-sparkles text-lg" />
-              </div>
-              <input
-                type="text"
-                id="aiInput"
-                value={aiInputValue}
-                onChange={(e) => setAiInputValue(e.target.value)}
-                placeholder="খরচ, ঠিকানা, ডাক্তার..."
-                className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base md:text-lg focus:outline-none"
-              />
-
-              {/* Clear (✕) Button */}
-              {(aiInputValue || currentAnswer || isAiLoading) && (
-                <button
-                  type="button"
-                  onClick={handleClearAnswer}
-                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition mr-1 cursor-pointer"
-                  title="ক্লিয়ার করুন"
-                >
-                  <i className="fa-solid fa-xmark text-lg" />
-                </button>
-              )}
-
-              {/* Submit / Loading Button */}
-              <button
-                type="submit"
-                disabled={isAiLoading || !aiInputValue.trim()}
-                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-blue-600 disabled:opacity-40 transition shrink-0 cursor-pointer"
-                aria-label="Send query"
-              >
-                {isAiLoading ? (
-                  <i className="fa-solid fa-circle-notch fa-spin text-lg text-blue-600" />
-                ) : (
-                  <i className="fa-solid fa-paper-plane text-xl md:text-lg" />
-                )}
-              </button>
-            </form>
-
-            {/* Attached Answer Panel — Right inside the search field! */}
+            {/* 1. Answer (or loading state) comes at the TOP (opore) */}
             {(isAiLoading || currentAnswer) && (
-              <div className="border-t border-slate-100 p-5 md:p-6 transition-all duration-200">
+              <div className="p-5 md:p-6 pb-4 transition-all duration-200">
                 {isAiLoading ? (
                   /* Loading State */
-                  <div className="flex items-center gap-3 py-2">
+                  <div className="flex items-center gap-3 py-3">
                     <div className="flex items-center gap-1.5">
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
                       <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                     <span className="text-sm text-slate-600 font-medium">
-                      "{aiInputValue}" - সম্পর্কিত তথ্য অনুসন্ধান করা হচ্ছে...
+                      {lastQuery ? `"${lastQuery}" - সম্পর্কিত তথ্য অনুসন্ধান করা হচ্ছে...` : "উত্তর অনুসন্ধান করা হচ্ছে..."}
                     </span>
                   </div>
                 ) : currentAnswer ? (
@@ -410,9 +369,14 @@ export default function Home({
                         <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
                           <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
                         </div>
-                        <h3 className="text-sm md:text-base font-bold text-slate-900">
-                          {currentAnswer.title}
-                        </h3>
+                        <div>
+                          <h3 className="text-sm md:text-base font-bold text-slate-900 leading-tight">
+                            {currentAnswer.title}
+                          </h3>
+                          {lastQuery && (
+                            <p className="text-[11px] text-slate-400">প্রশ্ন: "{lastQuery}"</p>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -496,6 +460,54 @@ export default function Home({
                 ) : null}
               </div>
             )}
+
+            {/* 2. Message / Input Box comes at the BOTTOM (niche) */}
+            <form
+              onSubmit={handleAISubmit}
+              className={`w-full flex items-center px-5 md:px-6 py-3.5 md:py-4 transition-all ${
+                currentAnswer || isAiLoading
+                  ? "border-t border-slate-100 bg-slate-50/60 rounded-b-[24px] md:rounded-b-[28px]"
+                  : "rounded-full"
+              }`}
+            >
+              <div className="text-blue-500 mr-3 shrink-0">
+                <i className="fa-solid fa-sparkles text-lg" />
+              </div>
+              <input
+                type="text"
+                id="aiInput"
+                value={aiInputValue}
+                onChange={(e) => setAiInputValue(e.target.value)}
+                placeholder={currentAnswer ? "পরবর্তী প্রশ্ন লিখুন... (যেমন: খরচ, শাখা, ডাক্তার)" : "খরচ, ঠিকানা, ডাক্তার..."}
+                className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base md:text-lg focus:outline-none"
+              />
+
+              {/* Clear (✕) Button if input is typed */}
+              {aiInputValue && (
+                <button
+                  type="button"
+                  onClick={() => setAiInputValue("")}
+                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition mr-1 cursor-pointer"
+                  title="মুছে ফেলুন"
+                >
+                  <i className="fa-solid fa-xmark text-lg" />
+                </button>
+              )}
+
+              {/* Submit / Loading Button */}
+              <button
+                type="submit"
+                disabled={isAiLoading || !aiInputValue.trim()}
+                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-blue-600 disabled:opacity-40 transition shrink-0 cursor-pointer"
+                aria-label="Send query"
+              >
+                {isAiLoading ? (
+                  <i className="fa-solid fa-circle-notch fa-spin text-lg text-blue-600" />
+                ) : (
+                  <i className="fa-solid fa-paper-plane text-xl md:text-lg" />
+                )}
+              </button>
+            </form>
           </div>
         </header>
 
