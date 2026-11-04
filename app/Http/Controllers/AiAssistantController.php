@@ -55,6 +55,7 @@ class AiAssistantController extends Controller
         $request->validate([
             'gemini_model' => 'required|string',
             'system_prompt' => 'nullable|string',
+            'training_data' => 'nullable|string',
             'fallback_reply' => 'nullable|string',
         ]);
 
@@ -70,13 +71,14 @@ class AiAssistantController extends Controller
                 'gemini_model' => $request->input('gemini_model', 'gemini-1.5-flash'),
                 'gemini_enabled' => (bool)$request->input('gemini_enabled', false),
                 'system_prompt' => $request->input('system_prompt'),
+                'training_data' => $request->input('training_data'),
                 'chips' => json_encode($chips ?: ["শাখার ঠিকানা কোথায়?", "ফাঁকা দাঁতের চিকিৎসা", "দাঁত ব্যথার চিকিৎসা"], JSON_UNESCAPED_UNICODE),
                 'fallback_reply' => $request->input('fallback_reply'),
                 'updated_at' => now(),
             ]
         );
 
-        return back()->with('success', 'AI Assistant সেটিংস সফলভাবে সংরক্ষিত হয়েছে।');
+        return back()->with('success', 'AI Assistant সেটিংস ও ট্রেনিং ডাটা সফলভাবে সংরক্ষিত হয়েছে।');
     }
 
     /**
@@ -237,6 +239,12 @@ class AiAssistantController extends Controller
                 $model = $settings->gemini_model ?: 'gemini-1.5-flash';
                 $apiKey = $settings->gemini_api_key;
                 $systemPrompt = $settings->system_prompt ?: "You are Tech Dental's helpful Bengali AI assistant for patients in Dhaka. Answer clearly and concisely in Bengali. Branches: Mirpur, Uttara, Badda, Jatrabari. Hotline: 01400786162.";
+                $trainingData = $settings->training_data ?? '';
+
+                $instructionText = "ROLE & INSTRUCTIONS FOR DENTAL AI ASSISTANT:\n{$systemPrompt}";
+                if (!empty($trainingData)) {
+                    $instructionText .= "\n\n### TECH DENTAL OFFICIAL COMPANY TRAINING DATA & KNOWLEDGE BASE:\n{$trainingData}\n\nSTRICT GUIDELINE: Always prioritize the above official company training data when answering questions about branches, services, doctor availability, costs, and clinic policies. Answer in clear, polite Bengali.";
+                }
 
                 $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
@@ -245,13 +253,13 @@ class AiAssistantController extends Controller
                         [
                             'role' => 'user',
                             'parts' => [
-                                ['text' => "Instructions for Assistant: {$systemPrompt}\n\nPatient Question: {$query}"]
+                                ['text' => "{$instructionText}\n\nPATIENT QUERY: {$query}"]
                             ]
                         ]
                     ],
                     'generationConfig' => [
                         'temperature' => 0.4,
-                        'maxOutputTokens' => 600,
+                        'maxOutputTokens' => 700,
                     ]
                 ];
 

@@ -20,8 +20,37 @@ import {
     ExternalLink,
     Clock,
     Hash,
-    HelpCircle
+    HelpCircle,
+    GraduationCap,
+    BookOpen
 } from 'lucide-react';
+
+const DEFAULT_TRAINING_TEMPLATE = `[প্রতিষ্ঠান পরিচিতি]
+প্রতিষ্ঠান: টেক ডেন্টাল কেয়ার (Tech Dental Care)
+হটলাইন: 01400786162
+ওয়েবসাইট: techdentalcare.com
+রোগী দেখার সময়সূচী: প্রতিদিন সকাল ১০:০০ টা থেকে রাত ৯:০০ টা পর্যন্ত (শুক্রবার সাপ্তাহিক ছুটি)।
+
+[শাখাসমূহ ও লোকেশন]
+১. মিরপুর শাখা: ৮২৭ (২য় তলা), শেওড়াপাড়া, বেগম রোকেয়া সরণি, ঢাকা (মেট্রোরেল ৩১৮ নং পিলারের পূর্ব পাশে)। ফোন: 01400786162
+২. উত্তরা শাখা: হাউস ১৮, রোড ১৪, সেক্টর ৩, উত্তরা, ঢাকা। ফোন: 01400786162
+৩. বাড্ডা শাখা: হাজী আব্দুর রশিদ ম্যানশন (৩য় তলা), উত্তর বাড্ডা বাজার, ঢাকা। ফোন: 01400786162
+৪. যাত্রাবাড়ী শাখা: শহীদ ফারুক রোড, দক্ষিণ যাত্রাবাড়ী, ঢাকা। ফোন: 01400786162
+
+[চিকিৎসা সেবা ও আনুমানিক খরচ তালিকা]
+• ডেন্টাল স্কেলিং ও পলিশিং (দাঁত পরিষ্কার): ১,০০০ - ২,০০০ টাকা
+• রুট ক্যানেল ট্রিটমেন্ট (RCT): ৩,৫০০ - ৫,৫০০ টাকা (দাঁতের অবস্থা ভেদে)
+• ডেন্টাল ক্যাপ / ক্রাউন (পোরসেলিন / জিরকোনিয়া): ৩,০০০ - ১০,০০০ টাকা
+• দাঁত তোলা (Simple & Surgical Extraction): ১,০০০ - ৪,০০০ টাকা
+• দাঁত ফিলিং (Composite / Laser Filling): ১,০০০ - ২,৫০০ টাকা
+• ডেন্টাল ইমপ্ল্যান্ট (স্থায়ী কৃত্রিম দাঁত): ৩৫,০০০ - ৬০,০০০ টাকা
+• অর্থোডন্টিক ব্রেসেস ও ক্লিয়ার অ্যালাইনার্স: ৬০,০০০ - ১,৫০,০০০ টাকা
+
+[ক্লিনিকের বিশেষ সুবিধা ও পলিসি]
+• আধুনিক ব্যথামুক্ত চিকিৎসা ও আন্তর্জাতিক মানের মাইক্রোস্কোপিক টেকনোলজি
+• ওপিজি (OPG) ও আধুনিক ডিজিটাল এক্স-রে সুবিধা
+• শতভাগ জীবাণুমুক্ত স্টেরিলাইজেশন প্রটোকল
+• অনলাইনে অগ্রিম সিরিয়াল বুকিং ও ফ্রি ডেন্টাল চেকআপ পরামর্শ`;
 
 interface RuleItem {
     id: number;
@@ -46,6 +75,7 @@ interface ChatSettings {
     gemini_model?: string;
     gemini_enabled?: boolean;
     system_prompt?: string;
+    training_data?: string;
     chips?: string | string[];
     fallback_reply?: string;
 }
@@ -67,7 +97,7 @@ interface Props {
 }
 
 export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] }: Props) {
-    const [activeTab, setActiveTab] = useState<'rules' | 'gemini' | 'chips' | 'logs'>('rules');
+    const [activeTab, setActiveTab] = useState<'rules' | 'training' | 'gemini' | 'chips' | 'logs'>('rules');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Rule Modal State
@@ -90,6 +120,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
         gemini_model: settings?.gemini_model || 'gemini-1.5-flash',
         gemini_enabled: Boolean(settings?.gemini_enabled),
         system_prompt: settings?.system_prompt || '',
+        training_data: settings?.training_data || DEFAULT_TRAINING_TEMPLATE,
         fallback_reply: settings?.fallback_reply || '',
     });
 
@@ -273,6 +304,19 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
 
                     <button
                         type="button"
+                        onClick={() => setActiveTab('training')}
+                        className={`px-4 py-2.5 text-sm font-bold rounded-xl transition flex items-center gap-2 cursor-pointer ${
+                            activeTab === 'training'
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        }`}
+                    >
+                        <GraduationCap size={16} />
+                        <span>কোম্পানি ট্রেনিং ডাটা (Knowledge Base)</span>
+                    </button>
+
+                    <button
+                        type="button"
                         onClick={() => setActiveTab('gemini')}
                         className={`px-4 py-2.5 text-sm font-bold rounded-xl transition flex items-center gap-2 cursor-pointer ${
                             activeTab === 'gemini'
@@ -420,6 +464,79 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 );
                             })}
                         </div>
+                    </div>
+                )}
+
+                {/* TAB: COMPANY TRAINING DATA (KNOWLEDGE BASE) */}
+                {activeTab === 'training' && (
+                    <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-sm max-w-4xl space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+                            <div>
+                                <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+                                    <GraduationCap className="text-blue-600" size={22} />
+                                    <span>কোম্পানি ট্রেনিং ডাটা ও নলেজবেস (Company Knowledge Base)</span>
+                                </h3>
+                                <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                                    এখানে আপনার প্রতিষ্ঠানের সকল তথ্য (ব্রাঞ্চ, ডাক্তার, সেবা, খরচের তালিকা, ডিসকাউন্ট, নিয়ম) লিখে রাখুন। Gemini AI স্বয়ংক্রিয়ভাবে এই তথ্য মুখস্থ/ট্রেনিং করে রোগীদের সঠিক উত্তর দেবে।
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (confirm('আপনি কি ডিফল্ট টেক ডেন্টাল তথ্য টেমপ্লেট লোড করতে চান?')) {
+                                        setGeminiForm({ ...geminiForm, training_data: DEFAULT_TRAINING_TEMPLATE });
+                                    }
+                                }}
+                                className="px-3.5 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer"
+                            >
+                                <Sparkles size={14} />
+                                <span>ক্লিনিক টেমপ্লেট লোড করুন</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveGemini} className="space-y-6">
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                                        <span>বিস্তারিত ট্রেনিং টেক্সট / নলেজবেস</span>
+                                        <span className="text-[11px] font-normal text-slate-400">
+                                            (বাংলা বা ইংরেজি যেকোনো ভাষায় লিখতে পারেন)
+                                        </span>
+                                    </label>
+                                    <span className="text-xs font-mono font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
+                                        {(geminiForm.training_data || '').length} অক্ষর
+                                    </span>
+                                </div>
+
+                                <textarea
+                                    rows={18}
+                                    value={geminiForm.training_data}
+                                    onChange={(e) => setGeminiForm({ ...geminiForm, training_data: e.target.value })}
+                                    className="w-full p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-sans leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-slate-800 transition shadow-inner"
+                                    placeholder="এখানে আপনার ক্লিনিকের বিস্তারিত তথ্য দিন, যেমন:
+১. শাখা ও ঠিকানা
+২. চিকিৎসা ও সম্ভাব্য খরচ (স্কেলিং, রুট ক্যানেল, ক্যাপ, ইমপ্ল্যান্ট ইত্যাদি)
+৩. ডাক্তারের নাম ও ভিজিটের নিয়ম
+৪. হটলাইন ও হেল্পলাইন..."
+                                />
+                            </div>
+
+                            <div className="bg-sky-50 border border-sky-200/70 rounded-xl p-4 text-xs text-sky-900 leading-relaxed flex items-start gap-3">
+                                <Sparkles className="text-sky-600 shrink-0 mt-0.5" size={18} />
+                                <div>
+                                    <strong className="font-bold">টিপস: </strong>
+                                    এখানে যত স্পষ্ট ও বিস্তারিত তথ্য (যেমন: চিকিৎসা খরচ কত, কোন শাখার ঠিকানা কী, কখন ডাক্তার বসেন) লিখে রাখবেন, রোগীদের প্রশ্নের উত্তরে এআই তত নিখুঁত ও প্রফেশনাল উত্তর প্রদান করবে।
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm"
+                            >
+                                <Save size={18} />
+                                <span>ট্রেনিং ডাটা সেভ করুন</span>
+                            </button>
+                        </form>
                     </div>
                 )}
 
