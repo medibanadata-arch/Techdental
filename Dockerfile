@@ -7,13 +7,14 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     freetype-dev \
     libzip-dev \
+    icu-dev \
     zip \
     unzip \
     git
 
-# Install PHP extensions for Laravel & SQLite
+# Install PHP extensions for Laravel & Filament
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_sqlite zip bcmath opcache
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_sqlite zip bcmath opcache intl
 
 # Copy Composer from official image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -24,7 +25,7 @@ WORKDIR /app
 COPY . /app
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
 # Ensure database and storage directories and permissions
 RUN touch /app/database/database.sqlite \
