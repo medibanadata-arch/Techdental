@@ -30,11 +30,9 @@ interface ModalState {
   onAction?: () => void;
 }
 
-export interface ChatMessage {
-  id: string;
-  sender: 'user' | 'ai';
-  text: string;
-  title?: string;
+export interface AiAnswer {
+  title: string;
+  reply: string;
   icon?: string;
   iconColor?: string;
   iconBg?: string;
@@ -42,7 +40,6 @@ export interface ChatMessage {
   actionType?: string;
   actionLabel?: string;
   actionUrl?: string;
-  timestamp: string;
 }
 
 export default function Home({
@@ -57,15 +54,10 @@ export default function Home({
 }: HomeProps) {
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const [aiInputValue, setAiInputValue] = useState("");
-  const [chatInputValue, setChatInputValue] = useState("");
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
-
-  // Conversational Chat Messages (Gemini / ChatGPT style)
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [currentAnswer, setCurrentAnswer] = useState<AiAnswer | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   // Modal State for external actions
   const [modal, setModal] = useState<ModalState>({
@@ -185,6 +177,7 @@ export default function Home({
 
   // Handle Question Chips & AI input
   const handleSelectSuggestion = (text: string) => {
+    setAiInputValue(text);
     processAIQuestion(text);
   };
 
@@ -192,31 +185,23 @@ export default function Home({
     if (e) e.preventDefault();
     if (!aiInputValue.trim()) return;
     processAIQuestion(aiInputValue.trim());
+  };
+
+  const handleClearAnswer = () => {
     setAiInputValue("");
+    setCurrentAnswer(null);
+    setIsAiLoading(false);
   };
 
-  const handleChatSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!chatInputValue.trim()) return;
-    processAIQuestion(chatInputValue.trim());
-    setChatInputValue("");
-  };
-
-  const handleResetChat = () => {
-    setChatMessages([]);
-    setAiInputValue("");
-    setChatInputValue("");
-  };
-
-  const handleMessageAction = (msg: ChatMessage) => {
-    if (msg.actionType === "directions") {
+  const handleAnswerAction = (ans: AiAnswer) => {
+    if (ans.actionType === "directions") {
       setIsBranchPickerOpen(true);
-    } else if (msg.actionType === "call") {
+    } else if (ans.actionType === "call") {
       window.location.href = `tel:${hotline}`;
-    } else if (msg.actionType === "whatsapp") {
+    } else if (ans.actionType === "whatsapp") {
       window.open(waUrl, "_blank");
-    } else if (msg.actionUrl && msg.actionUrl.startsWith("http")) {
-      window.open(msg.actionUrl, "_blank");
+    } else if (ans.actionUrl && ans.actionUrl.startsWith("http")) {
+      window.open(ans.actionUrl, "_blank");
     } else {
       setIsAppointmentOpen(true);
     }
@@ -225,20 +210,9 @@ export default function Home({
   // Connected to Backend API: checks admin keywords first, then Gemini AI, then fallback
   const processAIQuestion = async (query: string) => {
     if (!query.trim()) return;
-
-    const userMessage: ChatMessage = {
-      id: "u_" + Date.now(),
-      sender: "user",
-      text: query.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setChatMessages((prev) => [...prev, userMessage]);
+    setAiInputValue(query.trim());
     setIsAiLoading(true);
-
-    setTimeout(() => {
-      chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 80);
+    setCurrentAnswer(null);
 
     try {
       const res = await fetch("/api/ai-chat", {
@@ -252,11 +226,9 @@ export default function Home({
 
       const data = await res.json();
       if (data && data.reply) {
-        const aiMessage: ChatMessage = {
-          id: "ai_" + Date.now(),
-          sender: "ai",
-          text: data.reply,
-          title: data.title || "টেক ডেন্টাল এআই",
+        setCurrentAnswer({
+          title: data.title || "টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট",
+          reply: data.reply,
           icon: data.icon || "fa-sparkles",
           iconColor: data.icon_color || "text-blue-600",
           iconBg: data.icon_bg || "bg-blue-100",
@@ -264,13 +236,8 @@ export default function Home({
           actionType: data.action_type || "none",
           actionLabel: data.action_label,
           actionUrl: data.action_url,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-        setChatMessages((prev) => [...prev, aiMessage]);
+        });
         setIsAiLoading(false);
-        setTimeout(() => {
-          chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 120);
         return;
       }
     } catch (err) {
@@ -278,11 +245,9 @@ export default function Home({
     }
 
     // Fallback if offline/network issue
-    const fallbackMessage: ChatMessage = {
-      id: "ai_" + Date.now(),
-      sender: "ai",
-      text: `আপনার প্রশ্ন: "${query}"\n\nটেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (01400786162) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
+    setCurrentAnswer({
       title: "টেক ডেন্টাল এআই হেল্পডেস্ক",
+      reply: `আপনার প্রশ্ন: "${query}"\n\nটেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (01400786162) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
       icon: "fa-robot",
       iconColor: "text-blue-600",
       iconBg: "bg-blue-100",
@@ -290,13 +255,8 @@ export default function Home({
       actionType: "appointment",
       actionLabel: "অনলাইন অ্যাপয়েন্টমেন্ট",
       actionUrl: "/appointment",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setChatMessages((prev) => [...prev, fallbackMessage]);
+    });
     setIsAiLoading(false);
-    setTimeout(() => {
-      chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 120);
   };
 
   // Action Buttons Modals
@@ -376,195 +336,167 @@ export default function Home({
             ))}
           </div>
 
-          {/* AI Ask Box / Message Box */}
-          <form
-            onSubmit={handleAISubmit}
-            className="w-full relative shadow-xl shadow-blue-500/5 rounded-full border border-slate-200/80 bg-white flex items-center px-6 py-3.5 md:py-4 transition-all focus-within:ring-2 focus-within:ring-blue-400 focus-within:border-transparent"
+          {/* Unified AI Ask Box & Answer Card — Directly connected to the top search field */}
+          <div
+            className={`w-full relative shadow-xl shadow-blue-500/5 bg-white border border-slate-200/90 transition-all duration-300 text-left ${
+              currentAnswer || isAiLoading ? "rounded-[24px] md:rounded-[28px]" : "rounded-full"
+            }`}
           >
-            <input
-              type="text"
-              id="aiInput"
-              value={aiInputValue}
-              onChange={(e) => setAiInputValue(e.target.value)}
-              placeholder="খরচ, ঠিকানা, ডাক্তার..."
-              className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base md:text-lg focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-blue-600 transition ml-2 shrink-0 cursor-pointer"
-              aria-label="Send query"
+            {/* Top Search Input Bar */}
+            <form
+              onSubmit={handleAISubmit}
+              className="w-full flex items-center px-5 md:px-6 py-3.5 md:py-4 transition-all"
             >
-              <i className="fa-solid fa-paper-plane text-xl md:text-lg" />
-            </button>
-          </form>
+              <div className="text-blue-500 mr-3 shrink-0">
+                <i className="fa-solid fa-sparkles text-lg" />
+              </div>
+              <input
+                type="text"
+                id="aiInput"
+                value={aiInputValue}
+                onChange={(e) => setAiInputValue(e.target.value)}
+                placeholder="খরচ, ঠিকানা, ডাক্তার..."
+                className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base md:text-lg focus:outline-none"
+              />
 
-          {/* Gemini & ChatGPT-style Conversation Stream right below the AI Input */}
-          {chatMessages.length > 0 && (
-            <div
-              ref={chatContainerRef}
-              className="w-full mt-6 bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/90 shadow-2xl shadow-blue-500/10 overflow-hidden text-left transition-all duration-300"
-            >
-              {/* Header Bar */}
-              <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center text-white shadow-sm">
-                    <i className="fa-solid fa-sparkles text-sm animate-pulse" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm md:text-base font-bold leading-tight flex items-center gap-2">
-                      টেক ডেন্টাল এআই কনভার্সেশন
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    </h3>
-                    <p className="text-[11px] text-blue-200/80">Gemini & কিওয়ার্ড নলেজবেস দ্বারা সংযুক্ত</p>
-                  </div>
-                </div>
-
+              {/* Clear (✕) Button */}
+              {(aiInputValue || currentAnswer || isAiLoading) && (
                 <button
                   type="button"
-                  onClick={handleResetChat}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-full transition cursor-pointer"
-                  title="নতুন কথোপকথন শুরু করুন"
+                  onClick={handleClearAnswer}
+                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition mr-1 cursor-pointer"
+                  title="ক্লিয়ার করুন"
                 >
-                  <i className="fa-solid fa-arrows-rotate text-[11px]" />
-                  <span>নতুন চ্যাট</span>
+                  <i className="fa-solid fa-xmark text-lg" />
                 </button>
-              </div>
+              )}
 
-              {/* Message List */}
-              <div className="p-4 md:p-6 max-h-[460px] overflow-y-auto space-y-4 bg-gradient-to-b from-slate-50/50 to-white hide-scrollbar">
-                {chatMessages.map((msg) => (
-                  <div key={msg.id}>
-                    {msg.sender === "user" ? (
-                      /* User Message Bubble */
-                      <div className="flex justify-end items-end gap-2.5 pl-8">
-                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-2xl rounded-tr-xs shadow-md shadow-blue-500/15 text-sm md:text-base leading-relaxed break-words">
-                          <p className="font-normal">{msg.text}</p>
-                          <span className="block text-[10px] text-blue-100 text-right mt-1 opacity-80">{msg.timestamp}</span>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                          <i className="fa-solid fa-user" />
-                        </div>
-                      </div>
-                    ) : (
-                      /* AI Message Bubble */
-                      <div className="flex justify-start items-start gap-3 pr-4 md:pr-10">
-                        <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-blue-500/25 shrink-0 mt-0.5">
-                          <i className={`fa-solid ${msg.icon || 'fa-tooth'} text-sm`} />
-                        </div>
-                        <div className="w-full bg-white border border-slate-200/90 rounded-2xl rounded-tl-xs p-4 md:p-5 shadow-sm">
-                          <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
-                            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                              {msg.title || "টেক ডেন্টাল এআই"}
-                            </span>
-                            {msg.source && (
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                                msg.source === 'gemini' 
-                                  ? 'bg-purple-50 text-purple-700 border border-purple-200' 
-                                  : msg.source === 'keyword'
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-blue-50 text-blue-700 border border-blue-200'
-                              }`}>
-                                {msg.source === 'gemini' ? '✨ জেমিনি এআই' : msg.source === 'keyword' ? '✓ ভেরিফাইড উত্তর' : 'টেক ডেন্টাল কেয়ার'}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
-                            {msg.text}
-                          </div>
-
-                          {/* Quick Action Pill Buttons */}
-                          {msg.actionLabel && (
-                            <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleMessageAction(msg)}
-                                className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs md:text-sm font-semibold rounded-full shadow-xs hover:shadow transition cursor-pointer"
-                              >
-                                <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
-                                <span>{msg.actionLabel}</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (navigator?.clipboard) {
-                                    navigator.clipboard.writeText(msg.text);
-                                  }
-                                  setCopiedId(msg.id);
-                                  setTimeout(() => setCopiedId(null), 2000);
-                                }}
-                                className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 px-2.5 py-1 rounded-md border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
-                              >
-                                <i className={`fa-solid ${copiedId === msg.id ? 'fa-check text-emerald-600' : 'fa-copy'}`} />
-                                <span>{copiedId === msg.id ? 'কপি হয়েছে' : 'কপি'}</span>
-                              </button>
-                            </div>
-                          )}
-                          <div className="text-[10px] text-slate-400 text-right mt-1.5">{msg.timestamp}</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {/* Live Typing Indicator */}
-                {isAiLoading && (
-                  <div className="flex justify-start items-start gap-3">
-                    <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-blue-500/25 shrink-0 mt-0.5">
-                      <i className="fa-solid fa-sparkles text-sm animate-spin" />
-                    </div>
-                    <div className="bg-white border border-slate-200/90 rounded-2xl rounded-tl-xs px-4 py-3 shadow-sm flex items-center gap-3">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                      <span className="text-xs text-slate-600 font-medium">টেক ডেন্টাল AI উত্তর তৈরি করছে...</span>
-                    </div>
-                  </div>
-                )}
-
-                <div ref={chatBottomRef} />
-              </div>
-
-              {/* Follow-up Quick Chips */}
-              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                <span className="text-[11px] text-slate-400 font-medium shrink-0">দ্রুত জানতে:</span>
-                {suggestedChips.map((chip, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleSelectSuggestion(chip)}
-                    className="shrink-0 px-2.5 py-1 bg-white hover:bg-blue-50 hover:text-blue-600 border border-slate-200 rounded-full text-xs text-slate-600 transition cursor-pointer"
-                  >
-                    {chip}
-                  </button>
-                ))}
-              </div>
-
-              {/* Chat Input Box at Bottom of Conversation */}
-              <form
-                onSubmit={handleChatSubmit}
-                className="p-3 bg-white border-t border-slate-200/80 flex items-center gap-2"
+              {/* Submit / Loading Button */}
+              <button
+                type="submit"
+                disabled={isAiLoading || !aiInputValue.trim()}
+                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-blue-600 disabled:opacity-40 transition shrink-0 cursor-pointer"
+                aria-label="Send query"
               >
-                <input
-                  type="text"
-                  value={chatInputValue}
-                  onChange={(e) => setChatInputValue(e.target.value)}
-                  placeholder="পরবর্তী প্রশ্নটি এখানে লিখুন... (যেমন: খরচ, শাখা, ডাক্তার)"
-                  className="flex-1 px-4 py-2.5 bg-slate-100 focus:bg-white rounded-full text-sm text-slate-800 placeholder-slate-400 border border-transparent focus:border-blue-400 focus:outline-none transition"
-                />
-                <button
-                  type="submit"
-                  disabled={isAiLoading || !chatInputValue.trim()}
-                  className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white flex items-center justify-center transition shrink-0 cursor-pointer shadow-sm"
-                  aria-label="Send message"
-                >
-                  <i className="fa-solid fa-paper-plane text-sm" />
-                </button>
-              </form>
-            </div>
-          )}
+                {isAiLoading ? (
+                  <i className="fa-solid fa-circle-notch fa-spin text-lg text-blue-600" />
+                ) : (
+                  <i className="fa-solid fa-paper-plane text-xl md:text-lg" />
+                )}
+              </button>
+            </form>
+
+            {/* Attached Answer Panel — Right inside the search field! */}
+            {(isAiLoading || currentAnswer) && (
+              <div className="border-t border-slate-100 p-5 md:p-6 transition-all duration-200">
+                {isAiLoading ? (
+                  /* Loading State */
+                  <div className="flex items-center gap-3 py-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    <span className="text-sm text-slate-600 font-medium">
+                      "{aiInputValue}" - সম্পর্কিত তথ্য অনুসন্ধান করা হচ্ছে...
+                    </span>
+                  </div>
+                ) : currentAnswer ? (
+                  /* Answer Content */
+                  <div className="space-y-4">
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
+                          <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
+                        </div>
+                        <h3 className="text-sm md:text-base font-bold text-slate-900">
+                          {currentAnswer.title}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {currentAnswer.source && (
+                          <span
+                            className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${
+                              currentAnswer.source === 'gemini'
+                                ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                                : currentAnswer.source === 'keyword'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-blue-50 text-blue-700 border border-blue-200'
+                            }`}
+                          >
+                            {currentAnswer.source === 'gemini'
+                              ? '✨ Gemini AI'
+                              : currentAnswer.source === 'keyword'
+                              ? '✓ ভেরিফাইড উত্তর'
+                              : 'টেক ডেন্টাল কেয়ার'}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleClearAnswer}
+                          className="w-7 h-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
+                          title="বন্ধ করুন"
+                        >
+                          <i className="fa-solid fa-xmark text-sm" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Formatted Reply */}
+                    <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
+                      {currentAnswer.reply}
+                    </div>
+
+                    {/* Action Buttons Row */}
+                    <div className="pt-2 flex flex-wrap items-center gap-2.5">
+                      {currentAnswer.actionLabel && (
+                        <button
+                          type="button"
+                          onClick={() => handleAnswerAction(currentAnswer)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs md:text-sm font-semibold rounded-full shadow-xs hover:shadow transition cursor-pointer"
+                        >
+                          <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
+                          <span>{currentAnswer.actionLabel}</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigator?.clipboard) {
+                            navigator.clipboard.writeText(currentAnswer.reply);
+                          }
+                          setIsCopied(true);
+                          setTimeout(() => setIsCopied(false), 2000);
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+                      >
+                        <i className={`fa-solid ${isCopied ? 'fa-check text-emerald-600' : 'fa-copy'}`} />
+                        <span>{isCopied ? 'কপি হয়েছে' : 'উত্তর কপি করুন'}</span>
+                      </button>
+                    </div>
+
+                    {/* Follow-up Chips Row inside the card */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center gap-2 overflow-x-auto hide-scrollbar">
+                      <span className="text-[11px] text-slate-400 font-medium shrink-0">আরও জানতে:</span>
+                      {suggestedChips.map((chip, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(chip)}
+                          className="shrink-0 px-2.5 py-1 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 rounded-full text-xs text-slate-600 transition cursor-pointer"
+                        >
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
         </header>
 
         {/* Middle Section: Screenshot-like Images & Banners */}
