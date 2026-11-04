@@ -233,70 +233,77 @@ class AiAssistantController extends Controller
             }
         }
 
-        // STEP 2: If no keyword matched, try Google Gemini API
+        // STEP 2: If no keyword matched, try Google Gemini API with smart model fallback
         if ($settings && $settings->gemini_enabled && !empty($settings->gemini_api_key)) {
-            try {
-                $model = $settings->gemini_model ?: 'gemini-1.5-flash';
-                $apiKey = $settings->gemini_api_key;
-                $systemPrompt = $settings->system_prompt ?: "You are Tech Dental's helpful Bengali AI assistant for patients in Dhaka. Answer clearly and concisely in Bengali. Branches: Mirpur, Uttara, Badda, Jatrabari. Hotline: 01400786162.";
-                $trainingData = $settings->training_data ?? '';
+            $apiKey = $settings->gemini_api_key;
+            $systemPrompt = $settings->system_prompt ?: "You are Tech Dental's helpful Bengali AI assistant for patients in Dhaka. Answer clearly and concisely in Bengali. Branches: Mirpur, Uttara, Badda, Jatrabari. Hotline: 01400786162.";
+            $trainingData = $settings->training_data ?? '';
 
-                $instructionText = "ROLE & INSTRUCTIONS FOR DENTAL AI ASSISTANT:\n{$systemPrompt}";
-                if (!empty($trainingData)) {
-                    $instructionText .= "\n\n### TECH DENTAL OFFICIAL COMPANY TRAINING DATA & KNOWLEDGE BASE:\n{$trainingData}\n\nSTRICT GUIDELINE: Always prioritize the above official company training data when answering questions about branches, services, doctor availability, costs, and clinic policies. Answer in clear, polite Bengali.";
-                }
+            $instructionText = "ROLE & INSTRUCTIONS FOR DENTAL AI ASSISTANT:\n{$systemPrompt}";
+            if (!empty($trainingData)) {
+                $instructionText .= "\n\n### TECH DENTAL OFFICIAL COMPANY TRAINING DATA & KNOWLEDGE BASE:\n{$trainingData}\n\nSTRICT GUIDELINE: Always prioritize the above official company training data when answering questions about branches, services, doctor availability, costs, and clinic policies. Answer in clear, polite Bengali.";
+            }
 
-                $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+            $candidateModels = $this->resolveGeminiModelCandidates($settings->gemini_model ?? 'gemini-2.5-flash');
 
-                $payload = [
-                    'contents' => [
-                        [
-                            'role' => 'user',
-                            'parts' => [
-                                ['text' => "{$instructionText}\n\nPATIENT QUERY: {$query}"]
+            foreach ($candidateModels as $model) {
+                try {
+                    $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+                    $payload = [
+                        'contents' => [
+                            [
+                                'role' => 'user',
+                                'parts' => [
+                                    ['text' => "{$instructionText}\n\nPATIENT QUERY: {$query}"]
+                                ]
                             ]
+                        ],
+                        'generationConfig' => [
+                            'temperature' => 0.4,
+                            'maxOutputTokens' => 700,
                         ]
-                    ],
-                    'generationConfig' => [
-                        'temperature' => 0.4,
-                        'maxOutputTokens' => 700,
-                    ]
-                ];
+                    ];
 
-                $response = Http::timeout(10)->post($apiUrl, $payload);
+                    $response = Http::timeout(10)->post($apiUrl, $payload);
 
-                if ($response->successful()) {
-                    $resData = $response->json();
-                    $aiText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                    if ($response->successful()) {
+                        $resData = $response->json();
+                        $aiText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
-                    if (!empty($aiText)) {
-                        DB::table('ai_chat_logs')->insert([
-                            'user_query' => $query,
-                            'reply' => $aiText,
-                            'matched_rule_id' => null,
-                            'source' => 'gemini',
-                            'ip_address' => $request->ip(),
-                            'created_at' => now(),
-                        ]);
+                        if (!empty($aiText)) {
+                            DB::table('ai_chat_logs')->insert([
+                                'user_query' => $query,
+                                'reply' => $aiText,
+                                'matched_rule_id' => null,
+                                'source' => 'gemini',
+                                'ip_address' => $request->ip(),
+                                'created_at' => now(),
+                            ]);
 
-                        return response()->json([
-                            'success' => true,
-                            'source' => 'gemini',
-                            'title' => 'টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট (Gemini)',
-                            'reply' => $aiText,
-                            'icon' => 'fa-robot',
-                            'icon_color' => 'text-indigo-600',
-                            'icon_bg' => 'bg-indigo-100',
-                            'action_type' => 'appointment',
-                            'action_label' => 'অনলাইন সিরিয়াল নিন',
-                            'action_url' => '/appointment',
-                        ]);
+                            return response()->json([
+                                'success' => true,
+                                'source' => 'gemini',
+                                'title' => 'টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট (Gemini)',
+                                'reply' => $aiText,
+                                'icon' => 'fa-robot',
+                                'icon_color' => 'text-indigo-600',
+                                'icon_bg' => 'bg-indigo-100',
+                                'action_type' => 'appointment',
+                                'action_label' => 'অনলাইন সিরিয়াল নিন',
+                                'action_url' => '/appointment',
+                            ]);
+                        }
                     }
-                } else {
-                    Log::error('Gemini API Error: ' . $response->body());
+
+                    // If not 404 (model deprecated/not found), break and stop trying
+                    if ($response->status() !== 404) {
+                        Log::error("Gemini API Error for {$model}: " . $response->body());
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Gemini API Exception for {$model}: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Log::error('Gemini API Exception: ' . $e->getMessage());
             }
         }
 
@@ -327,13 +334,40 @@ class AiAssistantController extends Controller
     }
 
     /**
-     * Test Gemini API Connection directly from Admin Panel
+     * Resolve candidate Gemini models in order of priority, auto-migrating deprecated models
+     */
+    private function resolveGeminiModelCandidates(?string $model): array
+    {
+        $requested = trim($model ?: '');
+
+        // Auto-migrate deprecated 2.0-flash to 2.5-flash
+        if (in_array($requested, ['gemini-2.0-flash', 'gemini-2.0', 'gemini-2.0-flash-exp'])) {
+            $requested = 'gemini-2.5-flash';
+        }
+        if (in_array($requested, ['gemini-2.0-pro', 'gemini-2.0-pro-exp'])) {
+            $requested = 'gemini-2.5-pro';
+        }
+
+        $candidates = [];
+        if (!empty($requested)) {
+            $candidates[] = $requested;
+        }
+        $candidates[] = 'gemini-2.5-flash';
+        $candidates[] = 'gemini-1.5-flash';
+        $candidates[] = 'gemini-2.5-pro';
+        $candidates[] = 'gemini-1.5-pro';
+
+        return array_values(array_unique($candidates));
+    }
+
+    /**
+     * Test Gemini API Connection directly from Admin Panel with auto-retry and model migration
      */
     public function testGemini(Request $request)
     {
         $settings = DB::table('ai_chat_settings')->first();
         $apiKey = trim($request->input('gemini_api_key') ?: ($settings->gemini_api_key ?? ''));
-        $model = trim($request->input('gemini_model') ?: ($settings->gemini_model ?? 'gemini-1.5-flash'));
+        $requestedModel = trim($request->input('gemini_model') ?: ($settings->gemini_model ?? 'gemini-2.5-flash'));
         $testPrompt = trim($request->input('prompt') ?: 'হ্যালো, আপনি কি টেক ডেন্টালের এআই অ্যাসিস্ট্যান্ট হিসেবে ঠিকমত কাজ করছেন? সংক্ষেপে ১-২ লাইনে মিষ্টি করে বাংলায় উত্তর দিন।');
         $trainingData = $request->input('training_data') ?: ($settings->training_data ?? '');
 
@@ -349,60 +383,81 @@ class AiAssistantController extends Controller
             $instructionText .= "\n\n### TECH DENTAL OFFICIAL TRAINING DATA:\n" . mb_substr($trainingData, 0, 3000);
         }
 
-        $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+        $candidateModels = $this->resolveGeminiModelCandidates($requestedModel);
+        $lastError = null;
+        $lastErrorCode = 400;
 
-        $payload = [
-            'contents' => [
-                [
-                    'role' => 'user',
-                    'parts' => [
-                        ['text' => "{$instructionText}\n\nPATIENT TEST QUESTION: {$testPrompt}"]
+        foreach ($candidateModels as $model) {
+            $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+            $payload = [
+                'contents' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['text' => "{$instructionText}\n\nPATIENT TEST QUESTION: {$testPrompt}"]
+                        ]
                     ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.4,
+                    'maxOutputTokens' => 300,
                 ]
-            ],
-            'generationConfig' => [
-                'temperature' => 0.4,
-                'maxOutputTokens' => 300,
-            ]
-        ];
+            ];
 
-        try {
-            $startTime = microtime(true);
-            $response = Http::timeout(15)->post($apiUrl, $payload);
-            $latencyMs = round((microtime(true) - $startTime) * 1000);
+            try {
+                $startTime = microtime(true);
+                $response = Http::timeout(15)->post($apiUrl, $payload);
+                $latencyMs = round((microtime(true) - $startTime) * 1000);
 
-            if ($response->successful()) {
-                $resData = $response->json();
-                $aiText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                if ($response->successful()) {
+                    $resData = $response->json();
+                    $aiText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
-                if (!empty($aiText)) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'অভিনন্দন! আপনার Google Gemini API সফলভাবে সংযুক্ত এবং সক্রিয় রয়েছে।',
-                        'reply' => $aiText,
-                        'model' => $model,
-                        'latency_ms' => $latencyMs,
-                        'status_code' => $response->status(),
-                    ]);
+                    if (!empty($aiText)) {
+                        // If model had to be auto-migrated from deprecated, update settings in DB
+                        if ($model !== $requestedModel) {
+                            DB::table('ai_chat_settings')->where('id', 1)->update([
+                                'gemini_model' => $model,
+                                'updated_at' => now(),
+                            ]);
+                        }
+
+                        $note = ($model !== $requestedModel)
+                            ? " (অপ্রচলিত {$requestedModel}-এর বদলে গুগল প্রস্তাবিত নতুন মডেল {$model} সফলভাবে সংযুক্ত হয়েছে)"
+                            : "";
+
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'অভিনন্দন! আপনার Google Gemini API সফলভাবে সংযুক্ত এবং সক্রিয় রয়েছে' . $note . '।',
+                            'reply' => $aiText,
+                            'model' => $model,
+                            'latency_ms' => $latencyMs,
+                            'status_code' => $response->status(),
+                        ]);
+                    }
                 }
+
+                $errorData = $response->json();
+                $lastError = $errorData['error']['message'] ?? $response->body();
+                $lastErrorCode = $response->status();
+
+                // If 404 (model deprecated / NOT_FOUND), loop to next candidate model
+                if ($response->status() !== 404) {
+                    break;
+                }
+            } catch (\Exception $e) {
+                $lastError = $e->getMessage();
+                $lastErrorCode = 500;
             }
-
-            $errorData = $response->json();
-            $errorMessage = $errorData['error']['message'] ?? $response->body();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Gemini API এরর: ' . $errorMessage,
-                'status_code' => $response->status(),
-                'raw_error' => $errorData,
-            ], 400);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'কানেকশন এরর: ' . $e->getMessage(),
-            ], 500);
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gemini API এরর: ' . ($lastError ?: 'মডেল রেসপন্স করছে না'),
+            'status_code' => $lastErrorCode,
+            'raw_error' => $lastError,
+        ], $lastErrorCode ?: 400);
     }
 }
 

@@ -122,9 +122,13 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
 
     // Gemini Settings Form State
     const [showApiKey, setShowApiKey] = useState(false);
+    const initialModel = (!settings?.gemini_model || settings.gemini_model === 'gemini-2.0-flash' || settings.gemini_model === 'gemini-2.0')
+        ? 'gemini-2.5-flash'
+        : settings.gemini_model;
+
     const [geminiForm, setGeminiForm] = useState({
         gemini_api_key: settings?.gemini_api_key || '',
-        gemini_model: settings?.gemini_model || 'gemini-1.5-flash',
+        gemini_model: initialModel,
         gemini_enabled: Boolean(settings?.gemini_enabled),
         system_prompt: settings?.system_prompt || '',
         training_data: settings?.training_data || DEFAULT_TRAINING_TEMPLATE,
@@ -167,6 +171,9 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                 training_data: geminiForm.training_data,
             });
             setTestResult(res.data);
+            if (res.data?.model && res.data.model !== geminiForm.gemini_model) {
+                setGeminiForm((prev) => ({ ...prev, gemini_model: res.data.model }));
+            }
         } catch (err: any) {
             setTestResult({
                 success: false,
@@ -682,10 +689,11 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                     <select
                                         value={geminiForm.gemini_model}
                                         onChange={(e) => setGeminiForm({ ...geminiForm, gemini_model: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-medium"
                                     >
-                                        <option value="gemini-1.5-flash">gemini-1.5-flash (সবচেয়ে দ্রুত এবং নির্ভুল - Recommended)</option>
-                                        <option value="gemini-2.0-flash">gemini-2.0-flash (লেটেস্ট দ্রুত মডেল)</option>
+                                        <option value="gemini-2.5-flash">gemini-2.5-flash (গুগলের লেটেস্ট দ্রুত মডেল - Recommended)</option>
+                                        <option value="gemini-1.5-flash">gemini-1.5-flash (সবচেয়ে নির্ভরযোগ্য ও দ্রুত)</option>
+                                        <option value="gemini-2.5-pro">gemini-2.5-pro (উন্নত চিন্তন ও গভীর বিশ্লেষণ)</option>
                                         <option value="gemini-1.5-pro">gemini-1.5-pro (গভীর ও বিস্তারিত উত্তরের জন্য)</option>
                                     </select>
                                 </div>
