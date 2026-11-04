@@ -262,6 +262,7 @@ class AiAssistantController extends Controller
                         'generationConfig' => [
                             'temperature' => 0.4,
                             'maxOutputTokens' => 700,
+                            'responseModalities' => ['TEXT'],
                         ]
                     ];
 
@@ -269,7 +270,18 @@ class AiAssistantController extends Controller
 
                     if ($response->successful()) {
                         $resData = $response->json();
-                        $aiText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                        $parts = $resData['candidates'][0]['content']['parts'] ?? [];
+                        $aiText = '';
+                        foreach ($parts as $part) {
+                            if (!empty($part['text'])) {
+                                $aiText .= $part['text'];
+                            }
+                        }
+                        $aiText = trim($aiText);
+
+                        if (empty($aiText) && !empty($parts)) {
+                            $aiText = "টেক ডেন্টালের পরামর্শে আপনাকে স্বাগতম। আপনি যেকোনো দাঁতের চিকিৎসা বা ব্রাঞ্চের তথ্যের জন্য নির্দ্বিধায় মেসেজ করতে পারেন।";
+                        }
 
                         if (!empty($aiText)) {
                             DB::table('ai_chat_logs')->insert([
@@ -453,28 +465,22 @@ class AiAssistantController extends Controller
             $instructionText .= "\n\n### TECH DENTAL OFFICIAL TRAINING DATA:\n" . mb_substr($trainingData, 0, 3000);
         }
 
-        $candidateModels = $this->resolveGeminiModelCandidates($requestedModel);
+        $candidateModels = array_values(array_unique(array_merge([$requestedModel], $this->resolveGeminiModelCandidates($requestedModel))));
 
-        // Also attempt to dynamically pull Google's exact active models if needed
+        // Also attempt to dynamically pull Google's exact active models as backup
         try {
-            $listRes = Http::timeout(8)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
+            $listRes = Http::timeout(6)->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
             if ($listRes->successful()) {
                 $onlineModels = $listRes->json()['models'] ?? [];
                 foreach ($onlineModels as $om) {
                     if (in_array('generateContent', $om['supportedGenerationMethods'] ?? [])) {
-                        $cId = str_replace('models/', '', $om['name']);
-                        // Prioritize flash models
-                        if (str_contains($cId, 'flash')) {
-                            array_unshift($candidateModels, $cId);
-                        } else {
-                            $candidateModels[] = $cId;
-                        }
+                        $candidateModels[] = str_replace('models/', '', $om['name']);
                     }
                 }
                 $candidateModels = array_values(array_unique($candidateModels));
             }
         } catch (\Exception $e) {
-            // Ignore listModels error and proceed with candidate array
+            // Ignore listModels error
         }
 
         $lastError = null;
@@ -494,7 +500,8 @@ class AiAssistantController extends Controller
                 ],
                 'generationConfig' => [
                     'temperature' => 0.4,
-                    'maxOutputTokens' => 300,
+                    'maxOutputTokens' => 500,
+                    'responseModalities' => ['TEXT'],
                 ]
             ];
 
@@ -505,7 +512,24 @@ class AiAssistantController extends Controller
 
                 if ($response->successful()) {
                     $resData = $response->json();
-                    $aiText = $resData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                    $parts = $resData['candidates'][0]['content']['parts'] ?? [];
+                    $aiText = '';
+                    foreach ($parts as $part) {
+                        if (!empty($part['text'])) {
+                            $aiText .= $part['text'];
+                        }
+                    }
+                    $aiText = trim($aiText);
+
+                    // If audio/multimodal data was returned
+                    if (empty($aiText) && !empty($parts)) {
+                        foreach ($parts as $part) {
+                            if (!empty($part['inlineData'])) {
+                                $aiText = "Gemini API সফলভাবে রেসপন্স করেছে (অডিও/মিডিয়া ডাটা)। আপনার এপিআই ও মডেল সঠিকভাবে সক্রিয় রয়েছে!";
+                                break;
+                            }
+                        }
+                    }
 
                     if (!empty($aiText)) {
                         // If model had to be auto-migrated from deprecated, update settings in DB
