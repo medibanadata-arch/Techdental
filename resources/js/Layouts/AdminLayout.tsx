@@ -14,7 +14,8 @@ import {
     LogOut,
     Menu,
     X,
-    ExternalLink
+    ExternalLink,
+    Bot
 } from 'lucide-react';
 
 // Dedicated tooth outline icon matching the PDF exactly
@@ -197,6 +198,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     icon: MapPin,
                     href: route('branch.admin'),
                     active: currentRoute === 'branch.admin'
+                },
+                {
+                    name: 'AI Chat Assistant',
+                    icon: Bot,
+                    href: route('ai-assistant.admin'),
+                    active: currentRoute?.startsWith('ai-assistant.')
                 },
             ]
         },

@@ -15,6 +15,7 @@ interface HomeProps extends PageProps {
   featured_images?: any[];
   nav_menu?: any;
   home_content?: any;
+  ai_chips?: string[];
 }
 
 interface ModalState {
@@ -37,6 +38,7 @@ export default function Home({
   featured_images = [],
   nav_menu,
   home_content,
+  ai_chips = [],
 }: HomeProps) {
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const [aiInputValue, setAiInputValue] = useState("");
@@ -110,6 +112,18 @@ export default function Home({
   }
   const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent("হ্যালো টেক ডেন্টাল, আমি চিকিৎসার বিষয়ে জানতে চাচ্ছি।")}`;
 
+  // Suggested Chips from backend or fallback
+  const suggestedChips = useMemo(() => {
+    if (Array.isArray(ai_chips) && ai_chips.length > 0) {
+      return ai_chips;
+    }
+    return [
+      "শাখার ঠিকানা কোথায়?",
+      "ফাঁকা দাঁতের চিকিৎসা",
+      "দাঁত ব্যথার চিকিৎসা",
+    ];
+  }, [ai_chips]);
+
   // Gallery items matching screenshot style
   const galleryItems = useMemo(() => {
     if (Array.isArray(featured_images) && featured_images.length > 0) {
@@ -168,66 +182,74 @@ export default function Home({
     processAIQuestion(aiInputValue.trim());
   };
 
-  const processAIQuestion = (query: string) => {
-    const q = query.toLowerCase();
+  // Connected to Backend API: checks admin keywords first, then Gemini AI, then fallback
+  const processAIQuestion = async (query: string) => {
+    setModal({
+      isOpen: true,
+      title: "অনুসন্ধান করা হচ্ছে...",
+      message: `"${query}" - সম্পর্কিত তথ্য অনুসন্ধান করা হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...`,
+      icon: "fa-circle-notch fa-spin",
+      iconColor: "text-blue-600",
+      iconBg: "bg-blue-100",
+    });
 
-    if (q.includes("ঠিকানা") || q.includes("শাখা") || q.includes("location") || q.includes("address") || q.includes("কোথায়")) {
-      setModal({
-        isOpen: true,
-        title: "টেক ডেন্টালের শাখাসমূহ",
-        message: `ঢাকা শহরে টেক ডেন্টালের ৪টি প্রধান শাখা রয়েছে:\n\n• মিরপুর শাখা: ৮২৭ (২য় তলা), শেওড়াপাড়া, বেগম রোকেয়া সরণি (মেট্রোরেল ৩১৮ নং পিলারের পূর্ব পাশে)\n• উত্তরা শাখা: হাউস ১৮, রোড ১৪, সেক্টর ৩, উত্তরা\n• বাড্ডা শাখা: হাজী আব্দুর রশিদ ম্যানশন (৩য় তলা), উত্তর বাড্ডা বাজার\n• যাত্রাবাড়ী শাখা: শহীদ ফারুক রোড, দক্ষিণ যাত্রাবাড়ী\n\nপ্রতিটি শাখা প্রতিদিন সকাল ১০:০০ টা থেকে রাত ৯:০০ টা পর্যন্ত খোলা থাকে (শুক্রবার বন্ধ)।`,
-        icon: "fa-location-dot",
-        iconColor: "text-blue-600",
-        iconBg: "bg-blue-100",
-        actionText: "গুগল ম্যাপে দেখুন",
-        onAction: () => {
-          setModal((prev) => ({ ...prev, isOpen: false }));
-          setIsBranchPickerOpen(true);
+    try {
+      const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || "";
+      const res = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRF-TOKEN": csrfToken,
         },
+        body: JSON.stringify({ query }),
       });
-    } else if (q.includes("ফাঁকা") || q.includes("gap") || q.includes("ব্রেসেস") || q.includes("aligner")) {
-      setModal({
-        isOpen: true,
-        title: "ফাঁকা দাঁতের আধুনিক চিকিৎসা",
-        message: `টেক ডেন্টালে ফাঁকা দাঁতের (Gap Teeth) জন্য স্থায়ী ও কসমেটিক চিকিৎসা রয়েছে:\n\n১. কম্পোজিট বন্ডিং / ভিনিয়ার্স: মাত্র ১ দিনেই দাঁত না কেটে ফাঁকা পূরণ।\n২. অর্থোডন্টিক ব্রেসেস (Braces): মেটাল ও সিরামিক ব্রেসেস দিয়ে ন্যাচারাল দাঁত সোজা করা।\n৩. ইনভিজিবল অ্যালাইনার্স (Clear Aligners): কোনো তার ছাড়া অদৃশ্য ক্লিপ পদ্ধতি।\n\nবিশেষজ্ঞ ডাক্তারের পরামর্শ নিতে আজই সিরিয়াল বুক করতে পারেন।`,
-        icon: "fa-tooth",
-        iconColor: "text-blue-600",
-        iconBg: "bg-blue-100",
-        actionText: "সিরিয়াল বুক করুন",
-        onAction: () => {
-          setModal((prev) => ({ ...prev, isOpen: false }));
-          setIsAppointmentOpen(true);
-        },
-      });
-    } else if (q.includes("ব্যথা") || q.includes("পেইন") || q.includes("রুট ক্যানেল") || q.includes("rct") || q.includes("pain")) {
-      setModal({
-        isOpen: true,
-        title: "দাঁত ব্যথার ব্যথামুক্ত চিকিৎসা",
-        message: `দাঁতে তীব্র ব্যথা, শিরশির করা বা ইনফেকশনের জন্য টেক ডেন্টালে রয়েছে:\n\n• সিঙ্গেল সিটিং রোটারি রুট ক্যানেল (RCT) – অত্যাধুনিক রোটারি সিস্টেমে মাত্র এক ভিজিটেই ব্যথামুক্ত চিকিৎসা।\n• ইমার্জেন্সি পেইন রিলিফ ড্রেসিং।\n• জার্মানির ক্লাস-বি অটোক্লেভে জীবাণুমুক্ত পরিবেশে নিরাপদ চিকিৎসা।`,
-        icon: "fa-notes-medical",
-        iconColor: "text-rose-600",
-        iconBg: "bg-rose-100",
-        actionText: "জরুরি সিরিয়াল নিন",
-        onAction: () => {
-          setModal((prev) => ({ ...prev, isOpen: false }));
-          setIsAppointmentOpen(true);
-        },
-      });
-    } else {
-      setModal({
-        isOpen: true,
-        title: "টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট",
-        message: `আপনার প্রশ্ন: "${query}"\n\nটেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
-        icon: "fa-robot",
-        iconColor: "text-blue-600",
-        iconBg: "bg-blue-100",
-        actionText: "অনলাইন অ্যাপয়েন্টমেন্ট",
-        onAction: () => {
-          setModal((prev) => ({ ...prev, isOpen: false }));
-          setIsAppointmentOpen(true);
-        },
-      });
+
+      const data = await res.json();
+      if (data && data.reply) {
+        setModal({
+          isOpen: true,
+          title: data.title || "টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট",
+          message: data.reply,
+          icon: data.icon || "fa-tooth",
+          iconColor: data.icon_color || "text-blue-600",
+          iconBg: data.icon_bg || "bg-blue-100",
+          actionText: data.action_label || (data.action_type === "directions" ? "গুগল ম্যাপে দেখুন" : "অনলাইন সিরিয়াল নিন"),
+          onAction: () => {
+            setModal((prev) => ({ ...prev, isOpen: false }));
+            if (data.action_type === "directions") {
+              setIsBranchPickerOpen(true);
+            } else if (data.action_type === "call") {
+              window.location.href = `tel:${hotline}`;
+            } else if (data.action_type === "whatsapp") {
+              window.open(waUrl, "_blank");
+            } else if (data.action_url && data.action_url.startsWith("http")) {
+              window.open(data.action_url, "_blank");
+            } else {
+              setIsAppointmentOpen(true);
+            }
+          },
+        });
+        return;
+      }
+    } catch (err) {
+      console.error(err);
     }
+
+    // Fallback if offline/network issue
+    setModal({
+      isOpen: true,
+      title: "টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট",
+      message: `আপনার প্রশ্ন: "${query}"\n\nটেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (01400786162) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
+      icon: "fa-robot",
+      iconColor: "text-blue-600",
+      iconBg: "bg-blue-100",
+      actionText: "অনলাইন অ্যাপয়েন্টমেন্ট",
+      onAction: () => {
+        setModal((prev) => ({ ...prev, isOpen: false }));
+        setIsAppointmentOpen(true);
+      },
+    });
   };
 
   // Action Buttons Modals
@@ -265,7 +287,7 @@ export default function Home({
         <meta name="description" content={seoDesc} />
       </Head>
 
-      {/* Top Header Navigation (Integrated seamlessly) */}
+      {/* Top Header Navigation */}
       <TopHeader
         locations={locations}
         selectedBranch={selectedBranch}
@@ -289,32 +311,23 @@ export default function Home({
             টেক ডেন্টালের চিকিৎসা বিষয়ে কিভাবে সাহায্য করতে পারি?
           </h1>
 
-          {/* Suggested Questions / Chips */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-3 mb-8 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none">
-            <button
-              type="button"
-              onClick={() => handleSelectSuggestion("শাখার ঠিকানা কোথায়?")}
-              className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
-            >
-              <i className="fa-solid fa-location-dot text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base" />
-              <span>শাখার ঠিকানা কোথায়?</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSelectSuggestion("ফাঁকা দাঁতের চিকিৎসা")}
-              className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
-            >
-              <i className="fa-solid fa-tooth text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base" />
-              <span>ফাঁকা দাঁতের চিকিৎসা</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSelectSuggestion("দাঁত ব্যথার চিকিৎসা")}
-              className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
-            >
-              <i className="fa-solid fa-notes-medical text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base" />
-              <span>দাঁত ব্যথার চিকিৎসা</span>
-            </button>
+          {/* Suggested Questions / Chips (Dynamically from Admin Dashboard) */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-3 mb-8 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
+            {suggestedChips.map((chip, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSelectSuggestion(chip)}
+                className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
+              >
+                <i
+                  className={`fa-solid ${
+                    idx === 0 ? "fa-location-dot" : idx === 1 ? "fa-tooth" : idx === 2 ? "fa-notes-medical" : "fa-sparkles"
+                  } text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base`}
+                />
+                <span>{chip}</span>
+              </button>
+            ))}
           </div>
 
           {/* AI Ask Box / Message Box */}
@@ -536,7 +549,7 @@ export default function Home({
 
       </div>
 
-      {/* Interactive Modal / Dialog Popup matching code */}
+      {/* Interactive Modal / Dialog Popup */}
       {modal.isOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center transform transition-all scale-100">

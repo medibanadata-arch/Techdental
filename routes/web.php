@@ -23,10 +23,14 @@ use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AiAssistantController;
 use Inertia\Inertia;
 
 $homeHandler = function () {
     $homeContent = \App\Models\HomeContent::first();
+    $aiSettings = \Illuminate\Support\Facades\DB::table('ai_chat_settings')->first();
+    $aiChips = $aiSettings && !empty($aiSettings->chips) ? json_decode($aiSettings->chips, true) : null;
+
     return Inertia::render('Home', [
         'locations' => \Illuminate\Support\Facades\DB::table('locations')->orderBy('sort_order')->orderBy('id')->get(),
         'services' => \Illuminate\Support\Facades\DB::table('pricing')->orderBy('sort_order')->orderBy('id')->get(),
@@ -41,6 +45,7 @@ $homeHandler = function () {
         'featured_images' => \Illuminate\Support\Facades\DB::table('featured_images')->where('is_active', 1)->orderBy('sort_order')->get(),
         'nav_menu' => \App\Models\NavMenu::first(),
         'home_content' => $homeContent,
+        'ai_chips' => $aiChips,
     ]);
 };
 
@@ -59,6 +64,7 @@ Route::get('page/{slug}', [PageController::class, 'publicShow'])->name('pages.pu
 
 // Public endpoints used by the website (no login required)
 Route::post('api/featured-images/{id}/view', [FeaturedImageController::class, 'incrementRealView'])->name('featured-images.increment-view');
+Route::post('api/ai-chat', [AiAssistantController::class, 'chatApi'])->name('ai-chat.api');
 Route::post('appointments', [AppointmentController::class, 'store'])
     ->middleware('throttle:20,1')
     ->name('appointments.store');
@@ -245,6 +251,14 @@ Route::post('redirects-admin', [RedirectController::class, 'store'])->name('redi
 Route::put('redirects-admin/{id}', [RedirectController::class, 'update'])->name('redirects.update');
 Route::delete('redirects-admin/{id}', [RedirectController::class, 'destroy'])->name('redirects.destroy');
 Route::post('redirects-admin/{id}/toggle', [RedirectController::class, 'toggle'])->name('redirects.toggle');
+
+// ---------- AI Chat Assistant Admin ----------
+Route::get('ai-assistant', [AiAssistantController::class, 'adminIndex'])->name('ai-assistant.admin');
+Route::post('ai-assistant/settings', [AiAssistantController::class, 'updateSettings'])->name('ai-assistant.settings.update');
+Route::post('ai-assistant/rules', [AiAssistantController::class, 'storeRule'])->name('ai-assistant.rules.store');
+Route::put('ai-assistant/rules/{id}', [AiAssistantController::class, 'updateRule'])->name('ai-assistant.rules.update');
+Route::delete('ai-assistant/rules/{id}', [AiAssistantController::class, 'deleteRule'])->name('ai-assistant.rules.destroy');
+Route::post('ai-assistant/rules/{id}/toggle', [AiAssistantController::class, 'toggleRule'])->name('ai-assistant.rules.toggle');
 });
 
 require __DIR__.'/auth.php';
