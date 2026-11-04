@@ -1,0 +1,347 @@
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-maroon: #800038;
+  --primary-hover: #9c0c4a;
+  --primary-black: #111111;
+  --accent-blue: #1a73e8;
+  --bg-page: #f4f6f9;
+  --bg-card: #ffffff;
+  --border-color: #e5e9f0;
+  --text-main: #1f2937;
+  --text-muted: #64748b;
+  --success-green: #16a34a;
+  /* Font variables set from Google Fonts loaded in blade */
+  --font-plus-jakarta: 'Plus Jakarta Sans', sans-serif;
+  --font-hind-siliguri: 'Hind Siliguri', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: #f8fafc;
+  color: var(--text-main);
+  font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-y: scroll;
+  /* Always show scrollbar to prevent layout shift on page load */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.22s ease-in-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* WordPress Classic Visual Editor, Blog Post, Services & All SEO Content Typography (H1-H6 Pixel Sizes & Links) */
+.wp-editor-content h1,
+.wp-editor-content h1 *,
+.blog-content-view h1,
+.blog-content-view h1 *,
+.prose h1,
+.prose h1 *,
+.rich-content-view h1,
+.rich-content-view h1 *,
+.seo-content-view h1,
+.seo-content-view h1 * {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  margin-top: 20px !important;
+  margin-bottom: 10px !important;
+  color: #0f172a !important;
+  display: block !important;
+}
+
+.wp-editor-content h2,
+.wp-editor-content h2 *,
+.blog-content-view h2,
+.blog-content-view h2 *,
+.prose h2,
+.prose h2 *,
+.rich-content-view h2,
+.rich-content-view h2 *,
+.seo-content-view h2,
+.seo-content-view h2 * {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  margin-top: 18px !important;
+  margin-bottom: 8px !important;
+  color: #0f172a !important;
+  display: block !important;
+}
+
+.wp-editor-content h3,
+.wp-editor-content h3 *,
+.blog-content-view h3,
+.blog-content-view h3 *,
+.prose h3,
+.prose h3 *,
+.rich-content-view h3,
+.rich-content-view h3 *,
+.seo-content-view h3,
+.seo-content-view h3 * {
+  font-size: 18.72px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  margin-top: 16px !important;
+  margin-bottom: 6px !important;
+  color: #1e293b !important;
+  display: block !important;
+}
+
+.wp-editor-content h4,
+.wp-editor-content h4 *,
+.blog-content-view h4,
+.blog-content-view h4 *,
+.prose h4,
+.prose h4 *,
+.rich-content-view h4,
+.rich-content-view h4 *,
+.seo-content-view h4,
+.seo-content-view h4 * {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  margin-top: 14px !important;
+  margin-bottom: 4px !important;
+  color: #1e293b !important;
+  display: block !important;
+}
+
+.wp-editor-content h5,
+.wp-editor-content h5 *,
+.blog-content-view h5,
+.blog-content-view h5 *,
+.prose h5,
+.prose h5 *,
+.rich-content-view h5,
+.rich-content-view h5 *,
+.seo-content-view h5,
+.seo-content-view h5 * {
+  font-size: 13.28px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+  margin-top: 12px !important;
+  margin-bottom: 4px !important;
+  color: #334155 !important;
+  display: block !important;
+}
+
+.wp-editor-content h6,
+.wp-editor-content h6 *,
+.blog-content-view h6,
+.blog-content-view h6 *,
+.prose h6,
+.prose h6 *,
+.rich-content-view h6,
+.rich-content-view h6 *,
+.seo-content-view h6,
+.seo-content-view h6 * {
+  font-size: 10.72px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  margin-top: 10px !important;
+  margin-bottom: 2px !important;
+  color: #475569 !important;
+  display: block !important;
+}
+
+.wp-editor-content p,
+.blog-content-view p,
+.prose p,
+.rich-content-view p,
+.seo-content-view p {
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  line-height: 1.7 !important;
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+  color: #1e293b !important;
+}
+
+.wp-editor-content strong,
+.blog-content-view strong,
+.prose strong,
+.rich-content-view strong,
+.seo-content-view strong,
+.wp-editor-content b,
+.blog-content-view b,
+.prose b,
+.rich-content-view b,
+.seo-content-view b {
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+.wp-editor-content a,
+.blog-content-view a,
+.prose a,
+.rich-content-view a,
+.seo-content-view a {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+
+.wp-editor-content a:hover,
+.blog-content-view a:hover,
+.prose a:hover,
+.rich-content-view a:hover,
+.seo-content-view a:hover {
+  color: #1d4ed8 !important;
+}
+
+.wp-editor-content ul,
+.blog-content-view ul,
+.prose ul,
+.rich-content-view ul,
+.seo-content-view ul {
+  list-style-type: disc !important;
+  padding-left: 24px !important;
+  margin: 10px 0 !important;
+}
+
+.wp-editor-content ol,
+.blog-content-view ol,
+.prose ol,
+.rich-content-view ol,
+.seo-content-view ol {
+  list-style-type: decimal !important;
+  padding-left: 24px !important;
+  margin: 10px 0 !important;
+}
+
+.wp-editor-content li,
+.blog-content-view li,
+.prose li,
+.rich-content-view li,
+.seo-content-view li {
+  display: list-item !important;
+  margin: 4px 0 !important;
+  line-height: 1.6 !important;
+  font-size: 16px !important;
+}
+
+.wp-editor-content blockquote,
+.blog-content-view blockquote,
+.prose blockquote,
+.rich-content-view blockquote,
+.seo-content-view blockquote {
+  border-left: 4px solid #0284c7 !important;
+  background-color: #f8fafc !important;
+  padding: 10px 16px !important;
+  font-style: italic !important;
+  color: #334155 !important;
+  margin: 14px 0 !important;
+  border-radius: 0 8px 8px 0 !important;
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+}
+
+.wp-editor-content pre,
+.blog-content-view pre,
+.prose pre,
+.rich-content-view pre,
+.seo-content-view pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 13px !important;
+  background-color: #f1f5f9 !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  margin: 12px 0 !important;
+  overflow-x: auto !important;
+}
+
+.wp-editor-content table,
+.blog-content-view table,
+.prose table,
+.rich-content-view table,
+.seo-content-view table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 16px 0 !important;
+}
+
+.wp-editor-content th,
+.blog-content-view th,
+.prose th,
+.rich-content-view th,
+.seo-content-view th {
+  border: 1px solid #cbd5e1 !important;
+  padding: 10px 12px !important;
+  background: #f8fafc !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  color: #0f172a !important;
+  text-align: left !important;
+}
+
+.wp-editor-content td,
+.blog-content-view td,
+.prose td,
+.rich-content-view td,
+.seo-content-view td {
+  border: 1px solid #cbd5e1 !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  color: #334155 !important;
+}
+
+.wp-editor-content img,
+.blog-content-view img,
+.prose img,
+.rich-content-view img,
+.seo-content-view img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 10px !important;
+  margin: 12px 0 !important;
+  display: inline-block !important;
+}

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: tech-dental
+    runtime: docker
+    plan: free
+    region: singapore
+    envVars:
+      - key: APP_NAME
+        value: "Tech Dental"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        value: base64:JMzI/KZtIdDBqof1ZXPCR2QzlqNG6Tgx0nowPuqXJ10=
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
