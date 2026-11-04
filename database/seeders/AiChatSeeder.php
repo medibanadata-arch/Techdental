@@ -117,3 +117,4 @@ class AiChatSeeder extends Seeder
         }
     }
 }
+

@@ -297,10 +297,10 @@ export default function Home({
 
       {/* Main Container */}
       <div className="w-full max-w-5xl mx-auto px-4 py-6 md:py-10 flex-grow flex flex-col justify-between">
-        
+
         {/* Top Section: AI Assistant Box */}
         <header className="w-full max-w-2xl mx-auto text-center flex flex-col items-center mb-10 md:mb-14 pt-2 md:pt-4">
-          
+
           {/* Teeth Logo */}
           <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-blue-500 drop-shadow-md mb-8 md:mb-10 animate-pulse">
             <i className="fa-solid fa-tooth text-5xl md:text-6xl" />
@@ -321,9 +321,8 @@ export default function Home({
                 className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
               >
                 <i
-                  className={`fa-solid ${
-                    idx === 0 ? "fa-location-dot" : idx === 1 ? "fa-tooth" : idx === 2 ? "fa-notes-medical" : "fa-sparkles"
-                  } text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base`}
+                  className={`fa-solid ${idx === 0 ? "fa-location-dot" : idx === 1 ? "fa-tooth" : idx === 2 ? "fa-notes-medical" : "fa-sparkles"
+                    } text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base`}
                 />
                 <span>{chip}</span>
               </button>
@@ -386,9 +385,8 @@ export default function Home({
 
                   {/* Top Badge */}
                   <div
-                    className={`absolute top-3 left-3 text-white text-[11px] md:text-xs font-bold px-3 py-1 rounded-md shadow-xs ${
-                      idx === 0 ? "bg-[#e43324]" : idx === 1 ? "bg-[#1a73e8]" : "bg-[#059669]"
-                    }`}
+                    className={`absolute top-3 left-3 text-white text-[11px] md:text-xs font-bold px-3 py-1 rounded-md shadow-xs ${idx === 0 ? "bg-[#e43324]" : idx === 1 ? "bg-[#1a73e8]" : "bg-[#059669]"
+                      }`}
                   >
                     {titleBadge}
                   </div>
@@ -412,10 +410,10 @@ export default function Home({
 
         {/* Bottom Section: Call to Action (CTA) Section */}
         <footer className="w-full py-4 mt-auto">
-          
+
           {/* Action Buttons matched exactly to screenshot */}
           <div className="flex justify-between items-center max-w-[340px] mx-auto mb-10 w-full px-2">
-            
+
             {/* Call CTA */}
             <button
               type="button"
@@ -480,7 +478,7 @@ export default function Home({
           {/* Very Bottom: More about Tech Dental Accordion Section */}
           <div className="max-w-xl mx-auto w-full">
             <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 overflow-hidden transition-all">
-              
+
               {/* Toggle Header Button */}
               <button
                 type="button"
@@ -489,9 +487,8 @@ export default function Home({
               >
                 <span>More about Tech Dental</span>
                 <i
-                  className={`fa-solid fa-chevron-down text-slate-500 transition-transform duration-300 ${
-                    isMoreOpen ? "rotate-180" : ""
-                  }`}
+                  className={`fa-solid fa-chevron-down text-slate-500 transition-transform duration-300 ${isMoreOpen ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -541,7 +538,7 @@ export default function Home({
               )}
             </div>
           </div>
-          
+
           <p className="text-center text-xs text-slate-400 mt-6">
             © 2026 Tech Dental Bangladesh. All rights reserved.
           </p>

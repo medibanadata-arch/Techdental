@@ -775,3 +775,4 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
         </AdminLayout>
     );
 }
+

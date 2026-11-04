@@ -57,3 +57,4 @@ return new class extends Migration
         Schema::dropIfExists('ai_chat_settings');
     }
 };
+
