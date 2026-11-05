@@ -60,6 +60,7 @@ export default function Home({
   const [isCopied, setIsCopied] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isAiFocused, setIsAiFocused] = useState(false);
+  const [isFullViewOpen, setIsFullViewOpen] = useState(false);
 
   // Gallery sliding & lightbox preview state
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
@@ -221,13 +222,20 @@ export default function Home({
     ];
   }, [featured_images]);
 
-  // Keyboard navigation for image lightbox
+  // Keyboard navigation for image lightbox & modals
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!previewImage) return;
       if (e.key === "Escape") {
-        setPreviewImage(null);
-      } else if (e.key === "ArrowLeft") {
+        if (isFullViewOpen) {
+          setIsFullViewOpen(false);
+        }
+        if (previewImage) {
+          setPreviewImage(null);
+        }
+        return;
+      }
+      if (!previewImage) return;
+      if (e.key === "ArrowLeft") {
         const newIdx = (previewImage.index - 1 + galleryItems.length) % galleryItems.length;
         const prevItem = galleryItems[newIdx];
         setPreviewImage({
@@ -267,6 +275,7 @@ export default function Home({
     setLastQuery("");
     setCurrentAnswer(null);
     setIsAiLoading(false);
+    setIsFullViewOpen(false);
   };
 
   const handleAnswerAction = (ans: AiAnswer) => {
@@ -424,10 +433,16 @@ export default function Home({
               }
             }}
           >
-            <div className={`bg-white transition-all duration-300 ${currentAnswer || isAiLoading ? "rounded-[25px] overflow-hidden" : "rounded-full"}`}>
+            <div
+              className={`bg-white transition-all duration-300 ${
+                currentAnswer || isAiLoading
+                  ? "rounded-[25px] overflow-hidden flex flex-col max-h-[min(460px,78vh)]"
+                  : "rounded-full"
+              }`}
+            >
               {/* 1. Answer (or loading state) comes at the TOP (opore) */}
               {(isAiLoading || currentAnswer) && (
-                <div className="p-5 md:p-6 pb-4 transition-all duration-200">
+                <div className="p-5 md:p-6 pb-4 transition-all duration-200 flex-1 overflow-y-auto ai-scroll overscroll-contain">
                   {isAiLoading ? (
                     /* Loading State */
                     <div className="flex items-center gap-3 py-3">
@@ -443,7 +458,7 @@ export default function Home({
                   ) : currentAnswer ? (
                     /* Answer Content */
                     <div className="space-y-4">
-                      {/* Header Row: Title & Close button */}
+                      {/* Header Row: Title, Full View, Reset & Close button */}
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                         <div className="flex items-center gap-2.5">
                           <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
@@ -456,14 +471,48 @@ export default function Home({
                           </h3>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={handleClearAnswer}
-                          className="w-7 h-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
-                          title="বন্ধ করুন"
-                        >
-                          <i className="fa-solid fa-xmark text-sm" />
-                        </button>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          {/* Open Full View Modal Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsFullViewOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-full transition cursor-pointer font-medium"
+                            title="বড় করে দেখুন (Open Full View)"
+                          >
+                            <i className="fa-solid fa-expand text-[10px]" />
+                            <span className="hidden xs:inline">বড় ভিউ</span>
+                          </button>
+
+                          {/* Reset / Clear Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleClearAnswer();
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-2.5 py-1 rounded-full transition cursor-pointer font-medium"
+                            title="চ্যাট ক্লিয়ার করুন ও নতুন করে শুরু করুন"
+                          >
+                            <i className="fa-solid fa-rotate-left text-[10px]" />
+                            <span>রিসেট</span>
+                          </button>
+
+                          {/* Close button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleClearAnswer();
+                            }}
+                            className="w-7 h-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
+                            title="বন্ধ করুন"
+                          >
+                            <i className="fa-solid fa-xmark text-sm" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Formatted Reply */}
@@ -520,7 +569,7 @@ export default function Home({
               )}
 
               {/* 2. Search Box / Message Input at BOTTOM */}
-              <form onSubmit={handleAISubmit} className="ask-box">
+              <form onSubmit={handleAISubmit} className="ask-box shrink-0">
                 {/* Search Icon */}
                 <svg className="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
@@ -934,6 +983,121 @@ export default function Home({
               <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full text-white/80">
                 {previewImage.index + 1} / {galleryItems.length}
               </span>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* FULL VIEW MODAL / EXPAND POPUP */}
+      {isFullViewOpen && currentAnswer && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+          onClick={() => setIsFullViewOpen(false)}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold shadow-xs">
+                  <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 leading-tight">
+                    {currentAnswer.title?.includes("এআই") ? "টেক ডেন্টাল" : (currentAnswer.title || "টেক ডেন্টাল")}
+                  </h3>
+                  {lastQuery && (
+                    <p className="text-xs text-slate-400">প্রশ্ন: "{lastQuery}"</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Copy button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigator?.clipboard) {
+                      navigator.clipboard.writeText(currentAnswer.reply);
+                    }
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <i className={`fa-solid ${isCopied ? 'fa-check text-emerald-600' : 'fa-copy'}`} />
+                  <span>{isCopied ? 'কপি হয়েছে' : 'কপি করুন'}</span>
+                </button>
+
+                {/* Close Modal button */}
+                <button
+                  type="button"
+                  onClick={() => setIsFullViewOpen(false)}
+                  className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
+                  title="বন্ধ করুন (Esc)"
+                >
+                  <i className="fa-solid fa-xmark text-base" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body with smooth scrolling */}
+            <div className="p-6 flex-1 overflow-y-auto ai-scroll space-y-5">
+              <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
+                {currentAnswer.reply}
+              </div>
+
+              {/* Action Button inside modal */}
+              {currentAnswer.actionLabel && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsFullViewOpen(false);
+                      handleAnswerAction(currentAnswer);
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs md:text-sm font-semibold rounded-full shadow-xs hover:shadow transition cursor-pointer"
+                  >
+                    <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
+                    <span>{currentAnswer.actionLabel}</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Follow-up suggestions */}
+              <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
+                <span className="text-xs text-slate-400 font-medium shrink-0">আরও জানতে:</span>
+                {suggestedChips.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setIsFullViewOpen(false);
+                      handleSelectSuggestion(chip);
+                    }}
+                    className="px-3 py-1.5 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 rounded-full text-xs text-slate-600 transition cursor-pointer"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Footer: Quick clear or close */}
+            <div className="p-3.5 px-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs text-slate-400">টেক ডেন্টাল ইন্টেলিজেন্ট চ্যাট সাপোর্ট</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsFullViewOpen(false);
+                  handleClearAnswer();
+                }}
+                className="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1 font-medium transition cursor-pointer"
+              >
+                <i className="fa-solid fa-rotate-left text-[11px]" />
+                <span>চ্যাট ক্লিয়ার করুন</span>
+              </button>
             </div>
           </div>
         </div>
