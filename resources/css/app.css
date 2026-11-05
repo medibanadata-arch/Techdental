@@ -457,27 +457,6 @@ body {
   margin-left: -2px;
 }
 
-/* Custom smooth scrollbar for AI answer box & modal */
-.ai-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-.ai-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-.ai-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.ai-scroll::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 999px;
-}
-.ai-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8;
-}
-
 @media (max-width: 480px) {
   .ask-box { padding: 6px 6px 6px 16px; gap: 8px; }
   .ask-box input { font-size: 16px; padding: 10px 0; }
@@ -485,4 +464,30 @@ body {
   .send-btn svg { width: 19px; height: 19px; }
   .ask-wrap.has-answer { border-radius: 24px; }
   .ask-wrap.has-answer .ask-box { border-radius: 0 0 21px 21px; }
+}
+
+/* Custom slim scrollbar (from minimal_dental_ai_search.html) */
+.custom-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+/* Default pill search state (Image 1 - minimal_dental_ai_search.html) */
+.search-pill-container {
+  border: 1.5px solid #e0e7ff;
+  box-shadow: 0 10px 30px -4px rgba(37, 99, 235, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focused active state (Image 2 - vibrant blue border) */
+.search-pill-container.is-focused,
+.search-pill-container:focus-within {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 1px #2563eb, 0 14px 34px -4px rgba(37, 99, 235, 0.16) !important;
 }

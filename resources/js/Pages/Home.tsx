@@ -42,6 +42,13 @@ export interface AiAnswer {
   actionUrl?: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text?: string;
+  answer?: AiAnswer;
+}
+
 export default function Home({
   locations = [],
   services = [],
@@ -54,13 +61,18 @@ export default function Home({
 }: HomeProps) {
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const [aiInputValue, setAiInputValue] = useState("");
-  const [lastQuery, setLastQuery] = useState("");
-  const [currentAnswer, setCurrentAnswer] = useState<AiAnswer | null>(null);
+  const [modalInputValue, setModalInputValue] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isWidgetOpen, setIsWidgetOpen] = useState(false);
+  const [isFullModalOpen, setIsFullModalOpen] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isAiFocused, setIsAiFocused] = useState(false);
-  const [isFullViewOpen, setIsFullViewOpen] = useState(false);
+
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const modalChatScrollRef = useRef<HTMLDivElement>(null);
 
   // Gallery sliding & lightbox preview state
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
@@ -222,20 +234,13 @@ export default function Home({
     ];
   }, [featured_images]);
 
-  // Keyboard navigation for image lightbox & modals
+  // Keyboard navigation for image lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (isFullViewOpen) {
-          setIsFullViewOpen(false);
-        }
-        if (previewImage) {
-          setPreviewImage(null);
-        }
-        return;
-      }
       if (!previewImage) return;
-      if (e.key === "ArrowLeft") {
+      if (e.key === "Escape") {
+        setPreviewImage(null);
+      } else if (e.key === "ArrowLeft") {
         const newIdx = (previewImage.index - 1 + galleryItems.length) % galleryItems.length;
         const prevItem = galleryItems[newIdx];
         setPreviewImage({
@@ -259,23 +264,62 @@ export default function Home({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [previewImage, galleryItems]);
 
-  // Handle Question Chips & AI input
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2200);
+  };
+
+  const scrollChatToBottom = () => {
+    setTimeout(() => {
+      if (chatScrollRef.current) {
+        chatScrollRef.current.scrollTo({ top: chatScrollRef.current.scrollHeight, behavior: "smooth" });
+      }
+      if (modalChatScrollRef.current) {
+        modalChatScrollRef.current.scrollTo({ top: modalChatScrollRef.current.scrollHeight, behavior: "smooth" });
+      }
+    }, 60);
+  };
+
   const handleSelectSuggestion = (text: string) => {
     processAIQuestion(text);
   };
 
   const handleAISubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!aiInputValue.trim()) return;
+    if (!aiInputValue.trim()) {
+      const el = document.getElementById("primarySearchInput");
+      el?.focus();
+      return;
+    }
     processAIQuestion(aiInputValue.trim());
   };
 
-  const handleClearAnswer = () => {
-    setAiInputValue("");
-    setLastQuery("");
-    setCurrentAnswer(null);
-    setIsAiLoading(false);
-    setIsFullViewOpen(false);
+  const handleModalSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!modalInputValue.trim()) return;
+    processAIQuestion(modalInputValue.trim());
+  };
+
+  const handleResetConversation = () => {
+    setChatMessages([]);
+    setIsWidgetOpen(true);
+    showToast("চ্যাট রিসেট করা হয়েছে");
+    processAIQuestion("ডেন্টাল ইমপ্ল্যান্ট ও খরচ");
+  };
+
+  const handleCloseWidget = () => {
+    setIsWidgetOpen(false);
+  };
+
+  const handleCopyAnswer = (text: string, id: string) => {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text);
+    }
+    setCopiedMsgId(id);
+    showToast("উত্তর কপি হয়েছে");
+    setTimeout(() => setCopiedMsgId(null), 2000);
   };
 
   const handleAnswerAction = (ans: AiAnswer) => {
@@ -296,10 +340,20 @@ export default function Home({
   const processAIQuestion = async (query: string) => {
     if (!query.trim()) return;
     const cleanQuery = query.trim();
-    setLastQuery(cleanQuery);
     setAiInputValue("");
+    setModalInputValue("");
+    setIsWidgetOpen(true);
+
+    const userMsgId = `user-${Date.now()}`;
+    const userMsg: ChatMessage = {
+      id: userMsgId,
+      role: "user",
+      text: cleanQuery,
+    };
+
+    setChatMessages((prev) => [...prev, userMsg]);
     setIsAiLoading(true);
-    setCurrentAnswer(null);
+    scrollChatToBottom();
 
     try {
       const res = await fetch("/api/ai-chat", {
@@ -313,18 +367,24 @@ export default function Home({
 
       const data = await res.json();
       if (data && data.reply) {
-        setCurrentAnswer({
-          title: data.title || "টেক ডেন্টাল",
-          reply: data.reply,
-          icon: data.icon || "fa-sparkles",
-          iconColor: data.icon_color || "text-blue-600",
-          iconBg: data.icon_bg || "bg-blue-100",
-          source: data.source || "keyword",
-          actionType: data.action_type || "none",
-          actionLabel: data.action_label,
-          actionUrl: data.action_url,
-        });
+        const aiMsg: ChatMessage = {
+          id: `ai-${Date.now()}`,
+          role: "assistant",
+          answer: {
+            title: data.title || "টেক ডেন্টাল",
+            reply: data.reply,
+            icon: data.icon || "fa-sparkles",
+            iconColor: data.icon_color || "text-blue-600",
+            iconBg: data.icon_bg || "bg-blue-100",
+            source: data.source || "keyword",
+            actionType: data.action_type || "appointment",
+            actionLabel: data.action_label || "অনলাইন সিরিয়াল নিন",
+            actionUrl: data.action_url,
+          },
+        };
+        setChatMessages((prev) => [...prev, aiMsg]);
         setIsAiLoading(false);
+        scrollChatToBottom();
         return;
       }
     } catch (err) {
@@ -332,18 +392,65 @@ export default function Home({
     }
 
     // Fallback if offline/network issue
-    setCurrentAnswer({
-      title: "টেক ডেন্টাল",
-      reply: `আপনার প্রশ্ন: "${cleanQuery}"\n\nটেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (01400786162) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
-      icon: "fa-robot",
-      iconColor: "text-blue-600",
-      iconBg: "bg-blue-100",
-      source: "fallback",
-      actionType: "appointment",
-      actionLabel: "অনলাইন অ্যাপয়েন্টমেন্ট",
-      actionUrl: "/appointment",
-    });
+    const fallbackMsg: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      role: "assistant",
+      answer: {
+        title: "টেক ডেন্টাল",
+        reply: `টেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (${hotline}) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
+        actionType: "appointment",
+        actionLabel: "অনলাইন সিরিয়াল নিন",
+        actionUrl: "/appointment",
+      },
+    };
+    setChatMessages((prev) => [...prev, fallbackMsg]);
     setIsAiLoading(false);
+    scrollChatToBottom();
+  };
+
+  const renderChatMessage = (msg: ChatMessage) => {
+    if (msg.role === "user") {
+      return (
+        <div key={msg.id} className="flex justify-end pt-2">
+          <div className="bg-blue-50 text-blue-950 font-medium px-4 py-2 rounded-2xl rounded-tr-xs text-xs sm:text-sm max-w-[85%] border border-blue-100 shadow-2xs">
+            {msg.text}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={msg.id} className="text-[14px] sm:text-[15px] leading-relaxed text-[#202124] space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+        <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
+          {msg.answer?.reply}
+        </div>
+
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100/80">
+          <div className="flex items-center gap-2">
+            {msg.answer?.actionLabel && (
+              <button
+                type="button"
+                onClick={() => handleAnswerAction(msg.answer!)}
+                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition cursor-pointer"
+              >
+                <i className="fa-solid fa-calendar-check text-xs" />
+                <span>{msg.answer.actionLabel}</span>
+              </button>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleCopyAnswer(msg.answer?.reply || "", msg.id)}
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+            title="উত্তর কপি করুন"
+          >
+            <i className={`fa-solid ${copiedMsgId === msg.id ? "fa-check text-emerald-600" : "fa-copy"}`} />
+            <span>{copiedMsgId === msg.id ? "কপি হয়েছে" : "কপি"}</span>
+          </button>
+        </div>
+      </div>
+    );
   };
 
   // Action Buttons Modals
@@ -423,213 +530,138 @@ export default function Home({
             ))}
           </div>
 
-          {/* Unified AI Ask Box & Answer Card — from search-box.html styling */}
-          <div
-            className={`ask-wrap ${currentAnswer || isAiLoading ? "has-answer" : ""} ${isAiFocused ? "is-focused" : ""}`}
-            onClick={() => {
-              const el = document.getElementById("aiInput");
-              if (el && document.activeElement !== el) {
-                el.focus();
-              }
-            }}
-          >
-            <div
-              className={`bg-white transition-all duration-300 ${
-                currentAnswer || isAiLoading
-                  ? "rounded-[25px] overflow-hidden flex flex-col max-h-[min(460px,78vh)]"
-                  : "rounded-full"
-              }`}
-            >
-              {/* 1. Answer (or loading state) comes at the TOP (opore) */}
-              {(isAiLoading || currentAnswer) && (
-                <div className="p-5 md:p-6 pb-4 transition-all duration-200 flex-1 overflow-y-auto ai-scroll overscroll-contain">
-                  {isAiLoading ? (
-                    /* Loading State */
-                    <div className="flex items-center gap-3 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                      <span className="text-sm text-slate-600 font-medium font-['Hind_Siliguri',sans-serif]">
-                        {lastQuery ? `"${lastQuery}" - সম্পর্কিত তথ্য অনুসন্ধান করা হচ্ছে...` : "উত্তর অনুসন্ধান করা হচ্ছে..."}
-                      </span>
-                    </div>
-                  ) : currentAnswer ? (
-                    /* Answer Content */
-                    <div className="space-y-4">
-                      {/* Header Row: Title, Full View, Reset & Close button */}
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
-                            <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
-                          </div>
-                          <h3 className="text-sm md:text-base font-bold text-slate-900 leading-tight">
-                            {currentAnswer.title?.includes("এআই")
-                              ? "টেক ডেন্টাল"
-                              : (currentAnswer.title || "টেক ডেন্টাল")}
-                          </h3>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 sm:gap-2">
-                          {/* Open Full View Modal Button */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsFullViewOpen(true);
-                            }}
-                            className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-full transition cursor-pointer font-medium"
-                            title="বড় করে দেখুন (Open Full View)"
-                          >
-                            <i className="fa-solid fa-expand text-[10px]" />
-                            <span className="hidden xs:inline">বড় ভিউ</span>
-                          </button>
-
-                          {/* Reset / Clear Button */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClearAnswer();
-                            }}
-                            className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-2.5 py-1 rounded-full transition cursor-pointer font-medium"
-                            title="চ্যাট ক্লিয়ার করুন ও নতুন করে শুরু করুন"
-                          >
-                            <i className="fa-solid fa-rotate-left text-[10px]" />
-                            <span>রিসেট</span>
-                          </button>
-
-                          {/* Close button */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClearAnswer();
-                            }}
-                            className="w-7 h-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
-                            title="বন্ধ করুন"
-                          >
-                            <i className="fa-solid fa-xmark text-sm" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Formatted Reply */}
-                      <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
-                        {currentAnswer.reply}
-                      </div>
-
-                      {/* Action Buttons Row */}
-                      <div className="pt-2 flex flex-wrap items-center gap-2.5">
-                        {currentAnswer.actionLabel && (
-                          <button
-                            type="button"
-                            onClick={() => handleAnswerAction(currentAnswer)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs md:text-sm font-semibold rounded-full shadow-xs hover:shadow transition cursor-pointer"
-                          >
-                            <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
-                            <span>{currentAnswer.actionLabel}</span>
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (navigator?.clipboard) {
-                              navigator.clipboard.writeText(currentAnswer.reply);
-                            }
-                            setIsCopied(true);
-                            setTimeout(() => setIsCopied(false), 2000);
-                          }}
-                          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
-                        >
-                          <i className={`fa-solid ${isCopied ? 'fa-check text-emerald-600' : 'fa-copy'}`} />
-                          <span>{isCopied ? 'কপি হয়েছে' : 'উত্তর কপি করুন'}</span>
-                        </button>
-                      </div>
-
-                      {/* Follow-up Chips Row inside the card */}
-                      <div className="pt-3 border-t border-slate-100 flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                        <span className="text-[11px] text-slate-400 font-medium shrink-0">আরও জানতে:</span>
-                        {suggestedChips.map((chip, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handleSelectSuggestion(chip)}
-                            className="shrink-0 px-2.5 py-1 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 rounded-full text-xs text-slate-600 transition cursor-pointer"
-                          >
-                            {chip}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
+          {/* ========================================== */}
+          {/* EXPANDABLE GEMINI / CHATGPT AI RESPONSE PANEL */}
+          {/* Opens smoothly above the bottom search bar */}
+          {/* ========================================== */}
+          {isWidgetOpen && (chatMessages.length > 0 || isAiLoading) && (
+            <div id="aiResponseWidget" className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-[0_12px_40px_rgb(0,0,0,0.06)] overflow-hidden flex flex-col h-[480px] mb-4 transition-all duration-300 text-left">
+              {/* Top Minimal Action Header */}
+              <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2C8.5 2 6 4.5 6 8c0 3.2 1.3 6.8 2 10 .4 1.8 1.4 3 2.5 3s1.7-1 2-3c.5-3.3.5-3.3 1-3.3s.5 0 1 3.3c.3 2 .9 3 2 3s2.1-1.2 2.5-3c.7-3.2 2-6.8 2-10 0-3.5-2.5-6-7-6z" />
+                    </svg>
+                  </span>
+                  <span className="text-xs sm:text-sm font-semibold text-slate-700">টেক ডেন্টাল</span>
                 </div>
-              )}
 
-              {/* 2. Search Box / Message Input at BOTTOM */}
-              <form onSubmit={handleAISubmit} className="ask-box shrink-0">
-                {/* Search Icon */}
-                <svg className="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
-                </svg>
-
-                <input
-                  type="text"
-                  id="aiInput"
-                  name="q"
-                  value={aiInputValue}
-                  onChange={(e) => setAiInputValue(e.target.value)}
-                  onFocus={() => setIsAiFocused(true)}
-                  onBlur={() => setIsAiFocused(false)}
-                  placeholder={currentAnswer ? "পরবর্তী প্রশ্ন লিখুন... (যেমন: খরচ, শাখা, ডাক্তার)" : "খরচ, ঠিকানা, ডাক্তার..."}
-                  autoComplete="off"
-                  className="border-0! border-transparent! outline-none! ring-0! shadow-none! focus:border-0! focus:border-transparent! focus:outline-none! focus:ring-0! focus:shadow-none!"
-                />
-
-                {/* Clear (✕) Button if input is typed */}
-                {aiInputValue && (
+                <div className="flex items-center gap-1 text-slate-500">
+                  {/* Reset / Clear Button */}
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAiInputValue("");
-                      document.getElementById("aiInput")?.focus();
-                    }}
-                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition cursor-pointer shrink-0 mr-1"
-                    title="মুছে ফেলুন"
+                    onClick={handleResetConversation}
+                    title="নতুন করে শুরু করুন"
+                    className="p-1.5 hover:bg-slate-200/60 rounded-full hover:text-slate-800 transition cursor-pointer"
                   >
-                    <i className="fa-solid fa-xmark text-base" />
+                    <i className="fa-solid fa-rotate-left text-xs sm:text-sm" />
                   </button>
-                )}
 
-                {/* Send Button from search-box.html */}
-                <button
-                  className="send-btn"
-                  type="submit"
-                  disabled={isAiLoading}
-                  onClick={(e) => {
-                    if (!aiInputValue.trim()) {
+                  {/* Expand / Full View Modal Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsFullModalOpen(true)}
+                    title="ফুল ভিউ দেখুন"
+                    className="p-1.5 hover:bg-slate-200/60 rounded-full hover:text-blue-600 transition cursor-pointer"
+                  >
+                    <i className="fa-solid fa-up-right-and-down-left-from-center text-xs sm:text-sm" />
+                  </button>
+
+                  {/* Close Widget Button */}
+                  <button
+                    type="button"
+                    onClick={handleCloseWidget}
+                    title="বন্ধ করুন"
+                    className="p-1.5 hover:bg-red-50 rounded-full hover:text-red-500 transition ml-0.5 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-xmark text-sm" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Internal Thread (No Page Push) */}
+              <div ref={chatScrollRef} className="flex-1 overflow-y-auto custom-scroll p-5 space-y-4">
+                {chatMessages.map(renderChatMessage)}
+                {isAiLoading && (
+                  <div className="flex items-center gap-2 p-3 bg-slate-50/70 rounded-2xl border border-slate-100 text-xs text-slate-500">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    <span className="font-['Hind_Siliguri',sans-serif]">উত্তর অনুসন্ধান করা হচ্ছে...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Widget Related Suggested Chips */}
+              <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/40 shrink-0 flex items-center gap-1.5 overflow-x-auto hide-scrollbar text-[11px]">
+                <span className="text-slate-400 whitespace-nowrap">সম্পর্কিত:</span>
+                {suggestedChips.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectSuggestion(chip)}
+                    className="whitespace-nowrap px-2.5 py-1 rounded-full border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 text-slate-600 hover:text-blue-600 transition cursor-pointer"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================== */}
+          {/* BOTTOM SEARCH BAR (Image 1 Default -> Image 2 Focused) */}
+          {/* ========================================== */}
+          <div className="w-full flex flex-col items-center">
+            <div
+              id="searchBarPill"
+              className={`search-pill-container w-full bg-white rounded-full pl-5 pr-2 py-1.5 sm:py-2 flex items-center justify-between transition-all duration-200 ${
+                isAiFocused ? "is-focused" : ""
+              }`}
+            >
+              <div className="flex items-center flex-1 mr-3">
+                <svg className="w-5 h-5 text-blue-500 mr-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  id="primarySearchInput"
+                  value={aiInputValue}
+                  onChange={(e) => setAiInputValue(e.target.value)}
+                  placeholder="খরচ, ঠিকানা, ডাক্তার..."
+                  className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none"
+                  onFocus={() => setIsAiFocused(true)}
+                  onBlur={() => setIsAiFocused(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
                       e.preventDefault();
-                      const inputEl = document.getElementById("aiInput") as HTMLInputElement | null;
-                      if (inputEl) {
-                        inputEl.focus();
-                        setIsAiFocused(true);
-                      }
+                      handleAISubmit();
                     }
                   }}
-                  aria-label="পাঠান"
-                >
-                  {isAiLoading ? (
-                    <i className="fa-solid fa-circle-notch fa-spin text-lg" />
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M2.5 11.3l17-7.6c.8-.4 1.6.4 1.2 1.2l-7.6 17c-.4.9-1.7.8-2-.1l-1.8-6.2-6.2-1.8c-.9-.3-1-1.6-.1-2z" />
-                    </svg>
-                  )}
-                </button>
-              </form>
+                />
+              </div>
+
+              {/* Send / Search Button (Matches Image 1 & 2) */}
+              <button
+                type="button"
+                onClick={handleAISubmit}
+                id="searchSubmitBtn"
+                disabled={isAiLoading}
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1d63ed] hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center transition shadow-md shadow-blue-500/25 shrink-0 cursor-pointer"
+                title="সার্চ করুন"
+              >
+                {isAiLoading ? (
+                  <i className="fa-solid fa-circle-notch fa-spin text-sm" />
+                ) : (
+                  <svg className="w-5 h-5 translate-x-0.5 -rotate-45" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
         </header>
@@ -987,118 +1019,99 @@ export default function Home({
           </div>
         </div>
       )}
-      {/* FULL VIEW MODAL / EXPAND POPUP */}
-      {isFullViewOpen && currentAnswer && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in"
-          onClick={() => setIsFullViewOpen(false)}
-        >
-          <div
-            className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
+
+      {/* ========================================== */}
+      {/* EXPAND / FULL VIEW MODAL */}
+      {/* ========================================== */}
+      {isFullModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-3xl h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
             {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold shadow-xs">
-                  <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
+                <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+                  <i className="fa-solid fa-sparkles text-xs" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 leading-tight">
-                    {currentAnswer.title?.includes("এআই") ? "টেক ডেন্টাল" : (currentAnswer.title || "টেক ডেন্টাল")}
-                  </h3>
-                  {lastQuery && (
-                    <p className="text-xs text-slate-400">প্রশ্ন: "{lastQuery}"</p>
-                  )}
+                  <h4 className="font-bold text-sm text-slate-800">টেক ডেন্টাল এসিস্ট্যান্ট (ফুল ভিউ)</h4>
+                  <p className="text-[11px] text-slate-400">বিস্তারিত কথোপকথন ও পরামর্শ</p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2">
-                {/* Copy button */}
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (navigator?.clipboard) {
-                      navigator.clipboard.writeText(currentAnswer.reply);
-                    }
-                    setIsCopied(true);
-                    setTimeout(() => setIsCopied(false), 2000);
-                  }}
-                  className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+                  onClick={handleResetConversation}
+                  title="নতুন করে শুরু করুন"
+                  className="p-2 hover:bg-slate-200 rounded-full text-slate-600 transition cursor-pointer"
                 >
-                  <i className={`fa-solid ${isCopied ? 'fa-check text-emerald-600' : 'fa-copy'}`} />
-                  <span>{isCopied ? 'কপি হয়েছে' : 'কপি করুন'}</span>
+                  <i className="fa-solid fa-rotate-left text-sm" />
                 </button>
-
-                {/* Close Modal button */}
                 <button
                   type="button"
-                  onClick={() => setIsFullViewOpen(false)}
-                  className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
-                  title="বন্ধ করুন (Esc)"
+                  onClick={() => setIsFullModalOpen(false)}
+                  className="p-2 hover:bg-slate-200 rounded-full text-slate-600 transition cursor-pointer"
+                  title="বন্ধ করুন"
                 >
                   <i className="fa-solid fa-xmark text-base" />
                 </button>
               </div>
             </div>
 
-            {/* Modal Body with smooth scrolling */}
-            <div className="p-6 flex-1 overflow-y-auto ai-scroll space-y-5">
-              <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
-                {currentAnswer.reply}
-              </div>
-
-              {/* Action Button inside modal */}
-              {currentAnswer.actionLabel && (
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsFullViewOpen(false);
-                      handleAnswerAction(currentAnswer);
-                    }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs md:text-sm font-semibold rounded-full shadow-xs hover:shadow transition cursor-pointer"
-                  >
-                    <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
-                    <span>{currentAnswer.actionLabel}</span>
-                  </button>
+            {/* Modal Chat Scroll Area */}
+            <div ref={modalChatScrollRef} className="flex-1 overflow-y-auto custom-scroll p-6 space-y-4">
+              {chatMessages.map(renderChatMessage)}
+              {isAiLoading && (
+                <div className="flex items-center gap-2 p-3 bg-slate-50/70 rounded-2xl border border-slate-100 text-xs text-slate-500">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span>উত্তর অনুসন্ধান করা হচ্ছে...</span>
                 </div>
               )}
-
-              {/* Follow-up suggestions */}
-              <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-400 font-medium shrink-0">আরও জানতে:</span>
-                {suggestedChips.map((chip, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setIsFullViewOpen(false);
-                      handleSelectSuggestion(chip);
-                    }}
-                    className="px-3 py-1.5 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 rounded-full text-xs text-slate-600 transition cursor-pointer"
-                  >
-                    {chip}
-                  </button>
-                ))}
-              </div>
             </div>
 
-            {/* Modal Footer: Quick clear or close */}
-            <div className="p-3.5 px-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs text-slate-400">টেক ডেন্টাল ইন্টেলিজেন্ট চ্যাট সাপোর্ট</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsFullViewOpen(false);
-                  handleClearAnswer();
-                }}
-                className="text-xs text-slate-500 hover:text-rose-600 flex items-center gap-1 font-medium transition cursor-pointer"
+            {/* Modal Search Input Bar */}
+            <div className="p-4 border-t border-slate-100 bg-white shrink-0">
+              <form
+                onSubmit={handleModalSubmit}
+                className="relative flex items-center bg-[#f0f4f9] rounded-full px-5 py-2.5 sm:py-3 border border-slate-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20"
               >
-                <i className="fa-solid fa-rotate-left text-[11px]" />
-                <span>চ্যাট ক্লিয়ার করুন</span>
-              </button>
+                <svg className="w-4 h-4 text-slate-400 mr-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  value={modalInputValue}
+                  onChange={(e) => setModalInputValue(e.target.value)}
+                  placeholder="আপনার পরবর্তী প্রশ্ন লিখুন..."
+                  className="w-full bg-transparent text-sm outline-none text-slate-800 border-0 ring-0 focus:ring-0 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={isAiLoading || !modalInputValue.trim()}
+                  className="ml-2 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center shadow-xs transition cursor-pointer shrink-0 disabled:opacity-40"
+                  title="পাঠান"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
+                  </svg>
+                </button>
+              </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Minimal Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-300">
+          <div className="bg-slate-900 text-white text-xs px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+            <i className="fa-solid fa-check text-emerald-400 text-xs" />
+            <span>{toastMessage}</span>
           </div>
         </div>
       )}
