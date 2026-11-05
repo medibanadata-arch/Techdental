@@ -453,6 +453,46 @@ export default function Home({
     );
   };
 
+  const getChipIcon = (chip: string, idx: number) => {
+    if (chip.includes("ইমপ্ল্যান্ট") || chip.toLowerCase().includes("implant") || idx === 3) {
+      return (
+        <span className="w-4 h-4 flex items-center justify-center text-slate-500 md:text-blue-500 shrink-0" title="ডেন্টাল ইমপ্ল্যান্ট">
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4">
+            {/* Tooth Crown */}
+            <path d="M7 2C5.3 2 4 3.3 4 5c0 2 1.2 3.7 2.8 4.5.2.1.2.3.2.5v1h10v-1c0-.2.1-.4.2-.5C18.8 8.7 20 7 20 5c0-1.7-1.3-3-3-3-1.8 0-3.2 1-5 1S8.8 2 7 2z" />
+            {/* Implant Collar & Threaded Screw */}
+            <rect x="8" y="12" width="8" height="1.5" rx="0.5" />
+            <rect x="8.5" y="14.5" width="7" height="1.5" rx="0.5" />
+            <rect x="9.5" y="17" width="5" height="1.5" rx="0.5" />
+            <path d="M10.5 19.5h3L12 22.5z" />
+          </svg>
+        </span>
+      );
+    }
+
+    if (chip.includes("ঠিকানা") || chip.includes("শাখা") || idx === 0) {
+      return (
+        <i className="fa-solid fa-location-dot text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />
+      );
+    }
+
+    if (chip.includes("ফাঁকা") || idx === 1) {
+      return (
+        <i className="fa-solid fa-tooth text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />
+      );
+    }
+
+    if (chip.includes("ব্যথা") || idx === 2) {
+      return (
+        <i className="fa-solid fa-notes-medical text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />
+      );
+    }
+
+    return (
+      <i className="fa-solid fa-tooth text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />
+    );
+  };
+
   // Action Buttons Modals
   const handleActionModal = (type: "Call" | "Directions" | "WhatsApp" | "Book") => {
     if (type === "Call") {
@@ -521,10 +561,7 @@ export default function Home({
                 onClick={() => handleSelectSuggestion(chip)}
                 className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
               >
-                <i
-                  className={`fa-solid ${idx === 0 ? "fa-location-dot" : idx === 1 ? "fa-tooth" : idx === 2 ? "fa-notes-medical" : "fa-sparkles"
-                    } text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base`}
-                />
+                {getChipIcon(chip, idx)}
                 <span>{chip}</span>
               </button>
             ))}
