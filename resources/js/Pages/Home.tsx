@@ -442,50 +442,17 @@ export default function Home({
                     </div>
                   ) : currentAnswer ? (
                     /* Answer Content */
-                    <div className="space-y-4">
-                      {/* Header Row */}
-                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
-                            <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
-                          </div>
-                          <div>
-                            <h3 className="text-sm md:text-base font-bold text-slate-900 leading-tight">
-                              {currentAnswer.title}
-                            </h3>
-                            {lastQuery && (
-                              <p className="text-[11px] text-slate-400">প্রশ্ন: "{lastQuery}"</p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {currentAnswer.source && (
-                            <span
-                              className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${
-                                currentAnswer.source === 'gemini'
-                                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                                  : currentAnswer.source === 'keyword'
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-blue-50 text-blue-700 border border-blue-200'
-                              }`}
-                            >
-                              {currentAnswer.source === 'gemini'
-                                ? '✨ Gemini AI'
-                                : currentAnswer.source === 'keyword'
-                                ? '✓ ভেরিফাইড উত্তর'
-                                : 'টেক ডেন্টাল কেয়ার'}
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={handleClearAnswer}
-                            className="w-7 h-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
-                            title="বন্ধ করুন"
-                          >
-                            <i className="fa-solid fa-xmark text-sm" />
-                          </button>
-                        </div>
+                    <div className="space-y-4 relative">
+                      {/* Close button at top right */}
+                      <div className="flex items-center justify-end -mb-2">
+                        <button
+                          type="button"
+                          onClick={handleClearAnswer}
+                          className="w-7 h-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
+                          title="বন্ধ করুন"
+                        >
+                          <i className="fa-solid fa-xmark text-sm" />
+                        </button>
                       </div>
 
                       {/* Formatted Reply */}
