@@ -374,69 +374,69 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                 </div>
 
                 {/* Tabs Navigation */}
-                <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-1">
+                <div className="flex items-center gap-1.5 sm:gap-2 border-b border-slate-200 overflow-x-auto pb-1">
                     <button
                         type="button"
                         onClick={() => setActiveTab('rules')}
-                        className={`px-4 py-2.5 text-sm font-bold rounded-xl transition flex items-center gap-2 cursor-pointer ${
+                        className={`px-3 py-2 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                             activeTab === 'rules'
                                 ? 'bg-blue-600 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         }`}
                     >
-                        <Hash size={16} />
+                        <Hash size={14} />
                         <span>Keyword Rules ({rules.length})</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setActiveTab('training')}
-                        className={`px-4 py-2.5 text-sm font-bold rounded-xl transition flex items-center gap-2 cursor-pointer ${
+                        className={`px-3 py-2 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                             activeTab === 'training'
                                 ? 'bg-blue-600 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         }`}
                     >
-                        <GraduationCap size={16} />
+                        <GraduationCap size={14} />
                         <span>Company Training Data (Knowledge Base)</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setActiveTab('gemini')}
-                        className={`px-4 py-2.5 text-sm font-bold rounded-xl transition flex items-center gap-2 cursor-pointer ${
+                        className={`px-3 py-2 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                             activeTab === 'gemini'
                                 ? 'bg-blue-600 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         }`}
                     >
-                        <Sparkles size={16} />
+                        <Sparkles size={14} />
                         <span>Google Gemini API Settings</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setActiveTab('chips')}
-                        className={`px-4 py-2.5 text-sm font-bold rounded-xl transition flex items-center gap-2 cursor-pointer ${
+                        className={`px-3 py-2 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                             activeTab === 'chips'
                                 ? 'bg-blue-600 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         }`}
                     >
-                        <HelpCircle size={16} />
+                        <HelpCircle size={14} />
                         <span>Suggested Questions ({chipsList.length})</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => setActiveTab('logs')}
-                        className={`px-4 py-2.5 text-sm font-bold rounded-xl transition flex items-center gap-2 cursor-pointer ${
+                        className={`px-3 py-2 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                             activeTab === 'logs'
                                 ? 'bg-blue-600 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         }`}
                     >
-                        <Clock size={16} />
+                        <Clock size={14} />
                         <span>Patient Search History ({logs.length})</span>
                     </button>
                 </div>
