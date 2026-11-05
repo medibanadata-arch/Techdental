@@ -279,7 +279,7 @@ class AiAssistantController extends Controller
                             return response()->json([
                                 'success' => true,
                                 'source' => 'gemini',
-                                'title' => 'টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট',
+                                'title' => 'টেক ডেন্টাল',
                                 'reply' => $aiText,
                                 'icon' => 'fa-sparkles',
                                 'icon_color' => 'text-blue-600',
@@ -386,7 +386,7 @@ class AiAssistantController extends Controller
         return response()->json([
             'success' => true,
             'source' => 'fallback',
-            'title' => 'টেক ডেন্টাল এআই হেল্পডেস্ক',
+            'title' => 'টেক ডেন্টাল',
             'reply' => $fallback,
             'icon' => 'fa-circle-question',
             'icon_color' => 'text-blue-600',
@@ -485,7 +485,7 @@ class AiAssistantController extends Controller
         $reply = "টেক ডেন্টালের ট্রেনিং ডাটা অনুযায়ী আপনার প্রশ্নের তথ্য নিচে দেওয়া হলো:\n\n" . $extractedText . "\n\nআমাদের ৪টি শাখা (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী)-তে প্রতিদিন সকাল ১০টা থেকে রাত ৯টা পর্যন্ত বিশেষজ্ঞ ডাক্তার উপস্থিত থাকেন। সিরিয়াল বা যেকোনো তথ্যের জন্য কল করুন: 01400786162।";
 
         return [
-            'title' => 'টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট',
+            'title' => 'টেক ডেন্টাল',
             'reply' => $reply,
         ];
     }

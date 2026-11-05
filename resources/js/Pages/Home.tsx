@@ -305,7 +305,7 @@ export default function Home({
       const data = await res.json();
       if (data && data.reply) {
         setCurrentAnswer({
-          title: data.title || "টেক ডেন্টাল এআই অ্যাসিস্ট্যান্ট",
+          title: data.title || "টেক ডেন্টাল",
           reply: data.reply,
           icon: data.icon || "fa-sparkles",
           iconColor: data.icon_color || "text-blue-600",
@@ -324,7 +324,7 @@ export default function Home({
 
     // Fallback if offline/network issue
     setCurrentAnswer({
-      title: "টেক ডেন্টাল এআই হেল্পডেস্ক",
+      title: "টেক ডেন্টাল",
       reply: `আপনার প্রশ্ন: "${cleanQuery}"\n\nটেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (01400786162) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
       icon: "fa-robot",
       iconColor: "text-blue-600",
@@ -442,9 +442,20 @@ export default function Home({
                     </div>
                   ) : currentAnswer ? (
                     /* Answer Content */
-                    <div className="space-y-4 relative">
-                      {/* Close button at top right */}
-                      <div className="flex items-center justify-end -mb-2">
+                    <div className="space-y-4">
+                      {/* Header Row: Title & Close button */}
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
+                            <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
+                          </div>
+                          <h3 className="text-sm md:text-base font-bold text-slate-900 leading-tight">
+                            {currentAnswer.title?.includes("এআই")
+                              ? "টেক ডেন্টাল"
+                              : (currentAnswer.title || "টেক ডেন্টাল")}
+                          </h3>
+                        </div>
+
                         <button
                           type="button"
                           onClick={handleClearAnswer}
