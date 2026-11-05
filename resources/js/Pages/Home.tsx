@@ -59,6 +59,7 @@ export default function Home({
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isAiFocused, setIsAiFocused] = useState(false);
 
   // Modal State for external actions
   const [modal, setModal] = useState<ModalState>({
@@ -340,7 +341,15 @@ export default function Home({
           </div>
 
           {/* Unified AI Ask Box & Answer Card — from search-box.html styling */}
-          <div className={`ask-wrap ${currentAnswer || isAiLoading ? "has-answer" : ""}`}>
+          <div
+            className={`ask-wrap ${currentAnswer || isAiLoading ? "has-answer" : ""} ${isAiFocused ? "is-focused" : ""}`}
+            onClick={() => {
+              const el = document.getElementById("aiInput");
+              if (el && document.activeElement !== el) {
+                el.focus();
+              }
+            }}
+          >
             <div className={`bg-white transition-all duration-300 ${currentAnswer || isAiLoading ? "rounded-[25px] overflow-hidden" : "rounded-full"}`}>
               {/* 1. Answer (or loading state) comes at the TOP (opore) */}
               {(isAiLoading || currentAnswer) && (
@@ -471,6 +480,8 @@ export default function Home({
                   name="q"
                   value={aiInputValue}
                   onChange={(e) => setAiInputValue(e.target.value)}
+                  onFocus={() => setIsAiFocused(true)}
+                  onBlur={() => setIsAiFocused(false)}
                   placeholder={currentAnswer ? "পরবর্তী প্রশ্ন লিখুন... (যেমন: খরচ, শাখা, ডাক্তার)" : "খরচ, ঠিকানা, ডাক্তার..."}
                   autoComplete="off"
                 />
@@ -479,7 +490,11 @@ export default function Home({
                 {aiInputValue && (
                   <button
                     type="button"
-                    onClick={() => setAiInputValue("")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAiInputValue("");
+                      document.getElementById("aiInput")?.focus();
+                    }}
                     className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition cursor-pointer shrink-0 mr-1"
                     title="মুছে ফেলুন"
                   >
@@ -491,7 +506,17 @@ export default function Home({
                 <button
                   className="send-btn"
                   type="submit"
-                  disabled={isAiLoading || !aiInputValue.trim()}
+                  disabled={isAiLoading}
+                  onClick={(e) => {
+                    if (!aiInputValue.trim()) {
+                      e.preventDefault();
+                      const inputEl = document.getElementById("aiInput") as HTMLInputElement | null;
+                      if (inputEl) {
+                        inputEl.focus();
+                        setIsAiFocused(true);
+                      }
+                    }
+                  }}
                   aria-label="পাঠান"
                 >
                   {isAiLoading ? (

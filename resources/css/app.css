@@ -346,7 +346,7 @@ body {
   display: inline-block !important;
 }
 
-/* ---- Tech Dental Search Box (from search-box.html) ---- */
+/* ---- Tech Dental Search Box (from search-box.html & screenshot) ---- */
 .ask-wrap {
   width: min(720px, 92vw);
   margin-left: auto;
@@ -356,11 +356,17 @@ body {
   background: linear-gradient(120deg, #dbeafe, #fce7f3, #dbeafe);
   box-shadow: 0 10px 30px rgba(37, 99, 235, .12);
   transition: box-shadow .3s ease, background .3s ease, border-radius .3s ease;
+  position: relative;
+  cursor: text;
 }
-.ask-wrap:focus-within {
-  background: linear-gradient(120deg, #2563eb, #7c1d3f, #2563eb);
-  box-shadow: 0 14px 40px rgba(37, 99, 235, .25);
+
+/* Active / Focus / Clicked state - exactly matching screenshot */
+.ask-wrap:focus-within,
+.ask-wrap.is-focused {
+  background: linear-gradient(120deg, #2563eb 0%, #7c1d3f 50%, #2563eb 100%) !important;
+  box-shadow: 0 14px 40px rgba(37, 99, 235, .25) !important;
 }
+
 .ask-wrap.has-answer {
   border-radius: 28px;
 }
@@ -374,6 +380,7 @@ body {
   padding: 8px 8px 8px 22px;
   width: 100%;
 }
+
 .ask-wrap.has-answer .ask-box {
   border-radius: 0 0 25px 25px;
   border-top: 1px solid #f1f5f9;
@@ -384,9 +391,13 @@ body {
   flex: none;
   width: 22px; height: 22px;
   color: #94a3b8;
-  transition: color .2s;
+  transition: color .2s ease;
 }
-.ask-wrap:focus-within .icon-search { color: #2563eb; }
+
+.ask-wrap:focus-within .icon-search,
+.ask-wrap.is-focused .icon-search {
+  color: #2563eb !important;
+}
 
 .ask-box input {
   flex: 1;
@@ -397,8 +408,13 @@ body {
   font: 500 18px 'Hind Siliguri', sans-serif;
   color: #0f172a;
   padding: 12px 0;
+  caret-color: #2563eb;
 }
-.ask-box input::placeholder { color: #94a3b8; font-weight: 400; }
+
+.ask-box input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
 
 .send-btn {
   flex: none;
@@ -413,10 +429,21 @@ body {
   box-shadow: 0 6px 16px rgba(37, 99, 235, .35);
   transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
 }
-.send-btn:hover:not(:disabled)  { transform: translateY(-2px) scale(1.05); box-shadow: 0 10px 22px rgba(37, 99, 235, .45); }
-.send-btn:active:not(:disabled) { transform: scale(.96); }
-.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.send-btn svg { width: 22px; height: 22px; margin-left: -2px; }
+
+.send-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, .45);
+}
+
+.send-btn:active {
+  transform: scale(.96);
+}
+
+.send-btn svg {
+  width: 22px;
+  height: 22px;
+  margin-left: -2px;
+}
 
 @media (max-width: 480px) {
   .ask-box { padding: 6px 6px 6px 16px; gap: 8px; }
