@@ -21,3 +21,4 @@ class Complaint extends Model
         'admin_notes',
     ];
 }
+

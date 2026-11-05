@@ -198,6 +198,8 @@ export default function Home({
     ];
   }, [ai_chips]);
 
+  const isChatActive = isWidgetOpen && (chatMessages.length > 0 || isAiLoading);
+
   // Gallery items matching screenshot style
   const galleryItems = useMemo(() => {
     if (Array.isArray(featured_images) && featured_images.length > 0) {
@@ -580,24 +582,26 @@ export default function Home({
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl md:text-4xl font-bold text-slate-900 tracking-tight mb-8 md:mb-10 leading-snug">
+          <h1 className={`text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-snug ${isChatActive ? 'mb-4 md:mb-6' : 'mb-8 md:mb-10'}`}>
             টেক ডেন্টালের চিকিৎসা বিষয়ে কিভাবে সাহায্য করতে পারি?
           </h1>
 
-          {/* Suggested Questions / Chips (Dynamically from Admin Dashboard) */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-3 mb-8 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
-            {suggestedChips.map((chip, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleSelectSuggestion(chip)}
-                className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
-              >
-                {getChipIcon(chip, idx)}
-                <span>{chip}</span>
-              </button>
-            ))}
-          </div>
+          {/* Suggested Questions / Chips (Dynamically from Admin Dashboard) - Hidden when chat is active */}
+          {!isChatActive && (
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-3 mb-8 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
+              {suggestedChips.map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSelectSuggestion(chip)}
+                  className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
+                >
+                  {getChipIcon(chip, idx)}
+                  <span>{chip}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* ========================================== */}
           {/* EXPANDABLE GEMINI / CHATGPT AI RESPONSE PANEL */}

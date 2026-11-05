@@ -346,3 +346,4 @@ export default function ComplaintPublicShow({ locations = [], nav_menu }: Props)
     </div>
   );
 }
+

@@ -465,3 +465,4 @@ export default function ComplaintsAdminIndex({ complaints = [] }: Props) {
     </AdminLayout>
   );
 }
+

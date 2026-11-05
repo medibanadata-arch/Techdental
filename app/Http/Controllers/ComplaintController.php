@@ -90,3 +90,4 @@ class ComplaintController extends Controller
         return back()->with('success', 'Complaint deleted successfully.');
     }
 }
+
