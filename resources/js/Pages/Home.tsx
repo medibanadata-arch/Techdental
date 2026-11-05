@@ -484,6 +484,7 @@ export default function Home({
                   onBlur={() => setIsAiFocused(false)}
                   placeholder={currentAnswer ? "পরবর্তী প্রশ্ন লিখুন... (যেমন: খরচ, শাখা, ডাক্তার)" : "খরচ, ঠিকানা, ডাক্তার..."}
                   autoComplete="off"
+                  className="border-0! border-transparent! outline-none! ring-0! shadow-none! focus:border-0! focus:border-transparent! focus:outline-none! focus:ring-0! focus:shadow-none!"
                 />
 
                 {/* Clear (✕) Button if input is typed */}

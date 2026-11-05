@@ -399,12 +399,21 @@ body {
   color: #2563eb !important;
 }
 
-.ask-box input {
+.ask-box input,
+.ask-box input:focus,
+.ask-box input:focus-visible,
+.ask-box input:active {
   flex: 1;
   min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-offset-shadow: none !important;
+  --tw-shadow: none !important;
+  --tw-ring-color: transparent !important;
+  background: transparent !important;
   font: 500 18px 'Hind Siliguri', sans-serif;
   color: #0f172a;
   padding: 12px 0;
