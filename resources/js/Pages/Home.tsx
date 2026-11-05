@@ -653,13 +653,10 @@ export default function Home({
               <div ref={chatScrollRef} className="flex-1 overflow-y-auto custom-scroll p-5 space-y-4">
                 {chatMessages.map(renderChatMessage)}
                 {isAiLoading && (
-                  <div className="flex items-center gap-2 p-3 bg-slate-50/70 rounded-2xl border border-slate-100 text-xs text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                    <span className="font-['Hind_Siliguri',sans-serif]">উত্তর অনুসন্ধান করা হচ্ছে...</span>
+                  <div className="w-fit flex items-center gap-1.5 px-4 py-3 bg-slate-50/80 rounded-2xl border border-slate-100 shadow-2xs">
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 )}
               </div>
@@ -1130,13 +1127,10 @@ export default function Home({
             <div ref={modalChatScrollRef} className="flex-1 overflow-y-auto custom-scroll p-6 space-y-4">
               {chatMessages.map(renderChatMessage)}
               {isAiLoading && (
-                <div className="flex items-center gap-2 p-3 bg-slate-50/70 rounded-2xl border border-slate-100 text-xs text-slate-500">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span>উত্তর অনুসন্ধান করা হচ্ছে...</span>
+                <div className="w-fit flex items-center gap-1.5 px-4 py-3 bg-slate-50/80 rounded-2xl border border-slate-100 shadow-2xs">
+                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               )}
             </div>
