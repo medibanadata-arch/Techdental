@@ -941,10 +941,6 @@ export default function Home({
               )}
             </div>
           </div>
-
-          <p className="text-center text-xs text-slate-400 mt-6">
-            © 2026 Tech Dental Bangladesh. All rights reserved.
-          </p>
         </footer>
 
       </div>
