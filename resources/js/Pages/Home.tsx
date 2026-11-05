@@ -408,6 +408,38 @@ export default function Home({
     scrollChatToBottom();
   };
 
+  const bengaliToEnglishDigits = (str: string) => {
+    const bengaliNumbers = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return str.replace(/[০-৯]/g, (w) => bengaliNumbers.indexOf(w).toString());
+  };
+
+  const renderFormattedReply = (reply: string) => {
+    if (!reply) return null;
+
+    // Detect Bangladesh mobile/hotline numbers in English or Bengali digits
+    const phoneRegex = /((?:\+?(?:88|৮৮))?(?:0|০)[0-9০-৯]{2,4}[-\s]?[0-9০-৯]{3,4}[-\s]?[0-9০-৯]{3,4})/g;
+
+    const parts = reply.split(phoneRegex);
+
+    return parts.map((part, index) => {
+      if (part.match(phoneRegex)) {
+        const cleanTel = bengaliToEnglishDigits(part).replace(/[^0-9+]/g, '');
+        return (
+          <a
+            key={index}
+            href={`tel:${cleanTel}`}
+            className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md underline underline-offset-2 transition mx-0.5 cursor-pointer"
+            title={`এখনই কল করুন: ${cleanTel}`}
+          >
+            <i className="fa-solid fa-phone text-[11px]" />
+            <span>{part}</span>
+          </a>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   const renderChatMessage = (msg: ChatMessage) => {
     if (msg.role === "user") {
       return (
@@ -422,7 +454,7 @@ export default function Home({
     return (
       <div key={msg.id} className="text-[14px] sm:text-[15px] leading-relaxed text-[#202124] space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
         <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
-          {msg.answer?.reply}
+          {renderFormattedReply(msg.answer?.reply || "")}
         </div>
 
         <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100/80">
