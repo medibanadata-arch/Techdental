@@ -59,7 +59,7 @@ export default function Home({
   home_content,
   ai_chips = [],
 }: HomeProps) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [aiInputValue, setAiInputValue] = useState("");
   const [modalInputValue, setModalInputValue] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -177,7 +177,7 @@ export default function Home({
     return data;
   }, [locations]);
 
-  const currentBranch = branchesData[selectedBranch] || branchesData["mirpur"] || Object.values(branchesData)[0];
+  const currentBranch = (selectedBranch && branchesData[selectedBranch]) || branchesData["mirpur"] || Object.values(branchesData)[0];
   const hotline = currentBranch?.phone || home_content?.contact_phone || "01400786162";
   const rawWa = currentBranch?.whatsapp || hotline;
   let cleanWa = rawWa.replace(/[^0-9]/g, "");
@@ -993,7 +993,7 @@ export default function Home({
         locations={locations}
         isOpen={isAppointmentOpen}
         onClose={() => setIsAppointmentOpen(false)}
-        defaultBranch={selectedBranch}
+        defaultBranch={selectedBranch || "mirpur"}
       />
 
       {/* FULLSCREEN IMAGE LIGHTBOX PREVIEW MODAL */}

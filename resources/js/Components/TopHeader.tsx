@@ -117,7 +117,7 @@ const DrawerMenuItem: React.FC<DrawerMenuItemProps> = ({
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
   locations = [],
-  selectedBranch = "mirpur",
+  selectedBranch = "",
   onBranchChange = () => {},
   navMenu,
   showBranchPicker,
@@ -321,10 +321,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         }
       }
     }
-    const match = formattedBranches.find(
-      b => b.slug === String(selectedBranch).toLowerCase() || b.id === String(selectedBranch)
-    );
-    return match || formattedBranches[0] || { id: '1', slug: 'mirpur', name: 'Mirpur' };
+    if (selectedBranch) {
+      const match = formattedBranches.find(
+        b => b.slug === String(selectedBranch).toLowerCase() || b.id === String(selectedBranch)
+      );
+      if (match) return match;
+    }
+    return null;
   }, [formattedBranches, selectedBranch]);
 
   // Parse Menu Items from saved NavMenu or fallback
@@ -508,7 +511,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 className="bg-[#f8fafc] border border-[#dbeafe] py-1.5 px-3 rounded-full flex items-center gap-1.5 text-[0.82rem] font-bold text-accent-blue shadow-2xs hover:bg-blue-50/70 transition-all cursor-pointer select-none"
               >
                 <MapPin className="w-3.5 h-3.5 text-accent-blue shrink-0" />
-                <span>{activeBranch.name}</span>
+                <span>{activeBranch ? activeBranch.name : "Select Branch"}</span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 text-accent-blue transition-transform duration-200 ${
                     isBranchDropdownOpen ? "rotate-180" : ""
@@ -519,7 +522,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               {/* Fallback hidden select for testing or accessibility */}
               <select
                 id="headerBranchSelect"
-                value={activeBranch.slug}
+                value={activeBranch?.slug || ""}
                 onChange={(e) => {
                   const val = e.target.value;
                   if (val) {
@@ -530,6 +533,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 tabIndex={-1}
                 className="sr-only"
               >
+                <option value="">Select Branch</option>
                 {formattedBranches.map((loc) => (
                   <option key={loc.id} value={loc.slug}>
                     {loc.name}
@@ -551,7 +555,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       Select Branch:
                     </div>
                     {formattedBranches.map((loc) => {
-                      const isCurrent = activeBranch.slug === loc.slug;
+                      const isCurrent = activeBranch?.slug === loc.slug;
                       return (
                         <a
                           key={loc.id}
