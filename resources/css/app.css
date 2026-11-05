@@ -345,3 +345,84 @@ body {
   margin: 12px 0 !important;
   display: inline-block !important;
 }
+
+/* ---- Tech Dental Search Box (from search-box.html) ---- */
+.ask-wrap {
+  width: min(720px, 92vw);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 3px;                       /* gradient border thickness */
+  border-radius: 999px;
+  background: linear-gradient(120deg, #dbeafe, #fce7f3, #dbeafe);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, .12);
+  transition: box-shadow .3s ease, background .3s ease, border-radius .3s ease;
+}
+.ask-wrap:focus-within {
+  background: linear-gradient(120deg, #2563eb, #7c1d3f, #2563eb);
+  box-shadow: 0 14px 40px rgba(37, 99, 235, .25);
+}
+.ask-wrap.has-answer {
+  border-radius: 28px;
+}
+
+.ask-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 8px 8px 22px;
+  width: 100%;
+}
+.ask-wrap.has-answer .ask-box {
+  border-radius: 0 0 25px 25px;
+  border-top: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.ask-box .icon-search {
+  flex: none;
+  width: 22px; height: 22px;
+  color: #94a3b8;
+  transition: color .2s;
+}
+.ask-wrap:focus-within .icon-search { color: #2563eb; }
+
+.ask-box input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: 500 18px 'Hind Siliguri', sans-serif;
+  color: #0f172a;
+  padding: 12px 0;
+}
+.ask-box input::placeholder { color: #94a3b8; font-weight: 400; }
+
+.send-btn {
+  flex: none;
+  width: 52px; height: 52px;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, .35);
+  transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+.send-btn:hover:not(:disabled)  { transform: translateY(-2px) scale(1.05); box-shadow: 0 10px 22px rgba(37, 99, 235, .45); }
+.send-btn:active:not(:disabled) { transform: scale(.96); }
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.send-btn svg { width: 22px; height: 22px; margin-left: -2px; }
+
+@media (max-width: 480px) {
+  .ask-box { padding: 6px 6px 6px 16px; gap: 8px; }
+  .ask-box input { font-size: 16px; padding: 10px 0; }
+  .send-btn { width: 44px; height: 44px; }
+  .send-btn svg { width: 19px; height: 19px; }
+  .ask-wrap.has-answer { border-radius: 24px; }
+  .ask-wrap.has-answer .ask-box { border-radius: 0 0 21px 21px; }
+}

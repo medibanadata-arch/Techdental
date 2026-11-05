@@ -339,175 +339,171 @@ export default function Home({
             ))}
           </div>
 
-          {/* Unified AI Ask Box & Answer Card — Answer on TOP (opore), Message box at BOTTOM (niche)! */}
-          <div
-            className={`w-full relative shadow-xl shadow-blue-500/5 bg-white border border-slate-200/90 transition-all duration-300 text-left ${
-              currentAnswer || isAiLoading ? "rounded-[24px] md:rounded-[28px]" : "rounded-full"
-            }`}
-          >
-            {/* 1. Answer (or loading state) comes at the TOP (opore) */}
-            {(isAiLoading || currentAnswer) && (
-              <div className="p-5 md:p-6 pb-4 transition-all duration-200">
-                {isAiLoading ? (
-                  /* Loading State */
-                  <div className="flex items-center gap-3 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                    <span className="text-sm text-slate-600 font-medium">
-                      {lastQuery ? `"${lastQuery}" - সম্পর্কিত তথ্য অনুসন্ধান করা হচ্ছে...` : "উত্তর অনুসন্ধান করা হচ্ছে..."}
-                    </span>
-                  </div>
-                ) : currentAnswer ? (
-                  /* Answer Content */
-                  <div className="space-y-4">
-                    {/* Header Row */}
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
-                          <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
-                        </div>
-                        <div>
-                          <h3 className="text-sm md:text-base font-bold text-slate-900 leading-tight">
-                            {currentAnswer.title}
-                          </h3>
-                          {lastQuery && (
-                            <p className="text-[11px] text-slate-400">প্রশ্ন: "{lastQuery}"</p>
-                          )}
-                        </div>
+          {/* Unified AI Ask Box & Answer Card — from search-box.html styling */}
+          <div className={`ask-wrap ${currentAnswer || isAiLoading ? "has-answer" : ""}`}>
+            <div className={`bg-white transition-all duration-300 ${currentAnswer || isAiLoading ? "rounded-[25px] overflow-hidden" : "rounded-full"}`}>
+              {/* 1. Answer (or loading state) comes at the TOP (opore) */}
+              {(isAiLoading || currentAnswer) && (
+                <div className="p-5 md:p-6 pb-4 transition-all duration-200">
+                  {isAiLoading ? (
+                    /* Loading State */
+                    <div className="flex items-center gap-3 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
                       </div>
+                      <span className="text-sm text-slate-600 font-medium font-['Hind_Siliguri',sans-serif]">
+                        {lastQuery ? `"${lastQuery}" - সম্পর্কিত তথ্য অনুসন্ধান করা হচ্ছে...` : "উত্তর অনুসন্ধান করা হচ্ছে..."}
+                      </span>
+                    </div>
+                  ) : currentAnswer ? (
+                    /* Answer Content */
+                    <div className="space-y-4">
+                      {/* Header Row */}
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">
+                            <i className={`fa-solid ${currentAnswer.icon || 'fa-tooth'}`} />
+                          </div>
+                          <div>
+                            <h3 className="text-sm md:text-base font-bold text-slate-900 leading-tight">
+                              {currentAnswer.title}
+                            </h3>
+                            {lastQuery && (
+                              <p className="text-[11px] text-slate-400">প্রশ্ন: "{lastQuery}"</p>
+                            )}
+                          </div>
+                        </div>
 
-                      <div className="flex items-center gap-2">
-                        {currentAnswer.source && (
-                          <span
-                            className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${
-                              currentAnswer.source === 'gemini'
-                                ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                        <div className="flex items-center gap-2">
+                          {currentAnswer.source && (
+                            <span
+                              className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${
+                                currentAnswer.source === 'gemini'
+                                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                                  : currentAnswer.source === 'keyword'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : 'bg-blue-50 text-blue-700 border border-blue-200'
+                              }`}
+                            >
+                              {currentAnswer.source === 'gemini'
+                                ? '✨ Gemini AI'
                                 : currentAnswer.source === 'keyword'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-blue-50 text-blue-700 border border-blue-200'
-                            }`}
+                                ? '✓ ভেরিফাইড উত্তর'
+                                : 'টেক ডেন্টাল কেয়ার'}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={handleClearAnswer}
+                            className="w-7 h-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
+                            title="বন্ধ করুন"
                           >
-                            {currentAnswer.source === 'gemini'
-                              ? '✨ Gemini AI'
-                              : currentAnswer.source === 'keyword'
-                              ? '✓ ভেরিফাইড উত্তর'
-                              : 'টেক ডেন্টাল কেয়ার'}
-                          </span>
+                            <i className="fa-solid fa-xmark text-sm" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Formatted Reply */}
+                      <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
+                        {currentAnswer.reply}
+                      </div>
+
+                      {/* Action Buttons Row */}
+                      <div className="pt-2 flex flex-wrap items-center gap-2.5">
+                        {currentAnswer.actionLabel && (
+                          <button
+                            type="button"
+                            onClick={() => handleAnswerAction(currentAnswer)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs md:text-sm font-semibold rounded-full shadow-xs hover:shadow transition cursor-pointer"
+                          >
+                            <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
+                            <span>{currentAnswer.actionLabel}</span>
+                          </button>
                         )}
+
                         <button
                           type="button"
-                          onClick={handleClearAnswer}
-                          className="w-7 h-7 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer"
-                          title="বন্ধ করুন"
+                          onClick={() => {
+                            if (navigator?.clipboard) {
+                              navigator.clipboard.writeText(currentAnswer.reply);
+                            }
+                            setIsCopied(true);
+                            setTimeout(() => setIsCopied(false), 2000);
+                          }}
+                          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
                         >
-                          <i className="fa-solid fa-xmark text-sm" />
+                          <i className={`fa-solid ${isCopied ? 'fa-check text-emerald-600' : 'fa-copy'}`} />
+                          <span>{isCopied ? 'কপি হয়েছে' : 'উত্তর কপি করুন'}</span>
                         </button>
                       </div>
+
+                      {/* Follow-up Chips Row inside the card */}
+                      <div className="pt-3 border-t border-slate-100 flex items-center gap-2 overflow-x-auto hide-scrollbar">
+                        <span className="text-[11px] text-slate-400 font-medium shrink-0">আরও জানতে:</span>
+                        {suggestedChips.map((chip, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSelectSuggestion(chip)}
+                            className="shrink-0 px-2.5 py-1 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 rounded-full text-xs text-slate-600 transition cursor-pointer"
+                          >
+                            {chip}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-
-                    {/* Formatted Reply */}
-                    <div className="text-slate-700 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal">
-                      {currentAnswer.reply}
-                    </div>
-
-                    {/* Action Buttons Row */}
-                    <div className="pt-2 flex flex-wrap items-center gap-2.5">
-                      {currentAnswer.actionLabel && (
-                        <button
-                          type="button"
-                          onClick={() => handleAnswerAction(currentAnswer)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs md:text-sm font-semibold rounded-full shadow-xs hover:shadow transition cursor-pointer"
-                        >
-                          <i className="fa-solid fa-arrow-up-right-from-square text-xs" />
-                          <span>{currentAnswer.actionLabel}</span>
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (navigator?.clipboard) {
-                            navigator.clipboard.writeText(currentAnswer.reply);
-                          }
-                          setIsCopied(true);
-                          setTimeout(() => setIsCopied(false), 2000);
-                        }}
-                        className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
-                      >
-                        <i className={`fa-solid ${isCopied ? 'fa-check text-emerald-600' : 'fa-copy'}`} />
-                        <span>{isCopied ? 'কপি হয়েছে' : 'উত্তর কপি করুন'}</span>
-                      </button>
-                    </div>
-
-                    {/* Follow-up Chips Row inside the card */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                      <span className="text-[11px] text-slate-400 font-medium shrink-0">আরও জানতে:</span>
-                      {suggestedChips.map((chip, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleSelectSuggestion(chip)}
-                          className="shrink-0 px-2.5 py-1 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 border border-slate-200 rounded-full text-xs text-slate-600 transition cursor-pointer"
-                        >
-                          {chip}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {/* 2. Message / Input Box comes at the BOTTOM (niche) */}
-            <form
-              onSubmit={handleAISubmit}
-              className={`w-full flex items-center px-5 md:px-6 py-3.5 md:py-4 transition-all ${
-                currentAnswer || isAiLoading
-                  ? "border-t border-slate-100 bg-slate-50/60 rounded-b-[24px] md:rounded-b-[28px]"
-                  : "rounded-full"
-              }`}
-            >
-              <div className="text-blue-500 mr-3 shrink-0">
-                <i className="fa-solid fa-sparkles text-lg" />
-              </div>
-              <input
-                type="text"
-                id="aiInput"
-                value={aiInputValue}
-                onChange={(e) => setAiInputValue(e.target.value)}
-                placeholder={currentAnswer ? "পরবর্তী প্রশ্ন লিখুন... (যেমন: খরচ, শাখা, ডাক্তার)" : "খরচ, ঠিকানা, ডাক্তার..."}
-                className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base md:text-lg focus:outline-none"
-              />
-
-              {/* Clear (✕) Button if input is typed */}
-              {aiInputValue && (
-                <button
-                  type="button"
-                  onClick={() => setAiInputValue("")}
-                  className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition mr-1 cursor-pointer"
-                  title="মুছে ফেলুন"
-                >
-                  <i className="fa-solid fa-xmark text-lg" />
-                </button>
+                  ) : null}
+                </div>
               )}
 
-              {/* Submit / Loading Button */}
-              <button
-                type="submit"
-                disabled={isAiLoading || !aiInputValue.trim()}
-                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:text-blue-600 disabled:opacity-40 transition shrink-0 cursor-pointer"
-                aria-label="Send query"
-              >
-                {isAiLoading ? (
-                  <i className="fa-solid fa-circle-notch fa-spin text-lg text-blue-600" />
-                ) : (
-                  <i className="fa-solid fa-paper-plane text-xl md:text-lg" />
+              {/* 2. Search Box / Message Input at BOTTOM */}
+              <form onSubmit={handleAISubmit} className="ask-box">
+                {/* Search Icon */}
+                <svg className="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
+                </svg>
+
+                <input
+                  type="text"
+                  id="aiInput"
+                  name="q"
+                  value={aiInputValue}
+                  onChange={(e) => setAiInputValue(e.target.value)}
+                  placeholder={currentAnswer ? "পরবর্তী প্রশ্ন লিখুন... (যেমন: খরচ, শাখা, ডাক্তার)" : "খরচ, ঠিকানা, ডাক্তার..."}
+                  autoComplete="off"
+                />
+
+                {/* Clear (✕) Button if input is typed */}
+                {aiInputValue && (
+                  <button
+                    type="button"
+                    onClick={() => setAiInputValue("")}
+                    className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 transition cursor-pointer shrink-0 mr-1"
+                    title="মুছে ফেলুন"
+                  >
+                    <i className="fa-solid fa-xmark text-base" />
+                  </button>
                 )}
-              </button>
-            </form>
+
+                {/* Send Button from search-box.html */}
+                <button
+                  className="send-btn"
+                  type="submit"
+                  disabled={isAiLoading || !aiInputValue.trim()}
+                  aria-label="পাঠান"
+                >
+                  {isAiLoading ? (
+                    <i className="fa-solid fa-circle-notch fa-spin text-lg" />
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M2.5 11.3l17-7.6c.8-.4 1.6.4 1.2 1.2l-7.6 17c-.4.9-1.7.8-2-.1l-1.8-6.2-6.2-1.8c-.9-.3-1-1.6-.1-2z" />
+                    </svg>
+                  )}
+                </button>
+              </form>
+            </div>
           </div>
         </header>
 
