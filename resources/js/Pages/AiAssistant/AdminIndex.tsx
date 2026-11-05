@@ -141,7 +141,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
     const [newChipInput, setNewChipInput] = useState('');
 
     // API Testing State
-    const [testPrompt, setTestPrompt] = useState('টেক ডেন্টালের শাখা কোথায় এবং স্কেলিং করার খরচ কত?');
+    const [testPrompt, setTestPrompt] = useState('Where are Tech Dental branches located and what is the cost of scaling?');
     const [isTesting, setIsTesting] = useState(false);
     const [dynamicModels, setDynamicModels] = useState<{ id: string; displayName: string }[]>([]);
     const [isFetchingModels, setIsFetchingModels] = useState(false);
@@ -159,7 +159,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
     const handleFetchModels = async () => {
         const key = geminiForm.gemini_api_key.trim() || settings?.gemini_api_key?.trim();
         if (!key) {
-            alert('অনুগ্রহ করে আগে আপনার Google Gemini API Key লিখুন!');
+            alert('Please enter your Google Gemini API Key first!');
             return;
         }
 
@@ -171,12 +171,12 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                 if (res.data.models[0]?.id) {
                     setGeminiForm((prev) => ({ ...prev, gemini_model: res.data.models[0].id }));
                 }
-                alert(`গুগল থেকে ${res.data.models.length}টি লাইভ অ্যাক্টিভ মডেল সফলভাবে লোড হয়েছে!`);
+                alert(`Successfully loaded ${res.data.models.length} active models from Google!`);
             } else {
-                alert(res.data?.message || 'কোনো মডেল পাওয়া যায়নি।');
+                alert(res.data?.message || 'No models found.');
             }
         } catch (err: any) {
-            alert(err.response?.data?.message || 'গুগল থেকে মডেল লোড করা যায়নি।');
+            alert(err.response?.data?.message || 'Failed to load models from Google.');
         } finally {
             setIsFetchingModels(false);
         }
@@ -185,7 +185,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
     const handleRunApiTest = async () => {
         const keyToTest = geminiForm.gemini_api_key.trim() || settings?.gemini_api_key?.trim();
         if (!keyToTest) {
-            alert('অনুগ্রহ করে আগে Google Gemini API Key লিখুন অথবা সংরক্ষণ করুন!');
+            alert('Please enter or save your Google Gemini API Key first!');
             return;
         }
 
@@ -206,7 +206,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
         } catch (err: any) {
             setTestResult({
                 success: false,
-                message: err.response?.data?.message || err.message || 'API টেস্ট ব্যর্থ হয়েছে।',
+                message: err.response?.data?.message || err.message || 'API test failed.',
                 status_code: err.response?.status,
                 raw_error: err.response?.data?.raw_error,
             });
@@ -243,7 +243,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
             keywords: '',
             reply: '',
             action_type: 'appointment',
-            action_label: 'সিরিয়াল বুক করুন',
+            action_label: 'Book Appointment',
             action_url: '/appointment',
             priority: 0,
         });
@@ -281,7 +281,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
 
     // Delete Rule
     const handleDeleteRule = (id: number, title: string) => {
-        if (confirm(`আপনি কি "${title}" রুলটি মুছে ফেলতে চান?`)) {
+        if (confirm(`Are you sure you want to delete the rule "${title}"?`)) {
             router.delete(`/ai-assistant/rules/${id}`);
         }
     };
@@ -347,7 +347,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 </span>
                             </div>
                             <p className="text-sm text-slate-300 mt-1">
-                                হোমপেজের চ্যাটবক্সের কিওয়ার্ড উত্তর ও Google Gemini AI API ইন্টিগ্রেশন ম্যানেজ করুন।
+                                Manage homepage chatbot keyword responses and Google Gemini AI API integration.
                             </p>
                         </div>
                     </div>
@@ -359,7 +359,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                             rel="noopener noreferrer"
                             className="bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 border border-white/15"
                         >
-                            <span>লাইভ হোমপেজে দেখুন</span>
+                            <span>View Live Homepage</span>
                             <ExternalLink size={14} />
                         </a>
                         <button
@@ -368,7 +368,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                             className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-1.5 cursor-pointer"
                         >
                             <Plus size={16} />
-                            <span>নতুন কিওয়ার্ড রুল</span>
+                            <span>New Keyword Rule</span>
                         </button>
                     </div>
                 </div>
@@ -385,7 +385,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                         }`}
                     >
                         <Hash size={16} />
-                        <span>কিওয়ার্ড রুলসমূহ ({rules.length})</span>
+                        <span>Keyword Rules ({rules.length})</span>
                     </button>
 
                     <button
@@ -398,7 +398,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                         }`}
                     >
                         <GraduationCap size={16} />
-                        <span>কোম্পানি ট্রেনিং ডাটা (Knowledge Base)</span>
+                        <span>Company Training Data (Knowledge Base)</span>
                     </button>
 
                     <button
@@ -411,7 +411,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                         }`}
                     >
                         <Sparkles size={16} />
-                        <span>Google Gemini API সেটিংস</span>
+                        <span>Google Gemini API Settings</span>
                     </button>
 
                     <button
@@ -424,7 +424,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                         }`}
                     >
                         <HelpCircle size={16} />
-                        <span>সাজেস্টেড প্রশ্নমালা ({chipsList.length})</span>
+                        <span>Suggested Questions ({chipsList.length})</span>
                     </button>
 
                     <button
@@ -437,7 +437,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                         }`}
                     >
                         <Clock size={16} />
-                        <span>রোগীদের সার্চ হিস্ট্রি ({logs.length})</span>
+                        <span>Patient Search History ({logs.length})</span>
                     </button>
                 </div>
 
@@ -452,13 +452,13 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="রুল বা কিওয়ার্ড খুঁজুন..."
+                                    placeholder="Search rules or keywords..."
                                     className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                                 />
                             </div>
 
                             <div className="text-xs text-slate-500 font-medium">
-                                মোট <strong className="text-slate-900 font-bold">{filteredRules.length}</strong> টি কিওয়ার্ড রুল রয়েছে (রোগীর প্রশ্ন ম্যাচ করলে সরাসরি এই উত্তর দেখানো হবে)
+                                Total <strong className="text-slate-900 font-bold">{filteredRules.length}</strong> keyword rules available (auto-replied when patient's query matches)
                             </div>
                         </div>
 
@@ -483,7 +483,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                                     <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
                                                         <span>Priority: {rule.priority}</span>
                                                         <span>•</span>
-                                                        <span>ব্যবহার হয়েছে: {rule.match_count} বার</span>
+                                                        <span>Used: {rule.match_count} times</span>
                                                     </div>
                                                 </div>
 
@@ -496,7 +496,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                                                 ? 'text-emerald-600 hover:bg-emerald-50'
                                                                 : 'text-slate-400 hover:bg-slate-200'
                                                         }`}
-                                                        title={rule.is_active ? 'রুল সক্রিয় (Active)' : 'রুল নিষ্ক্রিয় (Inactive)'}
+                                                        title={rule.is_active ? 'Rule Active' : 'Rule Inactive'}
                                                     >
                                                         {rule.is_active ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
                                                     </button>
@@ -504,7 +504,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                                         type="button"
                                                         onClick={() => openEditModal(rule)}
                                                         className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
-                                                        title="সম্পাদনা করুন"
+                                                        title="Edit Rule"
                                                     >
                                                         <Edit2 size={16} />
                                                     </button>
@@ -512,7 +512,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                                         type="button"
                                                         onClick={() => handleDeleteRule(rule.id, rule.title)}
                                                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                                                        title="মুছে ফেলুন"
+                                                        title="Delete Rule"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -540,7 +540,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         {/* Bottom Action Button info */}
                                         {rule.action_label && (
                                             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                                                <span className="text-slate-500 font-medium">অ্যাকশন বাটন:</span>
+                                                <span className="text-slate-500 font-medium">Action Button:</span>
                                                 <span className="font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">
                                                     {rule.action_label} ({rule.action_url || rule.action_type})
                                                 </span>
@@ -560,23 +560,23 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                             <div>
                                 <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
                                     <GraduationCap className="text-blue-600" size={22} />
-                                    <span>কোম্পানি ট্রেনিং ডাটা ও নলেজবেস (Company Knowledge Base)</span>
+                                    <span>Company Training Data & Knowledge Base</span>
                                 </h3>
                                 <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                                    এখানে আপনার প্রতিষ্ঠানের সকল তথ্য (ব্রাঞ্চ, ডাক্তার, সেবা, খরচের তালিকা, ডিসকাউন্ট, নিয়ম) লিখে রাখুন। Gemini AI স্বয়ংক্রিয়ভাবে এই তথ্য মুখস্থ/ট্রেনিং করে রোগীদের সঠিক উত্তর দেবে।
+                                    Store all clinic information here (branches, doctors, services, fee schedule, discounts, rules). Gemini AI will automatically learn this data to accurately answer patient questions.
                                 </p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => {
-                                    if (confirm('আপনি কি ডিফল্ট টেক ডেন্টাল তথ্য টেমপ্লেট লোড করতে চান?')) {
+                                    if (confirm('Do you want to load the default Tech Dental clinic template?')) {
                                         setGeminiForm({ ...geminiForm, training_data: DEFAULT_TRAINING_TEMPLATE });
                                     }
                                 }}
                                 className="px-3.5 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer"
                             >
                                 <Sparkles size={14} />
-                                <span>ক্লিনিক টেমপ্লেট লোড করুন</span>
+                                <span>Load Clinic Template</span>
                             </button>
                         </div>
 
@@ -584,13 +584,13 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
-                                        <span>বিস্তারিত ট্রেনিং টেক্সট / নলেজবেস</span>
+                                        <span>Detailed Training Text / Knowledge Base</span>
                                         <span className="text-[11px] font-normal text-slate-400">
-                                            (বাংলা বা ইংরেজি যেকোনো ভাষায় লিখতে পারেন)
+                                            (You can write in Bengali or English)
                                         </span>
                                     </label>
                                     <span className="text-xs font-mono font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
-                                        {(geminiForm.training_data || '').length} অক্ষর
+                                        {(geminiForm.training_data || '').length} characters
                                     </span>
                                 </div>
 
@@ -599,19 +599,19 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                     value={geminiForm.training_data}
                                     onChange={(e) => setGeminiForm({ ...geminiForm, training_data: e.target.value })}
                                     className="w-full p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-sans leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-slate-800 transition shadow-inner"
-                                    placeholder="এখানে আপনার ক্লিনিকের বিস্তারিত তথ্য দিন, যেমন:
-১. শাখা ও ঠিকানা
-২. চিকিৎসা ও সম্ভাব্য খরচ (স্কেলিং, রুট ক্যানেল, ক্যাপ, ইমপ্ল্যান্ট ইত্যাদি)
-৩. ডাক্তারের নাম ও ভিজিটের নিয়ম
-৪. হটলাইন ও হেল্পলাইন..."
+                                    placeholder="Enter your detailed clinic information here, e.g.:
+1. Branches and addresses
+2. Treatments and estimated costs (scaling, root canal, crown, implants, etc.)
+3. Doctor schedules and visit policies
+4. Hotline & helpline numbers..."
                                 />
                             </div>
 
                             <div className="bg-sky-50 border border-sky-200/70 rounded-xl p-4 text-xs text-sky-900 leading-relaxed flex items-start gap-3">
                                 <Sparkles className="text-sky-600 shrink-0 mt-0.5" size={18} />
                                 <div>
-                                    <strong className="font-bold">টিপস: </strong>
-                                    এখানে যত স্পষ্ট ও বিস্তারিত তথ্য (যেমন: চিকিৎসা খরচ কত, কোন শাখার ঠিকানা কী, কখন ডাক্তার বসেন) লিখে রাখবেন, রোগীদের প্রশ্নের উত্তরে এআই তত নিখুঁত ও প্রফেশনাল উত্তর প্রদান করবে।
+                                    <strong className="font-bold">Tip: </strong>
+                                    The more clear and detailed information you provide (treatment costs, branch locations, doctor hours), the more precise and professional the AI's responses will be.
                                 </div>
                             </div>
 
@@ -621,7 +621,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                     className="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer text-sm"
                                 >
                                     <Save size={18} />
-                                    <span>ট্রেনিং ডাটা সেভ করুন</span>
+                                    <span>Save Training Data</span>
                                 </button>
                                 <button
                                     type="button"
@@ -629,7 +629,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                     className="px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer text-sm"
                                 >
                                     <Zap size={16} className="text-yellow-400" />
-                                    <span>লাইভ এআই টেস্ট করুন</span>
+                                    <span>Test Live AI</span>
                                 </button>
                             </div>
                         </form>
@@ -645,10 +645,10 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                             <div className="border-b border-slate-100 pb-4">
                                 <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                                     <Sparkles className="text-blue-600" size={18} />
-                                    <span>Google Gemini API কনফিগারেশন</span>
+                                    <span>Google Gemini API Configuration</span>
                                 </h3>
                                 <p className="text-xs text-slate-500 mt-1">
-                                    Gemini AI সক্রিয় থাকলে কিওয়ার্ডের বাইরে যেকোনো প্রশ্নের জন্য এআই স্বয়ংক্রিয় বুদ্ধিমান উত্তর দেবে।
+                                    When Gemini AI is enabled, the chatbot provides intelligent answers for any queries beyond the preset keywords.
                                 </p>
                             </div>
 
@@ -656,9 +656,9 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 {/* Toggle Gemini */}
                                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
                                     <div>
-                                        <h4 className="font-bold text-slate-900 text-sm">Google Gemini AI সক্রিয় করুন</h4>
+                                        <h4 className="font-bold text-slate-900 text-sm">Enable Google Gemini AI</h4>
                                         <p className="text-xs text-slate-500 mt-0.5">
-                                            রোগীদের সাধারণ জিজ্ঞাসা ও আলোচনার জন্য এআই চালু থাকবে।
+                                            AI assistant will remain active for answering general patient queries.
                                         </p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
@@ -685,7 +685,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                             rel="noopener noreferrer"
                                             className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
                                         >
-                                            <span>ফ্রি API Key তৈরি করুন</span>
+                                            <span>Get Free API Key</span>
                                             <ExternalLink size={12} />
                                         </a>
                                     </div>
@@ -706,7 +706,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         </button>
                                     </div>
                                     <p className="text-[11px] text-slate-500 mt-1">
-                                        গুগল এআই স্টুডিও (<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 underline font-semibold">aistudio.google.com/app/apikey</a>) থেকে ফ্রি Gemini API Key কপি করে এখানে বসান (সাধারণত <code className="bg-slate-100 text-slate-800 px-1 py-0.5 rounded font-mono">AIzaSy...</code> দিয়ে শুরু হয়)।
+                                        Copy your free Gemini API Key from Google AI Studio (<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-600 underline font-semibold">aistudio.google.com/app/apikey</a>) and paste it here (usually starts with <code className="bg-slate-100 text-slate-800 px-1 py-0.5 rounded font-mono">AIzaSy...</code>).
                                     </p>
                                 </div>
 
@@ -722,10 +722,10 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                                 onClick={handleFetchModels}
                                                 disabled={isFetchingModels}
                                                 className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition cursor-pointer"
-                                                title="আপনার গুগল একাউন্টে যে যে মডেল অ্যাক্টিভ আছে সরাসরি লোড করুন"
+                                                title="Fetch active models available in your Google account"
                                             >
                                                 <Sparkles size={12} className={isFetchingModels ? 'animate-spin' : ''} />
-                                                <span>{isFetchingModels ? 'লোড হচ্ছে...' : 'লাইভ মডেল ফেচ করুন'}</span>
+                                                <span>{isFetchingModels ? 'Loading...' : 'Fetch Live Models'}</span>
                                             </button>
                                             <span className="text-slate-300">|</span>
                                             <button
@@ -733,7 +733,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                                 onClick={() => setCustomModelMode(!customModelMode)}
                                                 className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline transition cursor-pointer"
                                             >
-                                                {customModelMode ? 'লিস্ট থেকে বাছুন' : 'কাস্টম নাম লিখুন'}
+                                                {customModelMode ? 'Select from list' : 'Custom model name'}
                                             </button>
                                         </div>
                                     </div>
@@ -743,7 +743,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                             type="text"
                                             value={geminiForm.gemini_model}
                                             onChange={(e) => setGeminiForm({ ...geminiForm, gemini_model: e.target.value.trim() })}
-                                            placeholder="যেমন: gemini-3.5-flash-lite বা gemini-3-flash"
+                                            placeholder="e.g. gemini-3.5-flash-lite or gemini-3-flash"
                                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono"
                                         />
                                     ) : (
@@ -753,7 +753,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-medium"
                                         >
                                             {dynamicModels.length > 0 && (
-                                                <optgroup label="গুগল লাইভ একাউন্টের মডেলসমূহ">
+                                                <optgroup label="Active Google Account Models">
                                                     {dynamicModels.map((m) => (
                                                         <option key={m.id} value={m.id}>
                                                             {m.displayName} ({m.id})
@@ -774,14 +774,14 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         </select>
                                     )}
                                     <p className="text-[11px] text-slate-400 mt-1">
-                                        Google AI Studio-তে প্রদর্শিত আপনার পছন্দের মডেলটি নির্বাচন করুন।
+                                        Select your preferred model as shown in Google AI Studio.
                                     </p>
                                 </div>
 
                                 {/* System Prompt / Context Instructions */}
                                 <div>
                                     <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                                        এআই অ্যাসিস্ট্যান্টের নির্দেশিকা (System Instructions / Clinic Context)
+                                        System Instructions / Clinic Context
                                     </label>
                                     <textarea
                                         rows={3}
@@ -791,14 +791,14 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         placeholder="You are Tech Dental's friendly clinic assistant..."
                                     />
                                     <p className="text-[11px] text-slate-400 mt-1">
-                                        এখানে আপনি আপনার ক্লিনিকের ঠিকানা ও নীতি লিখে দিলে জেমিনি সবসময় সেই তথ্য অনুযায়ী উত্তর দেবে।
+                                        Define instructions, tone, and clinic policies for Gemini to adhere to when answering.
                                     </p>
                                 </div>
 
                                 {/* Fallback Message */}
                                 <div>
                                     <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                                        ডিফল্ট ফলব্যাক উত্তর (Fallback Message)
+                                        Default Fallback Response
                                     </label>
                                     <textarea
                                         rows={2}
@@ -814,7 +814,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                     className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <Save size={18} />
-                                    <span>সেটিংস সংরক্ষণ করুন</span>
+                                    <span>Save Settings</span>
                                 </button>
                             </form>
                         </div>
@@ -827,8 +827,8 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         <Zap size={18} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-sm sm:text-base text-white">লাইভ API টেস্ট কনসোল</h3>
-                                        <p className="text-[11px] text-slate-400">এপিআই ঠিকমত রেসপন্স করছে কিনা পরীক্ষা করুন</p>
+                                        <h3 className="font-bold text-sm sm:text-base text-white">Live API Test Console</h3>
+                                        <p className="text-[11px] text-slate-400">Verify if the API connects and responds properly</p>
                                     </div>
                                 </div>
                                 <span className={`w-2.5 h-2.5 rounded-full ${testResult?.success ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`}></span>
@@ -837,7 +837,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                             {/* Test Prompt Input */}
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
-                                    <span>পরীক্ষামূলক প্রশ্ন লিখুন:</span>
+                                    <span>Enter test prompt:</span>
                                     <span className="text-[10px] text-slate-400 font-mono">Model: {geminiForm.gemini_model}</span>
                                 </label>
                                 <div className="relative">
@@ -845,18 +845,18 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         rows={3}
                                         value={testPrompt}
                                         onChange={(e) => setTestPrompt(e.target.value)}
-                                        placeholder="যেকোনো প্রশ্ন লিখে টেস্ট করুন..."
+                                        placeholder="Type any test query here..."
                                         className="w-full p-3 bg-slate-800/90 border border-slate-700 rounded-xl text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
                                 {/* Sample Question Quick Chips */}
                                 <div className="flex flex-wrap gap-1.5 pt-1">
-                                    <span className="text-[10px] text-slate-400 self-center">নমুনা:</span>
+                                    <span className="text-[10px] text-slate-400 self-center">Examples:</span>
                                     {[
-                                        'শাখার ঠিকানা কোথায়?',
-                                        'দাঁতের স্কেলিং খরচ কত?',
-                                        'ডাক্তারের সিরিয়াল কীভাবে নিব?',
+                                        'Where are your branches located?',
+                                        'What is the cost of dental scaling?',
+                                        'How do I book an appointment?',
                                     ].map((q, idx) => (
                                         <button
                                             key={idx}
@@ -884,12 +884,12 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 {isTesting ? (
                                     <>
                                         <Loader2 className="animate-spin" size={16} />
-                                        <span>Gemini API টেস্ট করা হচ্ছে...</span>
+                                        <span>Testing Gemini API...</span>
                                     </>
                                 ) : (
                                     <>
                                         <Zap size={16} />
-                                        <span>API কানেকশন টেস্ট করুন (Test Now)</span>
+                                        <span>Test API Connection (Test Now)</span>
                                     </>
                                 )}
                             </button>
@@ -908,12 +908,12 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                             {testResult.success ? (
                                                 <>
                                                     <CheckCircle2 size={16} className="text-emerald-400" />
-                                                    <span className="text-emerald-400">কানেকশন সফল!</span>
+                                                    <span className="text-emerald-400">Connection Successful!</span>
                                                 </>
                                             ) : (
                                                 <>
                                                     <AlertCircle size={16} className="text-rose-400" />
-                                                    <span className="text-rose-400">কানেকশন ব্যর্থ</span>
+                                                    <span className="text-rose-400">Connection Failed</span>
                                                 </>
                                             )}
                                         </div>
@@ -932,7 +932,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                     {testResult.reply && (
                                         <div className="mt-2 p-3 bg-slate-900/90 rounded-lg border border-slate-700/80 font-sans text-xs text-slate-200 leading-relaxed max-h-48 overflow-y-auto">
                                             <div className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-1">
-                                                Gemini লাইভ উত্তর:
+                                                Gemini Live Response:
                                             </div>
                                             {testResult.reply}
                                         </div>
@@ -948,7 +948,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
 
                             {/* Help / Guidance Box */}
                             <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
-                                💡 <strong className="text-slate-300">দ্রষ্টব্য:</strong> এখানে টেস্ট বাটনে চাপ দিলে আপনার বর্তমান ফর্মে দেওয়া API Key এবং মডেল দিয়ে সরাসরি গুগলের সার্ভারে রিকোয়েস্ট পাঠানো হবে। কোনো এরর থাকলে বিস্তারিত কারণ দেখতে পাবেন।
+                                💡 <strong className="text-slate-300">Note:</strong> Clicking the test button sends a direct live request to Google servers using the form's API key and model. Any connection error details will be shown here.
                             </div>
                         </div>
 
@@ -960,10 +960,10 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                     <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm max-w-2xl space-y-6">
                         <div>
                             <h3 className="font-bold text-slate-900 text-base mb-1">
-                                হোমপেজ সার্চবক্সের উপরের সাজেস্টেড প্রশ্নমালা
+                                Suggested Questions Above Homepage Search Box
                             </h3>
                             <p className="text-xs text-slate-500">
-                                হোমপেজে সার্চ বক্সের ওপরে রোগীরা যে বাটনগুলোতে ক্লিক করে দ্রুত উত্তর দেখতে পায়:
+                                Preset quick-action query chips shown above the homepage chatbot input for one-click answers:
                             </p>
                         </div>
 
@@ -984,7 +984,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         type="button"
                                         onClick={() => handleRemoveChip(idx)}
                                         className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition cursor-pointer"
-                                        title="মুছে ফেলুন"
+                                        title="Remove"
                                     >
                                         <X size={16} />
                                     </button>
@@ -998,7 +998,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 type="text"
                                 value={newChipInput}
                                 onChange={(e) => setNewChipInput(e.target.value)}
-                                placeholder="নতুন প্রশ্ন লিখুন (যেমন: দাঁত বাঁধানোর খরচ)..."
+                                placeholder="Enter new question (e.g. Cost of dental implants)..."
                                 className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                             />
                             <button
@@ -1006,7 +1006,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition shadow-sm flex items-center gap-1.5 cursor-pointer shrink-0"
                             >
                                 <Plus size={16} />
-                                <span>যুক্ত করুন</span>
+                                <span>Add Question</span>
                             </button>
                         </form>
                     </div>
@@ -1017,15 +1017,15 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
                         <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                             <h3 className="font-bold text-slate-900 text-base">
-                                রোগীদের সাম্প্রতিক প্রশ্নসমূহ
+                                Recent Patient Queries
                             </h3>
-                            <span className="text-xs text-slate-500">সর্বশেষ ৫০টি সার্চ সংরক্ষিত</span>
+                            <span className="text-xs text-slate-500">Last 50 searches stored</span>
                         </div>
 
                         <div className="divide-y divide-slate-100">
                             {logs.length === 0 ? (
                                 <div className="p-8 text-center text-slate-400 text-sm">
-                                    এখনও কোনো রোগী প্রশ্ন সাবমিট করেননি।
+                                    No patient queries recorded yet.
                                 </div>
                             ) : (
                                 logs.map((log) => (
@@ -1045,7 +1045,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         </div>
 
                                         <div className="text-slate-400 font-medium shrink-0 text-right">
-                                            <div>{log.created_at ? new Date(log.created_at).toLocaleString('bn-BD') : ''}</div>
+                                            <div>{log.created_at ? new Date(log.created_at).toLocaleString('en-US') : ''}</div>
                                             <div className="text-[10px] text-slate-400">{log.ip_address}</div>
                                         </div>
                                     </div>
@@ -1063,7 +1063,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                     <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                             <h3 className="font-bold text-slate-900 text-lg">
-                                {editingRule ? 'কিওয়ার্ড রুল সম্পাদনা' : 'নতুন কিওয়ার্ড রুল যোগ করুন'}
+                                {editingRule ? 'Edit Keyword Rule' : 'Add New Keyword Rule'}
                             </h3>
                             <button
                                 type="button"
@@ -1077,45 +1077,45 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                         <form onSubmit={handleRuleSubmit} className="space-y-4 text-xs sm:text-sm">
                             <div>
                                 <label className="block font-bold text-slate-800 mb-1">
-                                    রুলের শিরোনাম (Title)
+                                    Rule Title
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     value={ruleForm.title}
                                     onChange={(e) => setRuleForm({ ...ruleForm, title: e.target.value })}
-                                    placeholder="যেমন: দাঁতের ফাঁকা পূরণ"
+                                    placeholder="e.g. Tooth Gap Closing Treatment"
                                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                                 />
                             </div>
 
                             <div>
                                 <label className="block font-bold text-slate-800 mb-1">
-                                    ট্রিগার কিওয়ার্ডসমূহ (কমা দিয়ে আলাদা করুন)
+                                    Trigger Keywords (Comma Separated)
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     value={ruleForm.keywords}
                                     onChange={(e) => setRuleForm({ ...ruleForm, keywords: e.target.value })}
-                                    placeholder="ফাঁকা, gap, braces, ব্রেসেস, ক্লিপ"
+                                    placeholder="gap, braces, alignment, clip, ফাঁকা"
                                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono text-xs"
                                 />
                                 <p className="text-[11px] text-slate-400 mt-1">
-                                    রোগী বক্সে লেখার সময় এর যেকোনো একটি শব্দ থাকলেই এই উত্তরটি আসবে।
+                                    If the patient mentions any of these keywords, this reply will be presented.
                                 </p>
                             </div>
 
                             <div>
                                 <label className="block font-bold text-slate-800 mb-1">
-                                    উত্তরের বিবরণ (Reply Message)
+                                    Reply Message
                                 </label>
                                 <textarea
                                     rows={5}
                                     required
                                     value={ruleForm.reply}
                                     onChange={(e) => setRuleForm({ ...ruleForm, reply: e.target.value })}
-                                    placeholder="রোগীকে যে উত্তর দেখানো হবে তা সুন্দরভাবে লিখুন..."
+                                    placeholder="Write the response that will be shown to the patient..."
                                     className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white leading-relaxed"
                                 />
                             </div>
@@ -1123,31 +1123,31 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="block font-bold text-slate-800 mb-1">
-                                        অ্যাকশন টাইপ (Action Type)
+                                        Action Button Type
                                     </label>
                                     <select
                                         value={ruleForm.action_type}
                                         onChange={(e) => setRuleForm({ ...ruleForm, action_type: e.target.value })}
                                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                                     >
-                                        <option value="none">কোনো বাটন নেই</option>
-                                        <option value="appointment">অনলাইন সিরিয়াল বুকিং (/appointment)</option>
-                                        <option value="directions">শাখার ম্যাপ / ডিরেকশন</option>
-                                        <option value="call">সরাসরি কল (হটলাইন)</option>
-                                        <option value="whatsapp">হোয়াটসঅ্যাপ চ্যাট</option>
-                                        <option value="custom_link">কাস্টম লিংক</option>
+                                        <option value="none">No Button</option>
+                                        <option value="appointment">Online Appointment Booking (/appointment)</option>
+                                        <option value="directions">Branch Map / Directions</option>
+                                        <option value="call">Direct Call (Hotline)</option>
+                                        <option value="whatsapp">WhatsApp Chat</option>
+                                        <option value="custom_link">Custom Link</option>
                                     </select>
                                 </div>
 
                                 <div>
                                     <label className="block font-bold text-slate-800 mb-1">
-                                        বাটনের লেখা (Label)
+                                        Button Label
                                     </label>
                                     <input
                                         type="text"
                                         value={ruleForm.action_label}
                                         onChange={(e) => setRuleForm({ ...ruleForm, action_label: e.target.value })}
-                                        placeholder="সিরিয়াল বুক করুন"
+                                        placeholder="Book Appointment"
                                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                                     />
                                 </div>
@@ -1155,7 +1155,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
 
                             <div>
                                 <label className="block font-bold text-slate-800 mb-1">
-                                    অগ্রাধিকার (Priority - বড় সংখ্যা আগে ম্যাচ হবে)
+                                    Priority (Higher number matches first)
                                 </label>
                                 <input
                                     type="number"
@@ -1169,15 +1169,15 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 <button
                                     type="button"
                                     onClick={() => setIsRuleModalOpen(false)}
-                                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition"
+                                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition cursor-pointer"
                                 >
-                                    বাতিল
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-sm"
+                                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-sm cursor-pointer"
                                 >
-                                    {editingRule ? 'আপডেট করুন' : 'সংরক্ষণ করুন'}
+                                    {editingRule ? 'Update Rule' : 'Save Rule'}
                                 </button>
                             </div>
                         </form>
