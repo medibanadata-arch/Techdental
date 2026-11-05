@@ -15,7 +15,8 @@ import {
     Menu,
     X,
     ExternalLink,
-    Bot
+    Bot,
+    ClipboardList
 } from 'lucide-react';
 
 // Dedicated tooth outline icon matching the PDF exactly
@@ -123,6 +124,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     icon: Calendar,
                     href: route('appointments.index'),
                     active: currentRoute?.startsWith('appointments.')
+                },
+                {
+                    name: 'Complaint Box',
+                    icon: ClipboardList,
+                    href: route('complaints.admin'),
+                    active: currentRoute?.startsWith('complaints.admin')
                 },
             ]
         },

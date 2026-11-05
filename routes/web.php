@@ -25,6 +25,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\PatientRightsController;
+use App\Http\Controllers\ComplaintController;
 use Inertia\Inertia;
 
 $homeHandler = function () {
@@ -160,6 +161,13 @@ Route::get('/bn/patient-rights', [PatientRightsController::class, 'publicShow'])
 Route::get('/patient-rights-and-responsibilities', fn() => redirect('/patient-rights', 301));
 Route::get('/patient-bill-of-rights', fn() => redirect('/patient-rights', 301));
 
+// ---------- Complaint Box (public) ----------
+Route::get('/complaint-box', [ComplaintController::class, 'publicShow'])->name('complaints.public');
+Route::post('/complaint-box', [ComplaintController::class, 'store'])->name('complaints.store');
+Route::get('/complaint', fn() => redirect('/complaint-box', 301));
+Route::get('/complaints', fn() => redirect('/complaint-box', 301));
+Route::get('/feedback', fn() => redirect('/complaint-box', 301));
+
 // ---------- Appointment (public) ----------
 Route::get('/appointment', [AppointmentController::class, 'publicBook'])->name('appointment.public');
 
@@ -268,6 +276,11 @@ Route::delete('ai-assistant/rules/{id}', [AiAssistantController::class, 'deleteR
 Route::post('ai-assistant/rules/{id}/toggle', [AiAssistantController::class, 'toggleRule'])->name('ai-assistant.rules.toggle');
 Route::post('ai-assistant/test-gemini', [AiAssistantController::class, 'testGemini'])->name('ai-assistant.test');
 Route::post('ai-assistant/fetch-models', [AiAssistantController::class, 'fetchModels'])->name('ai-assistant.models');
+    // ---------- Complaint Box (admin) ----------
+    Route::get('complaints-admin', [ComplaintController::class, 'adminIndex'])->name('complaints.admin');
+    Route::put('complaints-admin/{id}', [ComplaintController::class, 'updateStatus'])->name('complaints.admin.update');
+    Route::delete('complaints-admin/{id}', [ComplaintController::class, 'destroy'])->name('complaints.admin.destroy');
+
     // ---------- Patient Rights CMS ----------
     Route::get('patient-rights-cms', [PatientRightsController::class, 'adminIndex'])->name('patient-rights.admin');
     Route::post('patient-rights-cms/settings', [PatientRightsController::class, 'updateSettings'])->name('patient-rights.admin.settings');

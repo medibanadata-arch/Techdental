@@ -86,6 +86,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
   const defaultBottomLinks: LinkItem[] = [
     { label: 'Facebook', url: footerSettings.facebook_url || 'https://facebook.com/techdentalbd' },
     { label: 'Patient Rights', url: '/patient-rights' },
+    { label: 'Complaint Box', url: '/complaint-box' },
     { label: 'Privacy Policy', url: '/privacy-policy' },
     { label: 'Terms of Service', url: '/terms-of-service' },
   ];
