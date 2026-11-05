@@ -621,16 +621,6 @@ export default function Home({
                 </div>
 
                 <div className="flex items-center gap-1 text-slate-500">
-                  {/* Reset / Clear Button */}
-                  <button
-                    type="button"
-                    onClick={handleResetConversation}
-                    title="নতুন করে শুরু করুন"
-                    className="p-1.5 hover:bg-slate-200/60 rounded-full hover:text-slate-800 transition cursor-pointer"
-                  >
-                    <i className="fa-solid fa-rotate-left text-xs sm:text-sm" />
-                  </button>
-
                   {/* Expand / Full View Modal Button */}
                   <button
                     type="button"
@@ -1108,14 +1098,6 @@ export default function Home({
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={handleResetConversation}
-                  title="নতুন করে শুরু করুন"
-                  className="p-2 hover:bg-slate-200 rounded-full text-slate-600 transition cursor-pointer"
-                >
-                  <i className="fa-solid fa-rotate-left text-sm" />
-                </button>
                 <button
                   type="button"
                   onClick={() => setIsFullModalOpen(false)}
