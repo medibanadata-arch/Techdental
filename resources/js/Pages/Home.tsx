@@ -61,6 +61,50 @@ export default function Home({
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isAiFocused, setIsAiFocused] = useState(false);
 
+  // Gallery sliding & lightbox preview state
+  const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftState, setScrollLeftState] = useState(0);
+  const [hasDragged, setHasDragged] = useState(false);
+
+  const scrollGallery = (direction: 'left' | 'right') => {
+    if (!galleryRef.current) return;
+    const scrollAmount = 340;
+    galleryRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!galleryRef.current) return;
+    setIsDragging(true);
+    setHasDragged(false);
+    setStartX(e.pageX - galleryRef.current.offsetLeft);
+    setScrollLeftState(galleryRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !galleryRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - galleryRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    if (Math.abs(walk) > 5) {
+      setHasDragged(true);
+    }
+    galleryRef.current.scrollLeft = scrollLeftState - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
   // Modal State for external actions
   const [modal, setModal] = useState<ModalState>({
     isOpen: false,
@@ -176,6 +220,36 @@ export default function Home({
       },
     ];
   }, [featured_images]);
+
+  // Keyboard navigation for image lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!previewImage) return;
+      if (e.key === "Escape") {
+        setPreviewImage(null);
+      } else if (e.key === "ArrowLeft") {
+        const newIdx = (previewImage.index - 1 + galleryItems.length) % galleryItems.length;
+        const prevItem = galleryItems[newIdx];
+        setPreviewImage({
+          src: prevItem.src || prevItem.image || prevItem.url,
+          title: prevItem.badge || prevItem.title,
+          branch: prevItem.branch || prevItem.badge || "Uttara",
+          index: newIdx,
+        });
+      } else if (e.key === "ArrowRight") {
+        const newIdx = (previewImage.index + 1) % galleryItems.length;
+        const nextItem = galleryItems[newIdx];
+        setPreviewImage({
+          src: nextItem.src || nextItem.image || nextItem.url,
+          title: nextItem.badge || nextItem.title,
+          branch: nextItem.branch || nextItem.badge || "Uttara",
+          index: newIdx,
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewImage, galleryItems]);
 
   // Handle Question Chips & AI input
   const handleSelectSuggestion = (text: string) => {
@@ -539,13 +613,39 @@ export default function Home({
             <h2 className="text-base md:text-xl font-bold text-slate-800 flex items-center gap-2">
               আমাদের শাখাসমূহ ও আধুনিক প্রযুক্তি
             </h2>
-            <span className="text-xs text-slate-500 font-medium hidden md:inline-block">
-              স্লাইড করুন <i className="fa-solid fa-arrow-right ml-1" />
-            </span>
+            {/* Slide Navigation Arrows for web & desktop */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => scrollGallery('left')}
+                className="w-8 h-8 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 flex items-center justify-center transition shadow-2xs hover:shadow-xs cursor-pointer active:scale-95"
+                title="বামে স্লাইড করুন"
+                aria-label="Previous slide"
+              >
+                <i className="fa-solid fa-chevron-left text-xs" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollGallery('right')}
+                className="w-8 h-8 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 flex items-center justify-center transition shadow-2xs hover:shadow-xs cursor-pointer active:scale-95"
+                title="ডানে স্লাইড করুন"
+                aria-label="Next slide"
+              >
+                <i className="fa-solid fa-chevron-right text-xs" />
+              </button>
+            </div>
           </div>
 
-          {/* Horizontal Scroll Cards matching screenshot */}
-          <div className="flex overflow-x-auto gap-3 md:gap-4 hide-scrollbar pb-3 snap-x snap-mandatory -mx-4 px-4 md:mx-0 md:px-0">
+          {/* Horizontal Scroll Cards — smooth sliding on mobile (touch) and web (drag & arrows) with no scrollbar */}
+          <div
+            ref={galleryRef}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            className="flex overflow-x-auto gap-3 md:gap-4 hide-scrollbar no-scrollbar pb-1 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth select-none cursor-grab active:cursor-grabbing touch-pan-x"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {galleryItems.map((item: any, idx: number) => {
               const branchName = item.branch || item.badge || "Uttara";
               const titleBadge = item.badge || item.title || (idx === 0 ? "টেক ডেন্টাল হেড অফিস" : idx === 1 ? "আধুনিক মাইক্রোস্কোপিক ডেন্টাল কেয়ার" : "উন্নত চিকিৎসা পরিবেশ");
@@ -555,22 +655,25 @@ export default function Home({
               return (
                 <div
                   key={item.id || idx}
-                  className="relative rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 flex-shrink-0 w-[74vw] sm:w-[280px] md:w-[320px] aspect-[4/3] md:aspect-auto md:h-[240px] snap-start group"
+                  onClick={() => {
+                    if (!hasDragged) {
+                      setPreviewImage({
+                        src: imgSrc,
+                        title: titleBadge,
+                        branch: branchName,
+                        index: idx,
+                      });
+                    }
+                  }}
+                  className="relative rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 shrink-0 w-[74vw] sm:w-[280px] md:w-[320px] aspect-[4/3] md:aspect-auto md:h-[240px] snap-start group cursor-pointer transition-all duration-300 hover:shadow-md"
+                  title="ছবি দেখতে ক্লিক করুন"
                 >
                   <img
                     src={imgSrc}
                     alt={titleBadge}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
                     loading="lazy"
                   />
-
-                  {/* Top Badge */}
-                  <div
-                    className={`absolute top-3 left-3 text-white text-[11px] md:text-xs font-bold px-3 py-1 rounded-md shadow-xs ${idx === 0 ? "bg-[#e43324]" : idx === 1 ? "bg-[#1a73e8]" : "bg-[#059669]"
-                      }`}
-                  >
-                    {titleBadge}
-                  </div>
 
                   {/* Bottom Info matching screenshot style */}
                   <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
@@ -777,6 +880,86 @@ export default function Home({
         onClose={() => setIsAppointmentOpen(false)}
         defaultBranch={selectedBranch}
       />
+
+      {/* FULLSCREEN IMAGE LIGHTBOX PREVIEW MODAL */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+          onClick={() => setPreviewImage(null)}
+        >
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={() => setPreviewImage(null)}
+            className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+            title="বন্ধ করুন (Esc)"
+          >
+            <i className="fa-solid fa-xmark text-xl" />
+          </button>
+
+          {/* Previous Image Button */}
+          {galleryItems.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const newIdx = (previewImage.index - 1 + galleryItems.length) % galleryItems.length;
+                const prevItem = galleryItems[newIdx];
+                setPreviewImage({
+                  src: prevItem.src || prevItem.image || prevItem.url,
+                  title: prevItem.badge || prevItem.title,
+                  branch: prevItem.branch || prevItem.badge || "Uttara",
+                  index: newIdx,
+                });
+              }}
+              className="absolute left-3 sm:left-6 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+              title="আগের ছবি"
+            >
+              <i className="fa-solid fa-chevron-left text-lg" />
+            </button>
+          )}
+
+          {/* Next Image Button */}
+          {galleryItems.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const newIdx = (previewImage.index + 1) % galleryItems.length;
+                const nextItem = galleryItems[newIdx];
+                setPreviewImage({
+                  src: nextItem.src || nextItem.image || nextItem.url,
+                  title: nextItem.badge || nextItem.title,
+                  branch: nextItem.branch || nextItem.badge || "Uttara",
+                  index: newIdx,
+                });
+              }}
+              className="absolute right-3 sm:right-6 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+              title="পরের ছবি"
+            >
+              <i className="fa-solid fa-chevron-right text-lg" />
+            </button>
+          )}
+
+          {/* Image & Caption Container */}
+          <div
+            className="relative max-w-4xl max-h-[90vh] flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewImage.src}
+              alt={previewImage.title || "Tech Dental Image"}
+              className="max-w-full max-h-[78vh] object-contain rounded-2xl shadow-2xl select-none"
+            />
+            <div className="mt-3.5 flex items-center justify-between w-full px-2 text-white/90 text-sm">
+              <span className="font-semibold text-base">{previewImage.title || previewImage.branch}</span>
+              <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full text-white/80">
+                {previewImage.index + 1} / {galleryItems.length}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
