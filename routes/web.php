@@ -24,6 +24,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\PatientRightsController;
 use Inertia\Inertia;
 
 $homeHandler = function () {
@@ -153,6 +154,12 @@ Route::get('/doctors/{id}', [DoctorController::class, 'publicShow'])->name('doct
 // ---------- Price List ----------
 Route::get('/price-list', [PriceListController::class, 'publicShow'])->name('pricelist.public');
 
+// ---------- Patient Rights & Responsibilities (public) ----------
+Route::get('/patient-rights', [PatientRightsController::class, 'publicShow'])->name('patient-rights.public');
+Route::get('/bn/patient-rights', [PatientRightsController::class, 'publicShow'])->name('patient-rights.public.bn');
+Route::get('/patient-rights-and-responsibilities', fn() => redirect('/patient-rights', 301));
+Route::get('/patient-bill-of-rights', fn() => redirect('/patient-rights', 301));
+
 // ---------- Appointment (public) ----------
 Route::get('/appointment', [AppointmentController::class, 'publicBook'])->name('appointment.public');
 
@@ -261,6 +268,15 @@ Route::delete('ai-assistant/rules/{id}', [AiAssistantController::class, 'deleteR
 Route::post('ai-assistant/rules/{id}/toggle', [AiAssistantController::class, 'toggleRule'])->name('ai-assistant.rules.toggle');
 Route::post('ai-assistant/test-gemini', [AiAssistantController::class, 'testGemini'])->name('ai-assistant.test');
 Route::post('ai-assistant/fetch-models', [AiAssistantController::class, 'fetchModels'])->name('ai-assistant.models');
+    // ---------- Patient Rights CMS ----------
+    Route::get('patient-rights-cms', [PatientRightsController::class, 'adminIndex'])->name('patient-rights.admin');
+    Route::post('patient-rights-cms/settings', [PatientRightsController::class, 'updateSettings'])->name('patient-rights.admin.settings');
+    Route::post('patient-rights-cms/rights', [PatientRightsController::class, 'storeRight'])->name('patient-rights.admin.rights.store');
+    Route::put('patient-rights-cms/rights/{id}', [PatientRightsController::class, 'updateRight'])->name('patient-rights.admin.rights.update');
+    Route::delete('patient-rights-cms/rights/{id}', [PatientRightsController::class, 'deleteRight'])->name('patient-rights.admin.rights.destroy');
+    Route::post('patient-rights-cms/responsibilities', [PatientRightsController::class, 'storeResponsibility'])->name('patient-rights.admin.responsibilities.store');
+    Route::put('patient-rights-cms/responsibilities/{id}', [PatientRightsController::class, 'updateResponsibility'])->name('patient-rights.admin.responsibilities.update');
+    Route::delete('patient-rights-cms/responsibilities/{id}', [PatientRightsController::class, 'deleteResponsibility'])->name('patient-rights.admin.responsibilities.destroy');
 });
 
 require __DIR__.'/auth.php';

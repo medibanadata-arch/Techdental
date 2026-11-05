@@ -68,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     // Single active accordion dropdown state: opening one closes any previously open dropdown
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(() => {
         if (currentRoute?.startsWith('posts.') || currentRoute?.startsWith('medicines.')) return 'Blog';
-        if (currentRoute === 'homepage.admin' || currentRoute === 'about.admin' || currentRoute?.startsWith('team.') || currentRoute?.startsWith('pages.')) return 'Pages';
+        if (currentRoute === 'homepage.admin' || currentRoute === 'about.admin' || currentRoute === 'patient-rights.admin' || currentRoute?.startsWith('team.') || currentRoute?.startsWith('pages.')) return 'Pages';
         if (currentRoute?.startsWith('media.') || currentRoute?.startsWith('featured-images.')) return 'Media';
         if (currentRoute?.startsWith('services.') || currentRoute === 'pricelist.admin') return 'Services';
         if (currentRoute === 'settings.admin' || currentRoute === 'settings.header-footer' || currentRoute?.startsWith('menus.') || currentRoute?.startsWith('templates.') || currentRoute?.startsWith('users.') || currentRoute?.startsWith('redirects.')) return 'Settings';
@@ -95,7 +95,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             if (currentRoute?.startsWith('posts.')) {
                 setOpenNestedSubmenus(prev => ({ ...prev, 'Dental Blog & Guides': true }));
             }
-        } else if (currentRoute === 'homepage.admin' || currentRoute === 'about.admin' || currentRoute?.startsWith('team.') || currentRoute?.startsWith('pages.')) {
+        } else if (currentRoute === 'homepage.admin' || currentRoute === 'about.admin' || currentRoute === 'patient-rights.admin' || currentRoute?.startsWith('team.') || currentRoute?.startsWith('pages.')) {
             setOpenSubmenu('Pages');
         } else if (currentRoute?.startsWith('media.') || currentRoute?.startsWith('featured-images.')) {
             setOpenSubmenu('Media');
@@ -155,12 +155,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {
                     name: 'Pages',
                     icon: FileText,
-                    active: currentRoute === 'homepage.admin' || currentRoute === 'about.admin' || currentRoute?.startsWith('team.') || currentRoute?.startsWith('pages.'),
+                    active: currentRoute === 'homepage.admin' || currentRoute === 'about.admin' || currentRoute === 'patient-rights.admin' || currentRoute?.startsWith('team.') || currentRoute?.startsWith('pages.'),
                     submenu: [
                         { name: 'All Website Pages', href: route('pages.index'), active: currentRoute === 'pages.index' },
                         { name: 'Homepage', href: route('homepage.admin'), active: currentRoute === 'homepage.admin' },
                         { name: 'About Us', href: route('about.admin'), active: currentRoute === 'about.admin' },
                         { name: 'Corporate Team', href: route('team.admin'), active: currentRoute?.startsWith('team.') },
+                        { name: 'Patient Rights & Responsibilities', href: route('patient-rights.admin'), active: currentRoute === 'patient-rights.admin' },
                     ]
                 },
                 {
