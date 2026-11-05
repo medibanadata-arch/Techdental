@@ -118,10 +118,11 @@ export default function PatientRightsPublicShow({
         {hreflang?.['x-default'] && <link rel="alternate" hrefLang="x-default" href={hreflang['x-default']} />}
       </Head>
 
-      {/* Global Top Header with English / Bengali switcher */}
+      {/* Global Top Header with English / Bengali switcher (branch picker hidden) */}
       <TopHeader
         locations={locations}
         nav_menu={nav_menu}
+        showBranchPicker={false}
         showLanguageSwitcher={true}
       />
 
@@ -335,3 +336,4 @@ export default function PatientRightsPublicShow({
     </div>
   );
 }
+

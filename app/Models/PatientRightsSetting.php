@@ -29,3 +29,4 @@ class PatientRightsSetting extends Model
         'meta_desc_bn',
     ];
 }
+

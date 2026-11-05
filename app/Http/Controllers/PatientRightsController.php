@@ -225,3 +225,4 @@ class PatientRightsController extends Controller
         return back()->with('success', 'Patient responsibility deleted successfully.');
     }
 }
+

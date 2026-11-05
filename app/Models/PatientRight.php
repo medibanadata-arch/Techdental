@@ -21,3 +21,4 @@ class PatientRight extends Model
         'order' => 'integer',
     ];
 }
+

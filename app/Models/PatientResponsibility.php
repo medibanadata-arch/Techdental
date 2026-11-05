@@ -23,3 +23,4 @@ class PatientResponsibility extends Model
         'order' => 'integer',
     ];
 }
+

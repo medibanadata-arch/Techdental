@@ -204,7 +204,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       pathWithoutBn === '/posts' ||
       pathWithoutBn.startsWith('/posts/') ||
       pathWithoutBn === '/post' ||
-      pathWithoutBn.startsWith('/post/')
+      pathWithoutBn.startsWith('/post/') ||
+      pathWithoutBn === '/patient-rights' ||
+      pathWithoutBn.startsWith('/patient-rights/')
     );
   }, [showLanguageSwitcher, pathWithoutBn]);
 
@@ -227,7 +229,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       pathWithoutBn === '/posts' ||
       pathWithoutBn.startsWith('/posts/') ||
       pathWithoutBn === '/post' ||
-      pathWithoutBn.startsWith('/post/');
+      pathWithoutBn.startsWith('/post/') ||
+      pathWithoutBn === '/patient-rights' ||
+      pathWithoutBn.startsWith('/patient-rights/');
 
     if (isEditorialOrMedicine) {
       return false;
@@ -250,11 +254,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const handleLanguageSwitch = (targetLang: 'en' | 'bn') => {
     setLanguage(targetLang);
 
-    // Only for single blog & medicine: dynamically switch URL
+    // Only for single blog & medicine & patient rights: dynamically switch URL
     const singleBlogMatch = cleanPath.match(/^(?:\/bn)?\/blog\/([^\/]+)$/i);
     const singleMedicineMatch = cleanPath.match(/^(?:\/bn)?\/medicines\/([^\/]+)$/i);
+    const isPatientRights = cleanPath.match(/^(?:\/bn)?\/patient-rights(?:\/.*)?$/i);
 
-    if (singleBlogMatch) {
+    if (isPatientRights) {
+      const targetUrl = targetLang === 'bn' ? '/bn/patient-rights' : '/patient-rights';
+      if (cleanPath !== targetUrl.toLowerCase()) {
+        router.visit(targetUrl);
+      }
+    } else if (singleBlogMatch) {
       const slug = singleBlogMatch[1];
       const targetUrl = targetLang === 'bn' ? `/bn/blog/${slug}` : `/blog/${slug}`;
       if (cleanPath !== targetUrl.toLowerCase()) {
