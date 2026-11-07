@@ -219,8 +219,12 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
       ? branch.address.substring(branch.address.indexOf('(') + 1).replace(')', '').trim()
       : ''
   );
-  const morningHours = branch?.morning_hours;
-  const eveningHours = branch?.evening_hours || branch?.hours_text || branch?.time || '4 PM – 9 PM';
+  const cleanTimeStr = (str?: string | null) => {
+    if (!str) return '';
+    return str.replace(/:00\b/g, '');
+  };
+  const morningHours = cleanTimeStr(branch?.morning_hours);
+  const eveningHours = cleanTimeStr(branch?.evening_hours || branch?.hours_text || branch?.time || '4 PM – 9 PM');
   const workingDays = branch?.working_days || 'Saturday – Thursday';
   const workingDaysShort = workingDays
     .replace(/Saturday/gi, 'Sat')
