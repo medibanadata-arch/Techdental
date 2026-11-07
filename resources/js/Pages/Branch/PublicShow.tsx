@@ -808,13 +808,16 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               gap: 10px;
             }
             .hero-act {
-              height: 80px;
-              border-radius: 22px;
+              height: 54px;
+              border-radius: 18px;
               background: #fff;
               border: 1px solid #EFE6E9;
-              flex-direction: column;
-              gap: 8px;
-              font-size: 13px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .hero-act:not(.hero-act-book) span {
+              display: none;
             }
             .hero-act svg {
               width: 22px;
