@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Head } from "@inertiajs/react";
 import { TopHeader } from "@/Components/TopHeader";
+import { GlobalFooter } from "@/Components/GlobalFooter";
 import { BranchPickerModal } from "@/Components/BranchPickerModal";
 import { AppointmentModal } from "@/Components/AppointmentModal";
 import { BranchInfo, BRANCHES_DATA } from "@/data/dentalData";
@@ -953,7 +954,7 @@ export default function Home({
         </section>
 
         {/* Bottom Section: Call to Action (CTA) Section */}
-        <footer className="w-full py-4 mt-auto">
+        <section className="w-full py-4 mt-auto">
 
           {/* Action Buttons matched exactly to screenshot */}
           <div className="flex justify-between items-center max-w-[340px] mx-auto mb-10 w-full px-2">
@@ -1109,9 +1110,12 @@ export default function Home({
               )}
             </div>
           </div>
-        </footer>
+        </section>
 
       </div>
+
+      {/* Unified Global Footer */}
+      <GlobalFooter />
 
       {/* Interactive Modal / Dialog Popup */}
       {modal.isOpen && (

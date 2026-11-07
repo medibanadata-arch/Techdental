@@ -43,7 +43,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
   const brandLogoImage = footerSettings.brand_logo_image || '';
   
   const aboutText = footerSettings.about_text || 'Tech Dental is a leading multi-branch dental care provider in Dhaka, dedicated to painless digital procedures, expert orthodontic solutions, and modern implant dentistry.';
-  const hotline = footerSettings.hotline || siteSettings?.contact_phone || '01400786162';
+  const hotline = footerSettings.hotline || siteSettings?.contact_phone || '09638-000505';
   const whatsapp = footerSettings.whatsapp || '+8801400786162';
   const whatsappLabel = footerSettings.whatsapp_label || 'WhatsApp Direct Help';
   const email = footerSettings.email || siteSettings?.contact_email || 'info@techdentalcare.com';
@@ -331,3 +331,5 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
     </footer>
   );
 };
+
+export default GlobalFooter;
