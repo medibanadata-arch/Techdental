@@ -297,6 +297,12 @@ Route::post('ai-assistant/fetch-models', [AiAssistantController::class, 'fetchMo
     Route::post('patient-rights-cms/responsibilities', [PatientRightsController::class, 'storeResponsibility'])->name('patient-rights.admin.responsibilities.store');
     Route::put('patient-rights-cms/responsibilities/{id}', [PatientRightsController::class, 'updateResponsibility'])->name('patient-rights.admin.responsibilities.update');
     Route::delete('patient-rights-cms/responsibilities/{id}', [PatientRightsController::class, 'deleteResponsibility'])->name('patient-rights.admin.responsibilities.destroy');
+
+    // ---------- How to Pay CMS (admin) ----------
+    Route::get('how-to-pay-cms', [PaymentMethodsController::class, 'adminIndex'])->name('how-to-pay.admin');
+    Route::post('how-to-pay-cms/settings', [PaymentMethodsController::class, 'updateSettings'])->name('how-to-pay.admin.settings');
+    Route::post('how-to-pay-cms/methods', [PaymentMethodsController::class, 'updateMethods'])->name('how-to-pay.admin.methods');
+    Route::post('how-to-pay-cms/branches', [PaymentMethodsController::class, 'updateBranches'])->name('how-to-pay.admin.branches');
 });
 
 require __DIR__.'/auth.php';

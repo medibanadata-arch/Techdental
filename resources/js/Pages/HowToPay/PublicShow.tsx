@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { TopHeader } from '@/Components/TopHeader';
 import { GlobalFooter } from '@/Components/GlobalFooter';
@@ -6,102 +6,129 @@ import { GlobalFooter } from '@/Components/GlobalFooter';
 interface MethodItem {
   id: string;
   name: string;
-  bn: string;
-  badge: string;
-  color: string;
-  steps: string[];
+  badge?: string;
+  color?: string;
+  image?: string;
+  steps?: string[];
+  sort_order?: number;
+  is_active?: boolean;
 }
 
 interface BranchItem {
   id: string;
   name: string;
   fullName?: string;
-  addr: string;
-  hours: string;
-  phone: string;
-  has: Record<string, number>;
-  acct: Record<string, string>;
+  addr?: string;
+  hours?: string;
+  phone?: string;
+  has?: Record<string, number>;
+  acct?: Record<string, string>;
+}
+
+interface PageSettings {
+  id?: number;
+  tagline?: string;
+  title_main?: string;
+  title_highlight?: string;
+  lead_text?: string;
+  branches_section_title?: string;
+  branches_section_sub?: string;
+  matrix_section_title?: string;
+  matrix_section_sub?: string;
+  notice_text?: string;
+  seo_title?: string;
+  meta_desc?: string;
+  methods_data?: MethodItem[];
+  branches_data?: BranchItem[];
 }
 
 interface Props {
   locations?: any[];
   nav_menu?: any;
   home_content?: any;
+  payment_settings?: PageSettings;
   initial_branch?: string;
+  canonical_url?: string;
 }
 
-const METHODS: MethodItem[] = [
+const DEFAULT_METHODS: MethodItem[] = [
   {
     id: 'cash',
     name: 'Cash',
-    bn: 'নগদ টাকা',
     badge: '৳',
     color: '#2e7d57',
+    image: '',
     steps: ['Pay at the billing counter', 'Collect your printed receipt'],
+    is_active: true,
   },
   {
     id: 'pos',
     name: 'Card (POS)',
-    bn: 'কার্ড / পিওএস',
     badge: 'POS',
     color: '#3a5ba0',
+    image: '',
     steps: [
       'Tell the counter you will pay by card',
       'Tap, insert or swipe your debit/credit card',
       'Enter PIN if asked and keep the slip',
     ],
+    is_active: true,
   },
   {
     id: 'qr',
     name: 'Bangla QR',
-    bn: 'বাংলা কিউআর',
     badge: 'QR',
     color: '#0b7a75',
+    image: '',
     steps: [
       'Open any bank or wallet app with QR pay',
       'Scan the Bangla QR at the counter',
       'Enter the bill amount and confirm',
       'Show the success screen to staff',
     ],
+    is_active: true,
   },
   {
     id: 'bkash',
     name: 'bKash',
-    bn: 'বিকাশ',
     badge: 'bK',
     color: '#e2136e',
+    image: '',
     steps: [
       'Open the bKash app and tap Payment',
       'Scan the QR or enter the merchant number',
       'Enter the bill amount and your PIN',
       'Show the confirmation to staff',
     ],
+    is_active: true,
   },
   {
     id: 'nagad',
     name: 'Nagad',
-    bn: 'নগদ (মোবাইল)',
     badge: 'Ng',
     color: '#f26a21',
+    image: '',
     steps: [
       'Open the Nagad app and tap Merchant Pay',
       'Scan the QR or enter the merchant number',
       'Enter the bill amount and your PIN',
       'Show the confirmation to staff',
     ],
+    is_active: true,
   },
   {
     id: 'rocket',
     name: 'Rocket',
-    bn: 'রকেট',
     badge: 'Rk',
     color: '#8c3494',
+    image: '',
     steps: [
       'Dial *322# or open the Rocket app',
       'Choose Payment and enter the merchant number',
       'Enter the amount and your PIN',
       'Show the confirmation to staff',
     ],
+    is_active: true,
   },
 ];
 
@@ -152,38 +179,41 @@ export default function HowToPayPublicShow({
   locations = [],
   nav_menu,
   home_content,
+  payment_settings,
   initial_branch,
+  canonical_url,
 }: Props) {
-  // Merge database locations with payment config
+  // Methods list from settings or defaults (only active ones)
+  const methods = useMemo<MethodItem[]>(() => {
+    const raw =
+      payment_settings?.methods_data &&
+      Array.isArray(payment_settings.methods_data) &&
+      payment_settings.methods_data.length > 0
+        ? payment_settings.methods_data
+        : DEFAULT_METHODS;
+
+    return raw.filter((m) => m.is_active !== false);
+  }, [payment_settings?.methods_data]);
+
+  // Branches list from settings or defaults
   const branches = useMemo<BranchItem[]>(() => {
-    if (!locations || locations.length === 0) {
-      return DEFAULT_BRANCHES;
-    }
+    const raw =
+      payment_settings?.branches_data &&
+      Array.isArray(payment_settings.branches_data) &&
+      payment_settings.branches_data.length > 0
+        ? payment_settings.branches_data
+        : DEFAULT_BRANCHES;
 
-    return DEFAULT_BRANCHES.map((defBranch) => {
-      const match = locations.find((loc: any) => {
-        const slug = String(loc.slug || '').toLowerCase();
-        const name = String(loc.name || '').toLowerCase();
-        return slug.includes(defBranch.id) || name.includes(defBranch.id);
-      });
-
-      if (!match) return defBranch;
-
-      return {
-        ...defBranch,
-        name: match.name ? match.name.replace(/\s*branch$/i, '') : defBranch.name,
-        fullName: match.name || defBranch.fullName,
-        addr: match.address || defBranch.addr,
-        phone: match.phone || defBranch.phone,
-      };
-    });
-  }, [locations]);
+    return raw;
+  }, [payment_settings?.branches_data]);
 
   // Selected branch
   const [currentId, setCurrentId] = useState<string>(() => {
     if (initial_branch) {
       const found = branches.find(
-        (b) => b.id === initial_branch.toLowerCase() || b.name.toLowerCase() === initial_branch.toLowerCase()
+        (b) =>
+          b.id.toLowerCase() === initial_branch.toLowerCase() ||
+          b.name.toLowerCase() === initial_branch.toLowerCase()
       );
       if (found) return found.id;
     }
@@ -205,21 +235,45 @@ export default function HowToPayPublicShow({
 
   const availableMethodsCount = useMemo(() => {
     if (!currentBranch) return 0;
-    return METHODS.filter((m) => currentBranch.has[m.id]).length;
-  }, [currentBranch]);
+    return methods.filter((m) => currentBranch.has?.[m.id]).length;
+  }, [currentBranch, methods]);
+
+  // Dynamic text from settings
+  const tagline = payment_settings?.tagline || 'Payment methods by branch';
+  const titleMain = payment_settings?.title_main || 'How to pay';
+  const titleHighlight = payment_settings?.title_highlight || 'at our clinic';
+  const leadText =
+    payment_settings?.lead_text ||
+    'Choose your branch to see exactly which payment methods work there.';
+  const branchesSectionTitle =
+    payment_settings?.branches_section_title || 'Select your branch';
+  const branchesSectionSub =
+    payment_settings?.branches_section_sub ||
+    'Payment options differ from branch to branch.';
+  const matrixSectionTitle =
+    payment_settings?.matrix_section_title || 'All branches at a glance';
+  const matrixSectionSub =
+    payment_settings?.matrix_section_sub || 'Tap a branch name to jump to its details.';
+  const noticeText =
+    payment_settings?.notice_text ||
+    'Always keep your payment receipt or transaction ID. For mobile payments, show the success message at the counter before you leave. Need help? Ask the front desk at any branch.';
+  const pageTitle =
+    payment_settings?.seo_title ||
+    'How to Pay | Payment Methods by Branch | Tech Dental Care';
+  const metaDesc =
+    payment_settings?.meta_desc ||
+    'Choose your branch to see accepted payment methods at Tech Dental Care: Cash, POS Debit/Credit Card, Bangla QR, bKash, Nagad, and Rocket.';
 
   return (
     <div className="bg-white flex flex-col min-h-screen text-[#0a0a0a] font-['Plus_Jakarta_Sans',sans-serif]">
       <Head>
-        <title>How to Pay | Payment Methods by Branch | Tech Dental Care</title>
-        <meta
-          name="description"
-          content="Choose your branch to see accepted payment methods at Tech Dental Care: Cash, POS Debit/Credit Card, Bangla QR, bKash, Nagad, and Rocket."
-        />
+        <title>{pageTitle}</title>
+        <meta name="description" content={metaDesc} />
+        {canonical_url && <link rel="canonical" href={canonical_url} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Hind+Siliguri:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </Head>
@@ -237,25 +291,25 @@ export default function HowToPayPublicShow({
           {/* Hero Section */}
           <header className="hero pt-2 pb-6 md:pb-8">
             <div className="tag inline-block border-l-3 border-[#f0480f] pl-2.5 font-['Barlow_Condensed',sans-serif] font-extrabold text-[18px] sm:text-[22px] md:text-[26px] leading-[1.1] uppercase text-[#0a0a0a] tracking-wide">
-              Payment methods by branch
+              {tagline}
             </div>
             <h1 className="font-['Barlow_Condensed',sans-serif] font-extrabold text-[46px] sm:text-[68px] md:text-[88px] lg:text-[96px] leading-[0.95] uppercase tracking-[0.005em] my-3.5 sm:my-4 text-[#0a0a0a]">
-              How to pay
+              {titleMain}
               <br />
-              <span className="pk text-[#f0047f]">at our clinic</span>
+              <span className="pk text-[#f0047f]">{titleHighlight}</span>
             </h1>
             <p className="lead text-[#5c5c5c] max-w-[52ch] m-0 text-base sm:text-[17px] leading-relaxed">
-              Choose your branch to see exactly which payment methods work there.
+              {leadText}
             </p>
           </header>
 
           {/* Branch Picker Header */}
           <div className="mt-4">
             <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[24px] sm:text-[28px] uppercase tracking-[0.01em] m-0 mb-1 text-[#0a0a0a]">
-              Select your branch
+              {branchesSectionTitle}
             </h2>
             <p className="sub text-[#5c5c5c] m-0 mb-4 text-sm sm:text-[14.5px]">
-              Payment options differ from branch to branch.
+              {branchesSectionSub}
             </p>
 
             {/* Branch Pills */}
@@ -288,7 +342,7 @@ export default function HowToPayPublicShow({
                 aria-live="polite"
               >
                 <span className="count inline-block bg-[#f0480f] text-white font-bold rounded-lg px-2.5 py-0.5 text-xs sm:text-[14px] w-max">
-                  {availableMethodsCount} of {METHODS.length} methods available
+                  {availableMethodsCount} of {methods.length} methods available
                 </span>
                 <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[28px] sm:text-[34px] uppercase m-0 leading-tight text-[#0a0a0a]">
                   {currentBranch.name} branch
@@ -296,15 +350,17 @@ export default function HowToPayPublicShow({
                 <div className="meta flex flex-wrap gap-x-5 gap-y-1.5 text-[#5c5c5c] text-xs sm:text-[14.5px]">
                   <span>{currentBranch.addr}</span>
                   <span>{currentBranch.hours}</span>
-                  <span>
-                    Call{' '}
-                    <a
-                      href={`tel:${currentBranch.phone.replace(/[^0-9]/g, '')}`}
-                      className="font-bold text-[#1d4ed8] hover:underline"
-                    >
-                      {currentBranch.phone}
-                    </a>
-                  </span>
+                  {currentBranch.phone && (
+                    <span>
+                      Call{' '}
+                      <a
+                        href={`tel:${currentBranch.phone.replace(/[^0-9]/g, '')}`}
+                        className="font-bold text-[#1d4ed8] hover:underline"
+                      >
+                        {currentBranch.phone}
+                      </a>
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -312,11 +368,11 @@ export default function HowToPayPublicShow({
 
           {/* Methods Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 my-4">
-            {METHODS.map((m) => {
-              const isOn = currentBranch ? Boolean(currentBranch.has[m.id]) : false;
+            {methods.map((m) => {
+              const isOn = currentBranch ? Boolean(currentBranch.has?.[m.id]) : false;
               const merchantNumber = currentBranch?.acct?.[m.id];
               const whereAvailable = branches
-                .filter((b) => b.has[m.id])
+                .filter((b) => b.has?.[m.id])
                 .map((b) => b.name)
                 .join(', ');
 
@@ -329,20 +385,27 @@ export default function HowToPayPublicShow({
                       : 'bg-[#f2f2f2] border border-dashed border-[#e2e2e2]'
                   }`}
                 >
-                  {/* Top row: Badge, Name, Status */}
+                  {/* Top row: Badge (or uploaded image), Name, Status */}
                   <div className="top flex items-center gap-3">
                     <div
-                      className="badge w-11 h-11 rounded-xl grid place-items-center font-extrabold text-[15px] text-white shrink-0 select-none shadow-2xs"
-                      style={{ background: isOn ? m.color : '#e2e2e2', color: isOn ? '#fff' : '#8a8a8a' }}
+                      className="badge w-11 h-11 rounded-xl grid place-items-center font-extrabold text-[15px] text-white shrink-0 select-none shadow-2xs overflow-hidden"
+                      style={{ background: isOn ? m.color || '#3a5ba0' : '#e2e2e2', color: isOn ? '#fff' : '#8a8a8a' }}
                     >
-                      {m.badge}
+                      {m.image ? (
+                        <img
+                          src={m.image}
+                          alt={m.name}
+                          className="w-full h-full object-contain p-1 rounded-xl bg-white"
+                        />
+                      ) : (
+                        <span>{m.badge || m.name.substring(0, 2).toUpperCase()}</span>
+                      )}
                     </div>
+
                     <div className="name font-['Barlow_Condensed',sans-serif] font-bold text-[21px] leading-[1.2] uppercase text-[#0a0a0a]">
                       <span className={isOn ? 'text-[#0a0a0a]' : 'text-[#8a8a8a]'}>{m.name}</span>
-                      <small className="block font-sans font-medium text-[#5c5c5c] text-[13px] normal-case">
-                        {m.bn}
-                      </small>
                     </div>
+
                     <span
                       className={`status ml-auto text-[13px] font-bold rounded-full px-2.5 py-0.5 whitespace-nowrap select-none ${
                         isOn
@@ -367,11 +430,13 @@ export default function HowToPayPublicShow({
                       <summary className="cursor-pointer font-semibold text-[14.5px] text-[#1d4ed8] min-h-[32px] flex items-center select-none hover:underline">
                         How to pay
                       </summary>
-                      <ol className="mt-1.5 pl-5 text-[#5c5c5c] text-[14px] sm:text-[14.5px] list-decimal space-y-1">
-                        {m.steps.map((step, sIdx) => (
-                          <li key={sIdx}>{step}</li>
-                        ))}
-                      </ol>
+                      {m.steps && m.steps.length > 0 && (
+                        <ol className="mt-1.5 pl-5 text-[#5c5c5c] text-[14px] sm:text-[14.5px] list-decimal space-y-1">
+                          {m.steps.map((step, sIdx) => (
+                            <li key={sIdx}>{step}</li>
+                          ))}
+                        </ol>
+                      )}
                     </details>
                   ) : (
                     <p className="alt text-[13.5px] text-[#5c5c5c] m-0 mt-1">
@@ -388,10 +453,10 @@ export default function HowToPayPublicShow({
           {/* Section: All Branches at a Glance Matrix */}
           <section className="mt-9 sm:mt-12">
             <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[24px] sm:text-[28px] uppercase tracking-[0.01em] m-0 mb-1 text-[#0a0a0a]">
-              All branches at a glance
+              {matrixSectionTitle}
             </h2>
             <p className="sub text-[#5c5c5c] m-0 mb-4 text-sm sm:text-[14.5px]">
-              Tap a branch name to jump to its details.
+              {matrixSectionSub}
             </p>
 
             <div className="matrix-wrap overflow-x-auto border border-[#e2e2e2] rounded-[14px] bg-white mt-1.5 shadow-2xs">
@@ -433,20 +498,28 @@ export default function HowToPayPublicShow({
                   </tr>
                 </thead>
                 <tbody>
-                  {METHODS.map((m) => (
+                  {methods.map((m) => (
                     <tr key={m.id} className="hover:bg-slate-50/50">
                       <td className="p-2.5 sm:p-3 text-left pl-3 sm:pl-4 font-semibold border-b border-[#e2e2e2] sticky left-0 bg-white z-10 text-[#0a0a0a]">
                         <span className="mk inline-flex items-center gap-2">
-                          <i
-                            className="w-2.5 h-2.5 rounded-[3px] shrink-0"
-                            style={{ background: m.color }}
-                          />
+                          {m.image ? (
+                            <img
+                              src={m.image}
+                              alt={m.name}
+                              className="w-4 h-4 rounded-[3px] object-contain shrink-0"
+                            />
+                          ) : (
+                            <i
+                              className="w-2.5 h-2.5 rounded-[3px] shrink-0"
+                              style={{ background: m.color || '#3a5ba0' }}
+                            />
+                          )}
                           <span>{m.name}</span>
                         </span>
                       </td>
                       {branches.map((b) => {
                         const isSelected = b.id === currentId;
-                        const hasMethod = Boolean(b.has[m.id]);
+                        const hasMethod = Boolean(b.has?.[m.id]);
                         return (
                           <td
                             key={b.id}
@@ -480,7 +553,7 @@ export default function HowToPayPublicShow({
                     </td>
                     {branches.map((b) => {
                       const isSelected = b.id === currentId;
-                      const count = METHODS.filter((m) => b.has[m.id]).length;
+                      const count = methods.filter((m) => b.has?.[m.id]).length;
                       return (
                         <td
                           key={b.id}
@@ -488,7 +561,7 @@ export default function HowToPayPublicShow({
                             isSelected ? 'bg-[#e8effe] text-[#1d4ed8]' : ''
                           }`}
                         >
-                          {count} of {METHODS.length}
+                          {count} of {methods.length}
                         </td>
                       );
                     })}
@@ -499,11 +572,11 @@ export default function HowToPayPublicShow({
           </section>
 
           {/* Good to know footer card */}
-          <div className="foot my-8 sm:my-10 p-4 sm:p-5 border-l-4 border-[#1d4ed8] bg-white rounded-r-xl text-[#5c5c5c] text-sm sm:text-[14.5px] shadow-2xs leading-relaxed">
-            <b className="text-[#0a0a0a]">Good to know:</b> Always keep your payment receipt or transaction ID. For
-            mobile payments, show the success message at the counter before you leave. Need help? Ask the front desk
-            at any branch.
-          </div>
+          {noticeText && (
+            <div className="foot my-8 sm:my-10 p-4 sm:p-5 border-l-4 border-[#1d4ed8] bg-white rounded-r-xl text-[#5c5c5c] text-sm sm:text-[14.5px] shadow-2xs leading-relaxed">
+              <b className="text-[#0a0a0a]">Good to know:</b> {noticeText}
+            </div>
+          )}
         </div>
       </main>
 
