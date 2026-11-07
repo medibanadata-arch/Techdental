@@ -523,15 +523,15 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                     {previewMode === 'category' && (
                                         <div className="w-full">
                                             <div className="w-full max-w-[240px] mx-auto bg-white rounded-xl p-3 shadow-sm border-2 border-[#a21caf] text-center">
-                                                <div className="w-full h-40 rounded-lg overflow-hidden bg-slate-100 relative mb-2">
+                                                <div className="w-full aspect-[3/4] rounded-lg overflow-hidden bg-slate-100 relative mb-2">
                                                     <img
                                                         src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
                                                         alt="Doctor Category Card Preview"
                                                         className="w-full h-full object-cover object-top"
                                                         onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
                                                     />
-                                                    <span className="absolute top-1.5 right-1.5 bg-white/90 text-pink-700 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
-                                                        <MapPin size={8} className="inline mr-0.5" /> {selectedDoctor.branch || 'Mirpur'}
+                                                    <span className="absolute top-1.5 right-1.5 bg-white/95 text-pink-700 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-2xs border border-pink-100/60">
+                                                        <MapPin size={8} className="inline mr-0.5" /> {normalizeBranch(editForm.branch)}
                                                     </span>
                                                 </div>
                                                 <p className="text-xs font-bold text-gray-900 truncate">{editForm.name || 'Doctor Name'}</p>
