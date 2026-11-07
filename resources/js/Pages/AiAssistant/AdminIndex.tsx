@@ -615,6 +615,21 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                 </div>
                             </div>
 
+                            {/* YouTube Video Suggestion Guide Banner */}
+                            <div className="bg-red-50/80 border border-red-200/80 rounded-xl p-4 text-xs text-red-950 leading-relaxed flex items-start gap-3">
+                                <div className="w-6 h-6 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                                    <i className="fa-brands fa-youtube text-xs" />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="font-bold text-red-950 text-xs">
+                                        🎬 চ্যাটে ইউটিউব ভিডিও বক্স সাজেস্ট করার নিয়ম:
+                                    </p>
+                                    <p className="text-[11px] text-red-900 leading-normal">
+                                        যেকোনো চিকিৎসার নিয়ম, প্রক্রিয়া বা ডাক্তারের পরামর্শ ভিডিও রোগীকে দেখাতে চাইলে উপরের ট্রেনিং ডাটায় বা কিওয়ার্ড রুলের ভেতর ইউটিউব ভিডিওর লিংক (যেমন: <code className="bg-white px-1.5 py-0.5 rounded text-red-700 font-mono text-[10.5px] border border-red-200">https://youtu.be/xxxx</code> অথবা <code className="bg-white px-1.5 py-0.5 rounded text-red-700 font-mono text-[10.5px] border border-red-200">https://www.youtube.com/watch?v=xxxx</code>) দিয়ে দিন। চ্যাটে এটি স্বয়ংক্রিয়ভাবে ভিডিও কার্ড হিসেবে শো করবে এবং রোগী <strong>চ্যাটের ভেতরেই প্লে</strong> করে দেখতে পারবেন।
+                                    </p>
+                                </div>
+                            </div>
+
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     type="submit"

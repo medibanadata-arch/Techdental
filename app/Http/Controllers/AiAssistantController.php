@@ -222,7 +222,8 @@ class AiAssistantController extends Controller
 2. For treatment costs (e.g. scaling, root canal, dental caps, implants), quote the exact prices from the training data.
 3. Mention our relevant branch locations (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী) and official hotline 09638-000505 when helpful.
 4. STRICT WHATSAPP RULE: NEVER provide the WhatsApp number (01400-786162) in normal replies. Only provide WhatsApp if the patient specifically asks for WhatsApp or mobile number.
-5. Keep the answer warm, concise (2-4 bullet points), and in polite Bengali text format only.";
+5. Keep the answer warm, concise (2-4 bullet points), and in polite Bengali text format only.
+6. YOUTUBE VIDEOS: If the training data contains a YouTube video link (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...) related to the treatment, procedure, or topic the patient is inquiring about, include the full YouTube link on its own line so the patient can watch the video directly in the chat box.";
 
             $candidateModels = array_values(array_unique(array_merge(
                 [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],

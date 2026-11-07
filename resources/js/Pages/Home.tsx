@@ -50,6 +50,75 @@ export interface ChatMessage {
   answer?: AiAnswer;
 }
 
+// Helper: Extract YouTube 11-char Video ID from any YouTube URL
+export const extractYouTubeId = (url: string): string | null => {
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+  return match ? match[1] : null;
+};
+
+// YouTube Inline Embed Player Component
+export const ChatYouTubeEmbed: React.FC<{ videoId: string; title?: string }> = ({ videoId, title }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  return (
+    <div className="my-3 w-full max-w-sm sm:max-w-md rounded-2xl overflow-hidden border border-slate-200/90 shadow-sm bg-slate-950 transition-all">
+      {isPlaying ? (
+        <div className="relative w-full aspect-video bg-black">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+            title={title || "YouTube video player"}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <div
+          onClick={() => setIsPlaying(true)}
+          className="relative w-full aspect-video cursor-pointer overflow-hidden bg-slate-900 group"
+          title="ভিডিও দেখতে ক্লিক করুন"
+        >
+          {/* Thumbnail */}
+          <img
+            src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+            alt={title || "YouTube video"}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            onError={(e: any) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+            }}
+          />
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/30 group-hover:via-black/20 transition-all" />
+
+          {/* Top Badge */}
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/70 backdrop-blur-xs text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-white/15 shadow-xs">
+            <i className="fa-brands fa-youtube text-red-500 text-xs" />
+            <span>ভিডিও দেখুন</span>
+          </div>
+
+          {/* Center Play Button */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-600/95 hover:bg-red-600 text-white flex items-center justify-center shadow-lg shadow-red-950/50 group-hover:scale-110 active:scale-95 transition-all">
+              <i className="fa-solid fa-play text-base sm:text-lg ml-0.5" />
+            </div>
+          </div>
+
+          {/* Bottom Title if provided */}
+          {title && (
+            <div className="absolute bottom-2.5 left-3 right-3 text-white text-xs sm:text-sm font-semibold truncate drop-shadow-md">
+              {title}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function Home({
   locations = [],
   services = [],
@@ -451,6 +520,11 @@ export default function Home({
       return urlParts.flatMap((uPart, uIdx) => {
         const uKey = `${keyPrefix}-u-${uIdx}`;
         if (uPart.match(/^https?:\/\//)) {
+          const cleanUrl = uPart.replace(/[.,;:)\]]+$/, '');
+          const ytId = extractYouTubeId(cleanUrl);
+          if (ytId) {
+            return <ChatYouTubeEmbed key={uKey} videoId={ytId} />;
+          }
           return (
             <a
               key={uKey}
@@ -498,6 +572,11 @@ export default function Home({
         const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
         if (match) {
           const [, label, href] = match;
+          const cleanHref = href.replace(/[.,;:)\]]+$/, '');
+          const ytId = extractYouTubeId(cleanHref);
+          if (ytId) {
+            return <ChatYouTubeEmbed key={lKey} videoId={ytId} title={label} />;
+          }
           return (
             <a
               key={lKey}
