@@ -26,6 +26,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\PatientRightsController;
 use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\PaymentMethodsController;
 use Inertia\Inertia;
 
 $homeHandler = function () {
@@ -167,6 +168,12 @@ Route::post('/complaint-box', [ComplaintController::class, 'store'])->name('comp
 Route::get('/complaint', fn() => redirect('/complaint-box', 301));
 Route::get('/complaints', fn() => redirect('/complaint-box', 301));
 Route::get('/feedback', fn() => redirect('/complaint-box', 301));
+
+// ---------- How to Pay / Payment Methods (public) ----------
+Route::get('/how-to-pay', [PaymentMethodsController::class, 'publicShow'])->name('how-to-pay.public');
+Route::get('/payment-methods', fn() => redirect('/how-to-pay', 301));
+Route::get('/payment', fn() => redirect('/how-to-pay', 301));
+Route::get('/pay', fn() => redirect('/how-to-pay', 301));
 
 // ---------- Appointment (public) ----------
 Route::get('/appointment', [AppointmentController::class, 'publicBook'])->name('appointment.public');

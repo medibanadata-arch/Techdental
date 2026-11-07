@@ -58,6 +58,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
     { label: 'Services & Pricing', url: '/services' },
     { label: 'Specialist Doctors', url: '/doctors' },
     { label: 'Treatment Price List', url: '/price-list' },
+    { label: 'How to Pay', url: '/how-to-pay' },
     { label: 'Medicines & Care', url: '/medicines' },
     { label: 'About Tech Dental', url: '/about' },
     { label: 'Book Appointment', url: '/appointment' },
@@ -87,6 +88,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
     { label: 'Facebook', url: footerSettings.facebook_url || 'https://facebook.com/techdentalbd' },
     { label: 'Patient Rights', url: '/patient-rights' },
     { label: 'Complaint Box', url: '/complaint-box' },
+    { label: 'How to Pay', url: '/how-to-pay' },
     { label: 'Privacy Policy', url: '/privacy-policy' },
     { label: 'Terms of Service', url: '/terms-of-service' },
   ];
