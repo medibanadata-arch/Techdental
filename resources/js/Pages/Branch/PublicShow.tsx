@@ -125,6 +125,44 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     .filter(Boolean);
   const galleryImages: string[] = mappedGallery.length > 0 ? mappedGallery : DEFAULT_GALLERY;
 
+  // Active slide state & touch swipe handlers for branch hero
+  const [activeSlide, setActiveSlide] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+
+  const slideLabels = [
+    'Promotion banner',
+    'Treatment room',
+    'Reception area',
+    'Consultation room',
+    'Dental equipment',
+    'Sterilization room',
+  ];
+
+  const prevSlide = () => {
+    setActiveSlide((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1));
+  };
+
+  const nextSlide = () => {
+    setActiveSlide((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 40) {
+      if (dx < 0) {
+        setActiveSlide((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
+      } else {
+        setActiveSlide((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1));
+      }
+    }
+    touchStartX.current = null;
+  };
+
   // Lightbox Modal state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -297,580 +335,771 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
       {/* Main Full Width Responsive Content */}
       <main className="w-full px-3.5 sm:px-6 md:px-8 lg:px-12 xl:px-16 mt-4 sm:mt-6 pb-6 sm:pb-8">
 
-        {/* 2. Gallery Slider Section with View Counts & Arrows */}
-        <div className="relative w-full mb-4 sm:mb-6 group/gallery">
-          <div
-            ref={sliderRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-2 sm:pb-3 scroll-smooth rounded-2xl sm:rounded-[2rem]"
-          >
-            {galleryImages.map((src, i) => (
-              <div
-                key={i}
-                onClick={() => openLightbox(i)}
-                className="relative flex-none w-[88vw] sm:w-[84vw] md:w-[60%] lg:w-[46%] h-[260px] sm:h-[320px] md:h-[450px] snap-center sm:snap-start rounded-2xl sm:rounded-[2rem] overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition-shadow group/item"
-              >
-                <img
-                  src={src}
-                  alt={`${branchName} gallery ${i + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-105"
-                />
+        {/* Scoped CSS from branch-mirpur (1).html */}
+        <style>{`
+          .hero-mirpur {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+          }
+          .hero-stage {
+            flex: 3 1 0;
+            min-width: 0;
+            height: 480px;
+            position: relative;
+            border-radius: 32px;
+            overflow: hidden;
+            background: #EBC3D0;
+          }
+          .hero-stage-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.25s ease;
+            cursor: pointer;
+          }
+          .hero-dots-pattern {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.55) 1.2px, transparent 1.4px);
+            background-size: 22px 22px;
+            opacity: .7;
+            pointer-events: none;
+          }
+          .hero-shade {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 72%;
+            background: linear-gradient(to top, rgba(38,10,22,.84), rgba(38,10,22,.38) 55%, rgba(38,10,22,0));
+            pointer-events: none;
+          }
+          .hero-chips-top {
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            z-index: 2;
+          }
+          .hero-chip {
+            height: 36px;
+            padding: 0 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .hero-chip-open {
+            background: #fff;
+            color: #146C43;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          }
+          .hero-chip-open i {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #1E9E62;
+            box-shadow: 0 0 0 4px rgba(30,158,98,.2);
+          }
+          .hero-chip-open span {
+            color: #6B6065;
+            font-weight: 600;
+          }
+          .hero-chip-dark {
+            background: rgba(33,26,29,.55);
+            backdrop-filter: blur(8px);
+            color: #fff;
+          }
+          .hero-stage-body {
+            position: absolute;
+            left: 36px;
+            right: 36px;
+            bottom: 84px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+            color: #fff;
+            z-index: 2;
+          }
+          .hero-stage-info {
+            min-width: 0;
+            flex: 1 1 360px;
+          }
+          .hero-rating {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 34px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.16);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,.3);
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+          }
+          .hero-stage h1 {
+            margin: 14px 0 6px;
+            font-size: 48px;
+            line-height: 1.05;
+            font-weight: 800;
+            letter-spacing: -.025em;
+            color: #fff;
+          }
+          .hero-stage-addr {
+            font-size: 15px;
+            font-weight: 500;
+            opacity: .9;
+            color: #fff;
+          }
+          .hero-stage-ctrl {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .hero-counter {
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 6px;
+            color: #fff;
+          }
+          .hero-counter span {
+            opacity: .6;
+          }
+          .hero-round {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.2);
+            border: 1px solid rgba(255,255,255,.35);
+            display: grid;
+            place-items: center;
+            color: #fff;
+            cursor: pointer;
+            transition: background .15s, transform .15s;
+          }
+          .hero-round:hover {
+            background: rgba(255,255,255,.34);
+            transform: scale(1.05);
+          }
+          .hero-dots {
+            display: none;
+          }
+          .hero-thumbs {
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+          .hero-thumb {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            border-radius: 28px;
+            overflow: hidden;
+            padding: 0;
+            text-align: left;
+            border: 0;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            transition: transform .15s, filter .15s;
+          }
+          .hero-thumb:hover {
+            transform: translateY(-2px);
+            filter: brightness(.98);
+          }
+          .hero-thumb-label {
+            position: absolute;
+            left: 14px;
+            bottom: 14px;
+            height: 32px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(4px);
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #211A1D;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+          }
 
-                {/* View Count Badge */}
-                <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-md text-white text-xs sm:text-sm font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-md">
-                  <Eye size={14} className="text-slate-200" />
-                  <span>{1800 + i * 340}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          /* Actions */
+          .hero-actions {
+            position: relative;
+            margin: -38px 40px 0;
+            background: #fff;
+            border-radius: 28px;
+            padding: 12px;
+            box-shadow: 0 18px 40px -18px rgba(70,20,40,.28), 0 0 0 1px #EFE6E9;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1.6fr;
+            gap: 10px;
+            z-index: 10;
+          }
+          .hero-act {
+            height: 56px;
+            border-radius: 18px;
+            background: #F8F2F4;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #211A1D;
+            transition: transform .15s, filter .15s;
+            text-decoration: none;
+          }
+          .hero-act:hover {
+            transform: translateY(-1px);
+            filter: brightness(.97);
+          }
+          .hero-act svg {
+            color: #861A3D;
+          }
+          .hero-act-wa {
+            background: #E6F5EC;
+            color: #0F6A41;
+          }
+          .hero-act-wa svg {
+            color: currentColor;
+          }
+          .hero-act-book {
+            background: #861A3D;
+            color: #fff;
+            font-weight: 800;
+            box-shadow: 0 10px 22px -10px #861A3D;
+          }
+          .hero-act-book svg {
+            color: #fff;
+          }
 
-          {/* Slider Left / Right Navigation Buttons */}
-          <button
-            type="button"
-            onClick={() => slideGallery(-1)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 backdrop-blur text-white opacity-0 group-hover/gallery:opacity-100 transition-all duration-200 hover:bg-black/90 hover:scale-110 z-10 hidden md:flex items-center justify-center cursor-pointer shadow-lg"
-            aria-label="Previous image"
-          >
-            <ChevronLeft size={22} />
-          </button>
-          <button
-            type="button"
-            onClick={() => slideGallery(1)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/70 backdrop-blur text-white opacity-80 group-hover/gallery:opacity-100 transition-all duration-200 hover:bg-black/90 hover:scale-110 z-10 hidden md:flex items-center justify-center cursor-pointer shadow-lg"
-            aria-label="Next image"
-          >
-            <ChevronRight size={22} />
-          </button>
-        </div>
+          /* Branch Info Section */
+          .branch-info-sec {
+            margin-top: 28px;
+            margin-bottom: 24px;
+          }
+          .branch-info-card {
+            background: #fff;
+            border-radius: 32px;
+            border: 1px solid #EFE6E9;
+            padding: 56px;
+            display: flex;
+            flex-direction: column;
+            gap: 48px;
+            box-shadow: 0 4px 24px -10px rgba(70,20,40,.06);
+          }
+          .branch-eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .16em;
+            color: #861A3D;
+            text-transform: uppercase;
+          }
+          .branch-info-card h2 {
+            margin: 14px 0 0;
+            font-size: 40px;
+            line-height: 1.1;
+            font-weight: 800;
+            letter-spacing: -.025em;
+            color: #211A1D;
+          }
+          .branch-cols {
+            display: flex;
+            gap: 64px;
+          }
+          .branch-col {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+          }
+          .branch-divider {
+            width: 1px;
+            flex: none;
+            background: #F0E6E9;
+          }
+          .branch-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .14em;
+            color: #6B6065;
+            text-transform: uppercase;
+          }
+          .branch-label svg {
+            color: #861A3D;
+          }
+          .branch-addr {
+            font-size: 22px;
+            line-height: 1.4;
+            font-weight: 700;
+            color: #211A1D;
+          }
+          .branch-addr-sub {
+            margin-top: 6px;
+            font-size: 16px;
+            color: #6B6065;
+            font-weight: 500;
+          }
+          .branch-landmark {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #6B6065;
+            font-weight: 500;
+          }
+          .branch-landmark svg {
+            width: 18px;
+            height: 18px;
+            color: #861A3D;
+            flex-shrink: 0;
+          }
+          .branch-shifts {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+          }
+          .branch-shift {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px 24px;
+            border-radius: 20px;
+            background: #F8F2F4;
+          }
+          .branch-shift small {
+            font-size: 15px;
+            font-weight: 600;
+            color: #6B6065;
+          }
+          .branch-shift b {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+            color: #211A1D;
+          }
+          .branch-shift-eve {
+            background: #861A3D;
+            color: #fff;
+          }
+          .branch-shift-eve small {
+            color: #fff;
+            opacity: .85;
+          }
+          .branch-shift-eve b {
+            color: #fff;
+          }
+          .branch-note {
+            font-size: 14px;
+            color: #6B6065;
+            font-weight: 500;
+          }
+          .branch-note b {
+            color: #211A1D;
+          }
 
-        {/* 3. Quick Actions & Status Bar (Mobile Only) */}
-        <div className="w-full flex flex-col lg:hidden justify-between items-center mb-6 gap-3 relative z-20">
-          <nav className="w-full grid grid-cols-4 gap-2 text-center py-2 select-none" aria-label={`Quick actions for ${cleanBranch} branch`}>
-            {/* 1. Call */}
-            <a
-              href={`tel:${hotline}`}
-              className="flex flex-col items-center group cursor-pointer transition-transform duration-180 active:scale-95 no-underline"
-              aria-label={`${callLabel} ${cleanBranch}`}
-            >
-              <div className="w-14 h-14 rounded-full bg-white border border-slate-200/90 flex items-center justify-center text-blue-600 shadow-2xs group-hover:bg-slate-50 transition-all">
-                <svg className="w-6 h-6 stroke-[1.8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" />
-                </svg>
-              </div>
-              <span className="text-[13px] font-bold text-slate-800 tracking-tight mt-1.5 transition-colors">
-                {callLabel}
-              </span>
-            </a>
-
-            {/* 2. Directions */}
-            <a
-              href={mapUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-col items-center group cursor-pointer transition-transform duration-180 active:scale-95 no-underline"
-              role="button"
-              tabIndex={0}
-              aria-label={`${directionsLabel} ${cleanBranch}`}
-            >
-              <div className="w-14 h-14 rounded-full bg-white border border-slate-200/90 flex items-center justify-center text-blue-600 shadow-2xs group-hover:bg-slate-50 transition-all">
-                <svg className="w-6 h-6 stroke-[1.8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22 2 11 13" />
-                  <path d="M22 2 15 22l-4-9-9-4z" />
-                </svg>
-              </div>
-              <span className="text-[13px] font-bold text-slate-800 tracking-tight mt-1.5 transition-colors">
-                {directionsLabel}
-              </span>
-            </a>
-
-            {/* 3. WhatsApp */}
-            <a
-              href={`https://wa.me/${waNumber}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-col items-center group cursor-pointer transition-transform duration-180 active:scale-95 no-underline"
-              aria-label={`${whatsappLabel} Tech Dental`}
-            >
-              <div className="w-14 h-14 rounded-full bg-white border border-slate-200/90 flex items-center justify-center shadow-2xs group-hover:bg-emerald-50/50 group-hover:border-emerald-300 group-hover:shadow-xs transition-all">
-                <svg className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" viewBox="0 0 448 512" fill="#25D366" style={{ color: '#25D366', fill: '#25D366' }} aria-hidden="true">
-                  <path fill="#25D366" d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z" />
-                </svg>
-              </div>
-              <span className="text-[13px] font-bold text-slate-800 tracking-tight mt-1.5 transition-colors">
-                {whatsappLabel}
-              </span>
-            </a>
-
-            {/* 4. Book */}
-            <Link
-              href={bookingUrl}
-              className="flex flex-col items-center group cursor-pointer transition-transform duration-180 active:scale-95 no-underline"
-              aria-label={`${bookLabel} Appointment`}
-            >
-              <div className="w-14 h-14 rounded-full bg-white border border-slate-200/90 flex items-center justify-center text-[#8B1038] shadow-2xs group-hover:bg-slate-50 transition-all">
-                <svg className="w-6 h-6 stroke-[1.8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="3" y="4" width="18" height="18" rx="3" />
-                  <path d="M16 2v4M8 2v4M3 10h18" />
-                  <path d="m9 16 2 2 4-4" />
-                </svg>
-              </div>
-              <span className="text-[13px] font-bold text-slate-800 tracking-tight mt-1.5 transition-colors">
-                {bookLabel}
-              </span>
-            </Link>
-          </nav>
-
-          <div className={`w-full flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl border transition-colors ${branchStatus.isOpenNow
-              ? 'bg-gradient-to-r from-emerald-50/90 to-teal-50/60 border-emerald-200/70'
-              : branchStatus.isOpenSoon
-                ? 'bg-gradient-to-r from-amber-50/90 to-orange-50/60 border-amber-200/70'
-                : 'bg-slate-50 border-slate-200/80'
-            }`}>
-            <div className="flex items-center gap-3 min-w-0">
-              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white shadow-xs border flex items-center justify-center relative shrink-0 ${branchStatus.isOpenNow
-                  ? 'text-emerald-600 border-emerald-150'
-                  : branchStatus.isOpenSoon
-                    ? 'text-amber-600 border-amber-150'
-                    : 'text-slate-400 border-slate-200'
-                }`}>
-                <Clock size={19} className="stroke-[2]" />
-                {branchStatus.isOpenNow && (
-                  <span className="absolute inset-0 rounded-full border border-emerald-400 animate-ping opacity-25" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${branchStatus.isOpenNow ? 'bg-emerald-500 animate-pulse' : branchStatus.isOpenSoon ? 'bg-amber-500' : 'bg-slate-400'
-                    }`} />
-                  <span className={`text-[13.5px] sm:text-[14.5px] font-extrabold tracking-tight truncate ${branchStatus.isOpenNow ? 'text-emerald-800' : branchStatus.isOpenSoon ? 'text-amber-900' : 'text-slate-800'
-                    }`}>
-                    {branchStatus.statusText}
-                  </span>
-                </div>
-                <p className={`text-[11.5px] sm:text-[12.5px] font-medium truncate ${branchStatus.isOpenNow ? 'text-emerald-700/90' : branchStatus.isOpenSoon ? 'text-amber-800/90' : 'text-slate-500'
-                  }`}>
-                  {branchStatus.subText}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Quick Actions & Status Bar (Desktop Full Width) */}
-        <div className="hidden lg:flex w-full bg-white p-3.5 rounded-3xl shadow-sm border border-slate-100 mb-8 relative z-20 gap-3.5 items-stretch">
-          <a href={`tel:${hotline}`} className="flex-1 flex justify-center items-center gap-2.5 rounded-full border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer group py-3.5">
-            <Phone size={18} className="text-blue-600 group-hover:scale-110 transition-transform" />
-            <span className="text-[15px] font-bold text-slate-800">{callLabel}</span>
-          </a>
-
-          <a href={mapUrl} target="_blank" rel="noreferrer" className="flex-1 flex justify-center items-center gap-2.5 rounded-full border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer group py-3.5">
-            <Send size={18} className="text-blue-600 group-hover:scale-110 transition-transform" />
-            <span className="text-[15px] font-bold text-slate-800">{directionsLabel}</span>
-          </a>
-
-          <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="flex-1 flex justify-center items-center gap-2.5 rounded-full bg-[#188B50] hover:bg-[#137442] text-white transition-all shadow-sm cursor-pointer group py-3.5 border border-[#188B50]">
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.983zm11.455-7.394c-.068-.113-.25-.181-.524-.318-.274-.137-1.62-.8-1.871-.891-.25-.092-.432-.137-.614.137-.182.274-.707.891-.866 1.073-.16.182-.319.205-.593.068-.274-.137-1.157-.426-2.203-1.359-.815-.726-1.365-1.623-1.524-1.897-.16-.274-.017-.422.12-.559.123-.122.274-.319.41-.478.137-.16.182-.274.274-.457.091-.182.046-.342-.023-.478-.068-.137-.614-1.482-.841-2.031-.222-.535-.447-.462-.614-.471l-.524-.01c-.182 0-.478.068-.729.342-.25.274-.956.935-.956 2.28 0 1.345.979 2.645 1.116 2.828.137.182 1.928 2.943 4.671 4.128 2.743 1.185 2.743.79 3.245.744.502-.046 1.62-.662 1.848-1.3.228-.639.228-1.186.16-1.301z" />
-            </svg>
-            <span className="font-extrabold text-sm">{whatsappLabel}</span>
-          </a>
-
-          <Link href={bookingUrl} className="flex-1 flex justify-center items-center gap-2.5 rounded-full bg-[#C31E4D] hover:bg-[#A31840] text-white transition-all shadow-sm cursor-pointer group py-3.5 border border-[#C31E4D]">
-            <CalendarCheck size={18} className="group-hover:scale-110 transition-transform" />
-            <span className="text-[15px] font-bold">{bookLabel}</span>
-          </Link>
-
-          <div className={`flex-1 flex items-center justify-center gap-3 rounded-full border py-2.5 ${branchStatus.isOpenNow
-              ? 'bg-[#ECFDF3] border-emerald-100/60'
-              : branchStatus.isOpenSoon
-                ? 'bg-[#FFFBEB] border-amber-100'
-                : 'bg-slate-50 border-slate-200'
-            }`}>
-            <div className={`w-[38px] h-[38px] rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border ${branchStatus.isOpenNow ? 'text-[#059669] border-emerald-50' : branchStatus.isOpenSoon ? 'text-amber-600 border-amber-100' : 'text-slate-400 border-slate-100'
-              }`}>
-              <Clock size={17} />
-            </div>
-            <div className="flex flex-col justify-center">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${branchStatus.isOpenNow ? 'bg-[#059669]' : branchStatus.isOpenSoon ? 'bg-amber-500' : 'bg-slate-400'
-                  }`} />
-                <span className={`text-[14px] font-bold tracking-tight leading-none mt-0.5 ${branchStatus.isOpenNow ? 'text-[#059669]' : branchStatus.isOpenSoon ? 'text-amber-800' : 'text-slate-700'
-                  }`}>
-                  {branchStatus.statusText}
-                </span>
-              </div>
-              <p className={`text-[12px] font-medium leading-none ${branchStatus.isOpenNow ? 'text-[#059669]/80' : branchStatus.isOpenSoon ? 'text-amber-700/80' : 'text-slate-500'
-                }`}>
-                {branchStatus.subText}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 4. Main Body Content (Fluid Column Layout) */}
-        <div className="w-full flex flex-col gap-6">
-
-          {/* Redesigned Branch Card from mirpur-branch (3).html */}
-          <style>{`
-            .td-branch-card {
-              width: 100%;
-              background: #fff;
+          /* Mobile responsive rules matching branch-mirpur (1).html */
+          @media (max-width: 760px) {
+            .hero-mirpur {
+              display: block;
+            }
+            .hero-thumbs {
+              display: none;
+            }
+            .hero-stage {
+              height: 420px;
               border-radius: 28px;
-              border: 1px solid #ECE6E9;
-              box-shadow: 0 24px 60px -30px rgba(120,20,50,.25);
-              overflow: hidden;
-              font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
             }
-            .td-branch-head {
-              background: #7E1736;
-              color: #fff;
-              padding: 40px 48px;
-              display: flex;
-              align-items: center;
-              gap: 20px;
+            .hero-chips-top {
+              left: 16px;
+              right: 16px;
+              top: 16px;
             }
-            .td-branch-head-icon {
-              width: 64px;
-              height: 64px;
-              border-radius: 18px;
-              background: rgba(255,255,255,.14);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              flex: none;
+            .hero-chip {
+              height: 34px;
+              padding: 0 12px;
+              font-size: 12.5px;
             }
-            .td-branch-eyebrow {
-              font-size: 13px;
-              font-weight: 600;
-              letter-spacing: .14em;
-              text-transform: uppercase;
-              color: #F6D3DD;
+            .hero-chip-views {
+              display: none;
             }
-            .td-branch-h1 {
-              margin: 4px 0 0;
-              font-size: 40px;
-              line-height: 1.1;
-              font-weight: 800;
-              letter-spacing: -.02em;
-              color: #ffffff;
+            .hero-stage-body {
+              left: 20px;
+              right: 20px;
+              bottom: 20px;
+              display: block;
             }
-            .td-branch-body {
-              padding: 40px 48px 48px;
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
-              gap: 32px;
+            .hero-rating {
+              height: 32px;
+              padding: 0 12px;
+              font-size: 12.5px;
             }
-            .td-branch-col {
-              display: flex;
-              flex-direction: column;
-              gap: 20px;
+            .hero-stage h1 {
+              font-size: 34px;
+              margin: 12px 0 6px;
             }
-            .td-branch-label {
-              font-size: 13px;
-              font-weight: 700;
-              letter-spacing: .12em;
-              text-transform: uppercase;
-              color: #5E5663;
+            .hero-stage-addr {
+              font-size: 13.5px;
+              line-height: 1.4;
             }
-            .td-branch-addr {
-              display: flex;
-              gap: 16px;
-              align-items: flex-start;
+            .hero-stage-ctrl {
+              margin-top: 18px;
+              justify-content: space-between;
             }
-            .td-branch-pin {
-              flex: none;
+            .hero-counter {
+              display: none;
+            }
+            .hero-round {
               width: 44px;
               height: 44px;
-              border-radius: 14px;
-              background: #FBE9EF;
+            }
+            .hero-dots {
               display: flex;
+              gap: 6px;
               align-items: center;
-              justify-content: center;
+              order: -1;
             }
-            .td-branch-addr-main {
-              display: block;
-              font-size: 20px;
-              font-weight: 700;
-              line-height: 1.4;
-              color: #1B1520;
+            .hero-dot {
+              height: 28px;
+              width: 14px;
+              padding: 0;
+              background: transparent;
+              border: 0;
+              cursor: pointer;
+              display: grid;
+              place-items: center;
             }
-            .td-branch-addr-sub {
+            .hero-dot::after {
+              content: "";
               display: block;
-              font-size: 17px;
-              line-height: 1.5;
-              color: #4A4350;
+              height: 6px;
+              width: 6px;
+              border-radius: 999px;
+              background: rgba(255,255,255,.5);
+              transition: width .2s;
+            }
+            .hero-dot.on {
+              width: 30px;
+            }
+            .hero-dot.on::after {
+              width: 22px;
+              background: #fff;
+            }
+            .hero-actions {
+              margin: 14px 0 0;
+              padding: 0;
+              background: none;
+              box-shadow: none;
+              border-radius: 0;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 10px;
+            }
+            .hero-act {
+              height: 80px;
+              border-radius: 22px;
+              background: #fff;
+              border: 1px solid #EFE6E9;
+              flex-direction: column;
+              gap: 8px;
+              font-size: 13px;
+            }
+            .hero-act svg {
+              width: 22px;
+              height: 22px;
+            }
+            .hero-act-wa {
+              background: #E6F5EC;
+              border-color: #CFEBDB;
+            }
+            .hero-act-book {
+              grid-column: 1 / -1;
+              height: 58px;
+              flex-direction: row;
+              gap: 10px;
+              font-size: 16px;
+              border: 0;
+              border-radius: 20px;
+            }
+            .branch-info-sec {
+              margin-top: 22px;
+              margin-bottom: 24px;
+            }
+            .branch-info-card {
+              border-radius: 28px;
+              padding: 28px 24px;
+              gap: 32px;
+            }
+            .branch-info-card h2 {
+              font-size: 30px;
+              margin-top: 12px;
+            }
+            .branch-cols {
+              flex-direction: column;
+              gap: 32px;
+            }
+            .branch-divider {
+              width: auto;
+              height: 1px;
+            }
+            .branch-col {
+              gap: 16px;
+            }
+            .branch-label {
+              font-size: 11.5px;
+              gap: 8px;
+            }
+            .branch-addr {
+              font-size: 18px;
+            }
+            .branch-addr-sub {
+              font-size: 14.5px;
               margin-top: 4px;
             }
-            .td-branch-landmark {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              padding: 16px 18px;
-              border-radius: 16px;
-              background: #F8F5F6;
-              border: 1px dashed #D9CDD3;
-              font-size: 15px;
-              line-height: 1.45;
-              color: #3A3340;
-            }
-            .td-branch-landmark svg {
-              flex: none;
-            }
-            .td-branch-shifts {
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-              gap: 14px;
-            }
-            .td-branch-shift {
-              padding: 20px;
-              border-radius: 18px;
-            }
-            .td-branch-shift.morning {
-              background: #FBE9EF;
-            }
-            .td-branch-shift.morning .shift-n {
-              color: #7E1736;
-            }
-            .td-branch-shift.morning .shift-t {
-              color: #1B1520;
-            }
-            .td-branch-shift.evening {
-              background: #7E1736;
-              color: #fff;
-            }
-            .td-branch-shift.evening .shift-n {
-              color: #F6D3DD;
-            }
-            .td-branch-shift.evening .shift-t {
-              color: #fff;
-            }
-            .td-branch-shift .shift-n {
-              font-size: 14px;
-              font-weight: 700;
-            }
-            .td-branch-shift .shift-t {
-              font-size: 20px;
-              font-weight: 800;
-              letter-spacing: -.01em;
-              margin-top: 8px;
-              line-height: 1.25;
-              white-space: nowrap;
-            }
-            .td-branch-days {
-              display: flex;
-              align-items: center;
-              gap: 16px;
-              flex-wrap: wrap;
-            }
-            .td-branch-range {
-              display: inline-flex;
-              align-items: center;
+            .branch-landmark {
+              font-size: 13.5px;
               gap: 8px;
-              padding: 8px 14px;
-              border-radius: 999px;
-              background: #F2EEF0;
+            }
+            .branch-shifts {
+              gap: 12px;
+            }
+            .branch-shift {
+              padding: 18px 20px;
+              border-radius: 18px;
+              gap: 12px;
+            }
+            .branch-shift small {
               font-size: 14px;
-              font-weight: 700;
-              color: #3A3340;
             }
-            .td-branch-off {
-              font-size: 14px;
-              font-weight: 500;
-              color: #6B6370;
+            .branch-shift b {
+              font-size: 18px;
             }
-            @media(max-width: 600px) {
-              .td-branch-card {
-                border-radius: 24px;
-              }
-              .td-branch-head {
-                padding: 16px 18px;
-                gap: 12px;
-              }
-              .td-branch-head-icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 12px;
-              }
-              .td-branch-head-icon svg {
-                width: 22px;
-                height: 22px;
-              }
-              .td-branch-eyebrow, .td-branch-label, .td-branch-lm-label {
-                display: none;
-              }
-              .td-branch-h1 {
-                margin: 0;
-                font-size: 22px;
-              }
-              .td-branch-body {
-                padding: 16px 18px 18px;
-                gap: 14px;
-              }
-              .td-branch-col {
-                gap: 14px;
-              }
-              .td-branch-addr {
-                gap: 10px;
-              }
-              .td-branch-pin {
-                width: auto;
-                height: auto;
-                background: none;
-                border-radius: 0;
-                margin-top: 2px;
-              }
-              .td-branch-pin svg {
-                width: 20px;
-                height: 20px;
-              }
-              .td-branch-addr-main, .td-branch-addr-sub {
-                display: inline;
-                font-size: 14px;
-                line-height: 1.5;
-                margin: 0;
-              }
-              .td-branch-addr-main {
-                color: #1B1520;
-              }
-              .td-branch-addr-sub {
-                color: #4A4350;
-                font-weight: 400;
-              }
-              .td-branch-addr-sub::before {
-                content: ", ";
-              }
-              .td-branch-landmark {
-                padding: 0;
-                background: none;
-                border: 0;
-                border-radius: 0;
-                gap: 8px;
-                font-size: 13px;
-                font-weight: 600;
-                color: #7E1736;
-              }
-              .td-branch-landmark svg {
-                width: 16px;
-                height: 16px;
-              }
-              .td-branch-shifts {
-                gap: 10px;
-              }
-              .td-branch-shift {
-                padding: 12px 14px;
-                border-radius: 16px;
-              }
-              .td-branch-shift .shift-n {
-                font-size: 12px;
-              }
-              .td-branch-shift .shift-t {
-                font-size: 16px;
-                margin-top: 4px;
-                line-height: 1.3;
-              }
-              .td-branch-days {
-                justify-content: flex-start;
-                gap: 12px;
-              }
-              .td-branch-range {
-                padding: 7px 12px;
-                font-size: 13px;
-                gap: 7px;
-              }
-              .td-branch-range svg {
-                width: 15px;
-                height: 15px;
-              }
-              .td-branch-range .full-range {
-                display: none;
-              }
-              .td-branch-range .short-range {
-                display: inline;
-              }
-              .td-branch-off {
-                font-size: 13px;
-              }
+            .branch-note {
+              font-size: 13.5px;
             }
-            @media(min-width: 601px) {
-              .td-branch-range .short-range {
-                display: none;
-              }
-            }
-          `}</style>
+          }
+        `}</style>
 
-          <section className="td-branch-card">
-            <div className="td-branch-head">
-              <div className="td-branch-head-icon">
-                <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16"/>
-                  <path d="M14 10h5a1 1 0 0 1 1 1v10"/>
-                  <path d="M2 21h20"/>
-                  <path d="M8 8h2M8 12h2M8 16h2M17 14h1M17 17h1"/>
-                </svg>
+        {/* 1. HERO SLIDER */}
+        <section className="hero-mirpur" aria-label="Branch photos">
+          <div
+            className="hero-stage"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div
+              className="hero-stage-bg"
+              style={{
+                backgroundImage: `url('${galleryImages[activeSlide]}')`,
+                backgroundColor: '#EBC3D0',
+              }}
+              onClick={() => openLightbox(activeSlide)}
+              title="Click to view full photo"
+            />
+            <div className="hero-dots-pattern" />
+            <div className="hero-shade" />
+
+            {/* Top Status & Views Chips */}
+            <div className="hero-chips-top">
+              <div className="hero-chip hero-chip-open">
+                <i />
+                <span>
+                  {branchStatus.isOpenNow
+                    ? `Open now · ${branchStatus.subText || 'closes 9 PM'}`
+                    : branchStatus.isOpenSoon
+                      ? `Opening soon · ${branchStatus.subText || 'opens 10 AM'}`
+                      : `Closed · ${branchStatus.subText || 'opens 10 AM'}`}
+                </span>
               </div>
-              <div>
-                <div className="td-branch-eyebrow">Our Branch</div>
-                <h1 className="td-branch-h1">{branchName}</h1>
+              <div className="hero-chip hero-chip-dark hero-chip-views">
+                <Eye size={16} className="text-white" />
+                <span>{(1800 + activeSlide * 340).toLocaleString()}</span>
               </div>
             </div>
 
-            <div className="td-branch-body">
-              <div className="td-branch-col">
-                <div className="td-branch-label">Location</div>
-                <div className="td-branch-addr">
-                  <div className="td-branch-pin">
-                    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B4234A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <strong className="td-branch-addr-main">{addressMain}</strong>
-                    {addressSub ? (
-                      <span className="td-branch-addr-sub">{addressSub}</span>
-                    ) : null}
-                  </div>
+            {/* Stage Body */}
+            <div className="hero-stage-body">
+              <div className="hero-stage-info">
+                <div className="hero-rating">
+                  <Star size={14} className="fill-[#FFB547] stroke-none text-[#FFB547]" />
+                  <b>4.9</b>
+                  <span>· {branch?.reviews_text || '2,500+ verified reviews'}</span>
                 </div>
-                {landmarkText ? (
-                  <div className="td-branch-landmark">
-                    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7E1736" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="4" y="3" width="16" height="13" rx="3"/>
-                      <path d="M4 11h16M8 16l-2 5M16 16l2 5"/>
-                    </svg>
-                    <div><strong className="td-branch-lm-label">Landmark: </strong>{landmarkText}</div>
-                  </div>
-                ) : null}
+                <h1>{branchName}</h1>
+                <div className="hero-stage-addr">{addressMain}</div>
               </div>
 
-              <div className="td-branch-col">
-                <div className="td-branch-label">Opening Hours</div>
-                <div className="td-branch-shifts">
+              {/* Controls */}
+              <div className="hero-stage-ctrl">
+                <div className="hero-counter">
+                  <b>{activeSlide + 1}</b> <span>/ {galleryImages.length}</span>
+                </div>
+                <div className="hero-dots">
+                  {galleryImages.map((_, k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      className={`hero-dot ${k === activeSlide ? 'on' : ''}`}
+                      onClick={() => setActiveSlide(k)}
+                      aria-label={`Slide ${k + 1}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-2.5">
+                  <button
+                    type="button"
+                    className="hero-round"
+                    onClick={prevSlide}
+                    aria-label="Previous photo"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    className="hero-round"
+                    onClick={nextSlide}
+                    aria-label="Next photo"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Right Side Thumbnails */}
+          <div className="hero-thumbs">
+            {[1, 2].map((offset) => {
+              const k = (activeSlide + offset) % galleryImages.length;
+              const imgUrl = galleryImages[k];
+              const label =
+                (gallery[k] as any)?.alt ||
+                (gallery[k] as any)?.label ||
+                slideLabels[k % slideLabels.length];
+              return (
+                <button
+                  key={offset}
+                  type="button"
+                  className="hero-thumb"
+                  onClick={() => setActiveSlide(k)}
+                  style={{ backgroundImage: `url('${imgUrl}')`, backgroundColor: '#FAF7F5' }}
+                  aria-label={`Show photo: ${label}`}
+                >
+                  <span className="hero-thumb-label">{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* 2. ACTIONS BAR */}
+        <nav className="hero-actions" aria-label="Quick actions">
+          <a href={`tel:${hotline}`} className="hero-act">
+            <Phone size={18} />
+            <span>{callLabel}</span>
+          </a>
+          <a href={mapUrl} target="_blank" rel="noreferrer" className="hero-act">
+            <Send size={18} />
+            <span>{directionsLabel}</span>
+          </a>
+          <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="hero-act hero-act-wa">
+            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.983zm11.455-7.394c-.068-.113-.25-.181-.524-.318-.274-.137-1.62-.8-1.871-.891-.25-.092-.432-.137-.614.137-.182.274-.707.891-.866 1.073-.16.182-.319.205-.593.068-.274-.137-1.157-.426-2.203-1.359-.815-.726-1.365-1.623-1.524-1.897-.16-.274-.017-.422.12-.559.123-.122.274-.319.41-.478.137-.16.182-.274.274-.457.091-.182.046-.342-.023-.478-.068-.137-.614-1.482-.841-2.031-.222-.535-.447-.462-.614-.471l-.524-.01c-.182 0-.478.068-.729.342-.25.274-.956.935-.956 2.28 0 1.345.979 2.645 1.116 2.828.137.182 1.928 2.943 4.671 4.128 2.743 1.185 2.743.79 3.245.744.502-.046 1.62-.662 1.848-1.3.228-.639.228-1.186.16-1.301z" />
+            </svg>
+            <span>{whatsappLabel}</span>
+          </a>
+          <Link href={bookingUrl} className="hero-act hero-act-book">
+            <CalendarCheck size={18} />
+            <span>{bookLabel} appointment</span>
+          </Link>
+        </nav>
+
+        {/* 3. BRANCH INFO CARD */}
+        <section className="branch-info-sec">
+          <div className="branch-info-card">
+            <div>
+              <div className="branch-eyebrow">OUR BRANCH</div>
+              <h2>{branchName}</h2>
+            </div>
+
+            <div className="branch-cols">
+              {/* Location Column */}
+              <div className="branch-col">
+                <div className="branch-label">
+                  <MapPin size={18} />
+                  <span>LOCATION</span>
+                </div>
+                <div>
+                  <div className="branch-addr">{addressMain}</div>
+                  <div className="branch-addr-sub">
+                    {addressSub || `${cleanBranch}, Dhaka`}
+                  </div>
+                </div>
+                {landmarkText && (
+                  <div className="branch-landmark">
+                    <svg className="w-4.5 h-4.5 text-[#861A3D] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="5" y="3" width="14" height="14" rx="3" />
+                      <path d="M5 11h14M9 21l2-4M15 21l-2-4" />
+                    </svg>
+                    <span>Landmark: {landmarkText}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="branch-divider" role="presentation" />
+
+              {/* Opening Hours Column */}
+              <div className="branch-col">
+                <div className="branch-label">
+                  <Clock size={18} />
+                  <span>OPENING HOURS</span>
+                </div>
+                <div className="branch-shifts">
                   {morningHours && (
-                    <div className="td-branch-shift morning">
-                      <div className="shift-n">Morning</div>
-                      <div className="shift-t">{morningHours}</div>
+                    <div className="branch-shift">
+                      <small>Morning</small>
+                      <b>{morningHours}</b>
                     </div>
                   )}
-                  <div className="td-branch-shift evening">
-                    <div className="shift-n">{morningHours ? 'Evening' : 'Operating Hours'}</div>
-                    <div className="shift-t">{eveningHours}</div>
+                  <div className="branch-shift branch-shift-eve">
+                    <small>{morningHours ? 'Evening' : 'Operating Hours'}</small>
+                    <b>{eveningHours}</b>
                   </div>
                 </div>
-                <div className="td-branch-days">
-                  <div className="td-branch-range">
-                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7E1736" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="4" width="18" height="18" rx="3"/>
-                      <path d="M16 2v4M8 2v4M3 10h18"/>
-                    </svg>
-                    <span className="full-range">{workingDays}</span>
-                    <span className="short-range">{workingDaysShort}</span>
-                  </div>
-                  <div className="td-branch-off">{offDays}</div>
+                <div className="branch-note">
+                  {workingDays} · <b>{offDays}</b>
                 </div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
+        {/* 4. Doctors, Services & More Details */}
+        <div className="w-full flex flex-col gap-6 mt-6">
           {/* Specialist Doctors Section */}
           <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 mb-4 relative group">
             <div className="flex justify-between items-center mb-4">
