@@ -554,9 +554,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   />
 
                   <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3.5 py-1">
-                      Select Branch:
-                    </div>
                     {formattedBranches.map((loc) => {
                       const isCurrent = activeBranch?.slug === loc.slug;
                       return (
