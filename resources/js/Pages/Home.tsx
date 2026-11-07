@@ -603,30 +603,18 @@ export default function Home({
           {renderFormattedReply(msg.answer?.reply || "")}
         </div>
 
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100/80">
-          <div className="flex items-center gap-2">
-            {msg.answer?.actionLabel && (
-              <button
-                type="button"
-                onClick={() => handleAnswerAction(msg.answer!)}
-                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition cursor-pointer"
-              >
-                <i className="fa-solid fa-calendar-check text-xs" />
-                <span>{msg.answer.actionLabel}</span>
-              </button>
-            )}
+        {msg.answer?.actionLabel && (
+          <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-100/80">
+            <button
+              type="button"
+              onClick={() => handleAnswerAction(msg.answer!)}
+              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition cursor-pointer"
+            >
+              <i className="fa-solid fa-calendar-check text-xs" />
+              <span>{msg.answer.actionLabel}</span>
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => handleCopyAnswer(msg.answer?.reply || "", msg.id)}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
-            title="উত্তর কপি করুন"
-          >
-            <i className={`fa-solid ${copiedMsgId === msg.id ? "fa-check text-emerald-600" : "fa-copy"}`} />
-            <span>{copiedMsgId === msg.id ? "কপি হয়েছে" : "কপি"}</span>
-          </button>
-        </div>
+        )}
       </div>
     );
   };
