@@ -71,6 +71,17 @@ export default function Home({
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isAiFocused, setIsAiFocused] = useState(false);
 
+  const safeFaqs = useMemo(() => {
+    if (!home_content?.faqs) return [];
+    if (Array.isArray(home_content.faqs)) return home_content.faqs;
+    try {
+      const parsed = typeof home_content.faqs === "string" ? JSON.parse(home_content.faqs) : home_content.faqs;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [home_content?.faqs]);
+
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const modalChatScrollRef = useRef<HTMLDivElement>(null);
 
@@ -888,7 +899,7 @@ export default function Home({
                 onClick={() => setIsMoreOpen(!isMoreOpen)}
                 className="w-full px-6 py-4 flex items-center justify-between text-slate-800 font-semibold text-base md:text-lg hover:bg-slate-50 transition cursor-pointer"
               >
-                <span>More about Tech Dental</span>
+                <span>{home_content?.about_caption || "More about Tech Dental"}</span>
                 <i
                   className={`fa-solid fa-chevron-down text-slate-500 transition-transform duration-300 ${isMoreOpen ? "rotate-180" : ""
                     }`}
@@ -897,46 +908,73 @@ export default function Home({
 
               {/* Collapsible Content Box */}
               {isMoreOpen && (
-                <div className="px-6 pb-6 pt-2 border-t border-slate-100 text-left text-slate-600 text-sm md:text-base leading-relaxed space-y-4 animate-in fade-in duration-200">
-                  <div>
-                    <h4 className="font-bold text-rose-900 text-base md:text-lg mb-1">
-                      Tech Dental – ঢাকা শহরের অন্যতম বিশ্বস্ত ডেন্টাল নেটওয়ার্ক
-                    </h4>
-                    <p>
-                      টেক ডেন্টাল (Tech Dental) অভিজ্ঞ বিডিএস ও স্পেশালিস্ট ডেন্টাল সার্জনদের তত্ত্বাবধানে আন্তর্জাতিক মানের যন্ত্রপাতি এবং শতভাগ জীবাণুমুক্ত পরিবেশে উন্নত ডেন্টাল সেবা প্রদান করে আসছে।
-                    </p>
-                  </div>
+                <div className="px-6 pb-6 pt-3 border-t border-slate-100 text-left text-slate-600 text-sm md:text-base leading-relaxed space-y-4 animate-in fade-in duration-200">
+                  {home_content?.about_text ? (
+                    <div
+                      className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed text-sm md:text-base"
+                      dangerouslySetInnerHTML={{ __html: home_content.about_text }}
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-bold text-rose-900 text-base md:text-lg mb-1">
+                          Tech Dental – ঢাকা শহরের অন্যতম বিশ্বস্ত ডেন্টাল নেটওয়ার্ক
+                        </h4>
+                        <p>
+                          টেক ডেন্টাল (Tech Dental) অভিজ্ঞ বিডিএস ও স্পেশালিস্ট ডেন্টাল সার্জনদের তত্ত্বাবধানে আন্তর্জাতিক মানের যন্ত্রপাতি এবং শতভাগ জীবাণুমুক্ত পরিবেশে উন্নত ডেন্টাল সেবা প্রদান করে আসছে।
+                        </p>
+                      </div>
 
-                  <div>
-                    <h5 className="font-semibold text-slate-900 mb-1.5 flex items-center gap-1.5">
-                      <i className="fa-solid fa-map-location-dot text-blue-600" />
-                      <span>আমাদের প্রধান শাখাসমূহ:</span>
-                    </h5>
-                    <ul className="space-y-1.5 text-xs md:text-sm list-disc list-inside text-slate-600">
-                      <li>
-                        <strong className="text-slate-800">মিরপুর শাখা:</strong> ৮২৭ (২য় তলা), শেওড়াপাড়া, বেগম রোকেয়া সরণি, মিরপুর, ঢাকা-১২১৬।
-                      </li>
-                      <li>
-                        <strong className="text-slate-800">বাড্ডা শাখা:</strong> হাজী আব্দুর রশিদ ম্যানশন (৩য় তলা), উত্তর বাড্ডা বাজার, ঢাকা-১২১২।
-                      </li>
-                      <li>
-                        <strong className="text-slate-800">উত্তরা শাখা:</strong> হাউস ১৮, রোড ১৪, সেক্টর ৩, উত্তরা, ঢাকা-১২৩০।
-                      </li>
-                      <li>
-                        <strong className="text-slate-800">যাত্রাবাড়ী শাখা:</strong> শহীদ ফারুক রোড, দক্ষিণ যাত্রাবাড়ী, ঢাকা-১২০৪।
-                      </li>
-                    </ul>
-                  </div>
+                      <div>
+                        <h5 className="font-semibold text-slate-900 mb-1.5 flex items-center gap-1.5">
+                          <i className="fa-solid fa-map-location-dot text-blue-600" />
+                          <span>আমাদের প্রধান শাখাসমূহ:</span>
+                        </h5>
+                        <ul className="space-y-1.5 text-xs md:text-sm list-disc list-inside text-slate-600">
+                          <li>
+                            <strong className="text-slate-800">মিরপুর শাখা:</strong> ৮২৭ (২য় তলা), শেওড়াপাড়া, বেগম রোকেয়া সরণি, মিরপুর, ঢাকা-১২১৬।
+                          </li>
+                          <li>
+                            <strong className="text-slate-800">বাড্ডা শাখা:</strong> হাজী আব্দুর রশিদ ম্যানশন (৩য় তলা), উত্তর বাড্ডা বাজার, ঢাকা-১২১২।
+                          </li>
+                          <li>
+                            <strong className="text-slate-800">উত্তরা শাখা:</strong> হাউস ১৮, রোড ১৪, সেক্টর ৩, উত্তরা, ঢাকা-১২৩০।
+                          </li>
+                          <li>
+                            <strong className="text-slate-800">যাত্রাবাড়ী শাখা:</strong> শহীদ ফারুক রোড, দক্ষিণ যাত্রাবাড়ী, ঢাকা-১২০৪।
+                          </li>
+                        </ul>
+                      </div>
 
-                  <div>
-                    <h5 className="font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
-                      <i className="fa-solid fa-tooth text-blue-600" />
-                      <span>প্রধান সেবাসমূহ:</span>
-                    </h5>
-                    <p className="text-xs md:text-sm text-slate-600">
-                      অর্থোডন্টিক ব্রেসেস, ব্যথামুক্ত রুট ক্যানেল, ফাইবার ব্রিজ, ভিনিয়ার্স, স্কেলিং ও পলিশিং এবং ডেন্টাল ইমপ্ল্যান্ট।
-                    </p>
-                  </div>
+                      <div>
+                        <h5 className="font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
+                          <i className="fa-solid fa-tooth text-blue-600" />
+                          <span>প্রধান সেবাসমূহ:</span>
+                        </h5>
+                        <p className="text-xs md:text-sm text-slate-600">
+                          অর্থোডন্টিক ব্রেসেস, ব্যথামুক্ত রুট ক্যানেল, ফাইবার ব্রিজ, ভিনিয়ার্স, স্কেলিং ও পলিশিং এবং ডেন্টাল ইমপ্ল্যান্ট।
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Patient FAQs */}
+                  {safeFaqs.length > 0 && (
+                    <div className="pt-4 border-t border-slate-100 space-y-3">
+                      <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <span className="w-1.5 h-3.5 bg-rose-700 rounded-full" />
+                        Frequently Asked Questions (FAQ)
+                      </h4>
+                      <div className="space-y-2">
+                        {safeFaqs.filter((f: any) => f && f.q).map((faq: any, i: number) => (
+                          <div key={i} className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                            <div className="font-bold text-xs md:text-sm text-slate-900 mb-1">Q: {faq.q}</div>
+                            <div className="text-xs md:text-sm text-slate-600 leading-relaxed">{faq.a}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

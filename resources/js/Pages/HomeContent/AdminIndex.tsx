@@ -1093,8 +1093,8 @@ export default function HomeContentAdminIndex({
                             </label>
                             <input
                                 type="text"
-                                value={seoForm.seo_title || ''}
-                                onChange={(e) => setSeoForm({ ...seoForm, seo_title: e.target.value })}
+                                value={seoForm.about_caption || ''}
+                                onChange={(e) => setSeoForm({ ...seoForm, about_caption: e.target.value })}
                                 placeholder="More about Tech Dental"
                                 className="w-full px-3.5 py-2.5 text-xs border border-gray-200 rounded-xl font-bold bg-white"
                             />
