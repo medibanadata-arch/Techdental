@@ -26,7 +26,9 @@ import {
     UploadCloud,
     Eye,
     Info,
-    Check
+    Check,
+    Monitor,
+    Smartphone
 } from 'lucide-react';
 import SeoMetaBox from '@/Components/SeoMetaBox';
 import RichContentEditor from '@/Components/RichContentEditor';
@@ -241,6 +243,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
 
     // Image upload, crop, preview & media library states
     const [previewMode, setPreviewMode] = useState<'single' | 'category' | 'avatar'>('single');
+    const [deviceView, setDeviceView] = useState<'web' | 'mobile'>('web');
     const [isCropperOpen, setIsCropperOpen] = useState(false);
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
     const [cropFile, setCropFile] = useState<File | null>(null);
@@ -502,21 +505,91 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                 <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex flex-col items-center justify-center min-h-[260px] relative">
                                     {previewMode === 'single' && (
                                         <div className="w-full flex flex-col items-center">
-                                            <div className="w-44 h-58 rounded-2xl overflow-hidden border-2 border-slate-200/90 shadow-md bg-white relative group">
-                                                <img
-                                                    src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
-                                                    alt="Doctor Single Profile Preview"
-                                                    className="w-full h-full object-cover object-top"
-                                                    onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
-                                                />
-                                                <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-xs text-[#059669] text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1 border border-emerald-100">
-                                                    <CheckCircle2 size={10} /> Verified
-                                                </div>
+                                            {/* Web vs Mobile Device Switcher */}
+                                            <div className="flex items-center justify-center gap-1 mb-3 bg-gray-200/80 p-0.5 rounded-lg">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDeviceView('web')}
+                                                    className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                                                        deviceView === 'web'
+                                                            ? 'bg-white text-gray-900 shadow-2xs'
+                                                            : 'text-gray-500 hover:text-gray-900'
+                                                    }`}
+                                                >
+                                                    <Monitor size={12} />
+                                                    <span>Web (Desktop)</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDeviceView('mobile')}
+                                                    className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                                                        deviceView === 'mobile'
+                                                            ? 'bg-white text-gray-900 shadow-2xs'
+                                                            : 'text-gray-500 hover:text-gray-900'
+                                                    }`}
+                                                >
+                                                    <Smartphone size={12} />
+                                                    <span>Mobile View</span>
+                                                </button>
                                             </div>
-                                            <p className="text-[11px] font-semibold text-gray-600 mt-2 text-center">
-                                                Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.id}</code>)
-                                            </p>
-                                            <span className="text-[10px] text-gray-400">Desktop aspect ratio 3:4 (w: 288px, h: 384px)</span>
+
+                                            {deviceView === 'web' ? (
+                                                /* Desktop Single Profile Card */
+                                                <div className="w-full flex flex-col items-center animate-fade-in">
+                                                    <div className="w-44 h-58 rounded-2xl overflow-hidden border-2 border-slate-200/90 shadow-md bg-white relative group">
+                                                        <img
+                                                            src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
+                                                            alt="Doctor Single Profile Preview"
+                                                            className="w-full h-full object-cover object-[center_20%]"
+                                                            onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
+                                                        />
+                                                        <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-xs text-[#059669] text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1 border border-emerald-100">
+                                                            <CheckCircle2 size={10} /> Verified
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[11px] font-semibold text-gray-600 mt-2 text-center">
+                                                        Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.id}</code>)
+                                                    </p>
+                                                    <span className="text-[10px] text-gray-400">Desktop 3:4 portrait (w: 288px, h: 384px)</span>
+                                                </div>
+                                            ) : (
+                                                /* Mobile Smartphone View */
+                                                <div className="w-full flex flex-col items-center animate-fade-in">
+                                                    <div className="w-[195px] rounded-[22px] border-[3px] border-slate-800 bg-white p-2 shadow-lg relative overflow-hidden text-center">
+                                                        {/* Phone Notch */}
+                                                        <div className="w-14 h-1.5 bg-slate-800 rounded-full mx-auto mb-2" />
+                                                        
+                                                        {/* Mini Doctor Image Card */}
+                                                        <div className="w-full aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative shadow-2xs mb-1.5">
+                                                            <img
+                                                                src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
+                                                                alt="Doctor Mobile Preview"
+                                                                className="w-full h-full object-cover object-[center_20%]"
+                                                                onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
+                                                            />
+                                                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white border border-slate-200 shadow-2xs px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
+                                                                <CheckCircle2 size={8} className="text-emerald-500" />
+                                                                <span className="text-[7.5px] font-bold text-slate-700">BMDC Verified</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Doctor Mini Details */}
+                                                        <p className="text-[10.5px] font-bold text-gray-900 truncate mt-2.5 leading-tight">
+                                                            {editForm.name || 'Doctor Name'}
+                                                        </p>
+                                                        <p className="text-[8.5px] text-gray-500 truncate mt-0.5">
+                                                            {editForm.designation || 'Dental Surgeon'}
+                                                        </p>
+                                                        <div className="w-full py-1 bg-[#800038] text-white rounded-md text-[8.5px] font-bold mt-2">
+                                                            Book Now
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[11px] font-semibold text-gray-600 mt-2 text-center">
+                                                        Mobile Single Profile Preview
+                                                    </p>
+                                                    <span className="text-[10px] text-gray-400">Mobile responsive 3:4 portrait</span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
