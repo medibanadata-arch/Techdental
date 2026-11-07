@@ -225,12 +225,12 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
         {/* Hero Section */}
         <section className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start mb-6">
           {/* Profile Picture with Verified Badge */}
-          <div className="w-full md:w-72 flex-shrink-0 relative">
-            <div className="w-full aspect-[4/3] md:aspect-[3/4] rounded-2xl overflow-hidden shadow-sm border border-slate-100 relative">
+          <div className="w-full max-w-[300px] sm:max-w-xs md:max-w-none md:w-72 mx-auto md:mx-0 flex-shrink-0 relative">
+            <div className="w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-sm border border-slate-100 relative bg-slate-50">
               <img
                 src={item.img}
                 alt={item.name}
-                className="w-full h-full object-cover object-top"
+                className="w-full h-full object-cover object-[center_20%]"
                 onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = `https://placehold.co/400x533/f1f5f9/64748b?text=${encodeURIComponent(item.name)}`; }}
               />
             </div>
