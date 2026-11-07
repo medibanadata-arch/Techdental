@@ -1021,8 +1021,8 @@ export default function Home({
           </div>
 
           {/* Very Bottom: More about Tech Dental Accordion Section */}
-          <div className="max-w-xl mx-auto w-full">
-            <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 overflow-hidden transition-all">
+          <div className={`mx-auto w-full transition-all duration-300 ${isMoreOpen ? 'w-full' : 'max-w-xl'}`}>
+            <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 overflow-hidden transition-all duration-300">
 
               {/* Toggle Header Button */}
               <button
@@ -1039,7 +1039,7 @@ export default function Home({
 
               {/* Collapsible Content Box */}
               {isMoreOpen && (
-                <div className="px-6 pb-6 pt-3 border-t border-slate-100 text-left text-slate-600 text-sm md:text-base leading-relaxed space-y-4 animate-in fade-in duration-200">
+                <div className="px-6 md:px-10 pb-8 pt-4 border-t border-slate-100 text-left text-slate-600 text-sm md:text-base leading-relaxed space-y-4 animate-in fade-in duration-300">
                   {home_content?.about_text ? (
                     <div
                       className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed text-sm md:text-base"
