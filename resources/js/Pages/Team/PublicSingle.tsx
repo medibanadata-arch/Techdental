@@ -39,7 +39,7 @@ const parseLetter = (letter: any): string[] => {
 const PAGES_BG = '#FAF8F5';
 
 export default function TeamPublicSingle({ member, locations = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
 
   if (!member) return null;
 

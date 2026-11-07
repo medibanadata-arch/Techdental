@@ -109,7 +109,7 @@ const parseWhyList = (text: string) => {
 };
 
 export default function DoctorsPublicSingle({ item, hotline, locations = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [seeMore, setSeeMore] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);

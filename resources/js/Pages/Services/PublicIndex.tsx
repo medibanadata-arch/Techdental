@@ -23,7 +23,7 @@ interface Props extends PageProps {
 }
 
 export default function ServicesPublicIndex({ services = [], locations = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 antialiased overflow-x-hidden w-full font-sans">

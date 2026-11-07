@@ -61,7 +61,7 @@ const EVENING_TIMES = [
 ];
 
 export default function BookAppointmentPublicIndex({ locations = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [form, setForm] = useState({
     name: '',
     phone: '',

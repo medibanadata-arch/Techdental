@@ -79,7 +79,7 @@ const TECH_CONFIG = [
 ];
 
 export default function AboutPublicIndex({ content, doctors = [], management = [], locations = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
   const [isBranchPickerOpen, setIsBranchPickerOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);

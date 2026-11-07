@@ -40,7 +40,7 @@ interface Props extends PageProps {
 }
 
 export default function PriceListPublicIndex({ categories = [], settings, locations = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [currency, setCurrency] = useState<'BDT' | 'USD'>('BDT');
   const [query, setQuery] = useState("");
   const [seoOpen, setSeoOpen] = useState(false);

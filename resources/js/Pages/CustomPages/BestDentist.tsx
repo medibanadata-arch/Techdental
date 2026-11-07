@@ -167,7 +167,7 @@ interface Props extends PageProps {
 
 export default function BestDentistPage({ item, doctors = [], locations = [], nav_menu }: Props) {
   const { auth } = usePage().props as any;
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [currentLocation, setCurrentLocation] = useState("All");
   const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [selectedDoctorForProfile, setSelectedDoctorForProfile] = useState<DoctorData | null>(null);

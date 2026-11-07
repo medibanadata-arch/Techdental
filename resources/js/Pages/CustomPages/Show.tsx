@@ -36,7 +36,7 @@ interface CustomPageShowProps extends PageProps {
 
 export default function CustomPageShow({ item, locations = [], nav_menu }: CustomPageShowProps) {
     const { auth } = usePage().props as any;
-    const [selectedBranch, setSelectedBranch] = useState("mirpur");
+    const [selectedBranch, setSelectedBranch] = useState("");
     const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
     const [isBranchPickerOpen, setIsBranchPickerOpen] = useState(false);
     const [isCopied, setIsCopied] = useState(false);

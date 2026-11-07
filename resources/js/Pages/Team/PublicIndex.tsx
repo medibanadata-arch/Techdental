@@ -24,7 +24,7 @@ const SectionHeading: React.FC<{ children: React.ReactNode; className?: string }
 );
 
 export default function TeamPublicIndex({ members = [], locations = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
 
   const management = members.filter((m) => m.section === 'management');
   const ceoAssistant = members.filter((m) => m.section === 'ceo_assistant');

@@ -52,7 +52,7 @@ const DetailBox: React.FC<{ icon: string; label: string; value: string; title?: 
 );
 
 export default function DoctorsPublicIndex({ data = [], settings, locations = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [filter, setFilter] = useState<'All' | string>('All');
   const [moreInfoOpen, setMoreInfoOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);

@@ -22,7 +22,7 @@ interface Props extends PageProps {
 }
 
 export default function BranchPublicIndex({ branches = [], nav_menu, locations = [] }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-800 antialiased pb-5 sm:pb-6" style={{ fontFamily: "'Inter', sans-serif" }}>

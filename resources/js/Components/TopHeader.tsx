@@ -306,29 +306,32 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     });
   }, [locations]);
 
-  // Determine active branch from URL or selectedBranch
+  // Determine active branch: ONLY on branch-specific pages (/branch/{slug} or /page/branch-{slug})
   const activeBranch = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      const path = window.location.pathname.toLowerCase();
+    const isSpecificBranchRoute =
+      pathWithoutBn.startsWith('/branch/') ||
+      pathWithoutBn.startsWith('/page/branch-');
+
+    if (isSpecificBranchRoute) {
       for (const b of formattedBranches) {
         if (
-          path === `/branch/${b.slug}` ||
-          path.startsWith(`/branch/${b.slug}/`) ||
-          path === `/page/branch-${b.slug}` ||
-          path === `/page/${b.slug}`
+          pathWithoutBn === `/branch/${b.slug}` ||
+          pathWithoutBn.startsWith(`/branch/${b.slug}/`) ||
+          pathWithoutBn === `/page/branch-${b.slug}` ||
+          pathWithoutBn === `/page/${b.slug}`
         ) {
           return b;
         }
       }
-    }
-    if (selectedBranch) {
-      const match = formattedBranches.find(
-        b => b.slug === String(selectedBranch).toLowerCase() || b.id === String(selectedBranch)
-      );
-      if (match) return match;
+      if (selectedBranch) {
+        const match = formattedBranches.find(
+          b => b.slug === String(selectedBranch).toLowerCase() || b.id === String(selectedBranch)
+        );
+        if (match) return match;
+      }
     }
     return null;
-  }, [formattedBranches, selectedBranch]);
+  }, [formattedBranches, pathWithoutBn, selectedBranch]);
 
   // Parse Menu Items from saved NavMenu or fallback
   const rawMenuItems = useMemo(() => {

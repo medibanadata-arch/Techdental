@@ -60,7 +60,7 @@ const FeatureIcon: React.FC<{ index: number; className?: string }> = ({ index, c
 };
 
 export default function ServicesPublicSingle({ item, doctors = [], locations = [], related = [], nav_menu }: Props) {
-  const [selectedBranch, setSelectedBranch] = useState("mirpur");
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [seoOpen, setSeoOpen] = useState(false);
   const [mainImg, setMainImg] = useState<string>(
     item?.hero_main || "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=1000&q=80"
