@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HomeContent;
 use App\Models\Location;
 use App\Models\NavMenu;
 use Illuminate\Http\Request;
@@ -16,10 +17,13 @@ class PaymentMethodsController extends Controller
     {
         $locations = Location::orderBy('sort_order')->get();
         $navMenu = NavMenu::first();
+        $homeContent = HomeContent::first();
 
         return Inertia::render('HowToPay/PublicShow', [
             'locations' => $locations,
             'nav_menu' => $navMenu,
+            'home_content' => $homeContent,
+            'initial_branch' => $request->query('branch', ''),
             'canonical_url' => url('/how-to-pay'),
         ]);
     }

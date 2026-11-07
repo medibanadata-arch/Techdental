@@ -1,568 +1,428 @@
-import React, { useState, useRef } from "react";
-import { Head, Link } from "@inertiajs/react";
-import { TopHeader } from "@/Components/TopHeader";
-import { GlobalFooter } from "@/Components/GlobalFooter";
-import {
-  CreditCard,
-  Banknote,
-  QrCode,
-  Smartphone,
-  Check,
-  Copy,
-  MapPin,
-  Clock,
-  PhoneCall,
-  Info,
-  ChevronDown,
-  Sparkles,
-  ShieldCheck,
-  Receipt
-} from "lucide-react";
+import React, { useState, useRef, useMemo, useEffect } from 'react';
+import { Head } from '@inertiajs/react';
+import { TopHeader } from '@/Components/TopHeader';
+import { GlobalFooter } from '@/Components/GlobalFooter';
 
-interface Props {
-  locations?: any[];
-  nav_menu?: any;
-  canonical_url?: string;
-}
-
-interface PaymentMethod {
+interface MethodItem {
   id: string;
   name: string;
   bn: string;
   badge: string;
   color: string;
-  iconName: string;
-  description: string;
   steps: string[];
 }
 
-interface BranchPaymentConfig {
+interface BranchItem {
   id: string;
-  slug: string;
   name: string;
-  fullName: string;
+  fullName?: string;
   addr: string;
   hours: string;
   phone: string;
-  has: Record<string, boolean>;
+  has: Record<string, number>;
   acct: Record<string, string>;
 }
 
-const PAYMENT_METHODS: PaymentMethod[] = [
+interface Props {
+  locations?: any[];
+  nav_menu?: any;
+  home_content?: any;
+  initial_branch?: string;
+}
+
+const METHODS: MethodItem[] = [
   {
-    id: "cash",
-    name: "Cash",
-    bn: "নগদ টাকা",
-    badge: "৳",
-    color: "#15803d",
-    iconName: "banknote",
-    description: "Pay directly at the front reception billing desk.",
-    steps: [
-      "Visit the billing counter after your consultation or treatment.",
-      "Pay the exact bill amount in cash (Bangladeshi Taka).",
-      "Collect and verify your official computerized printed money receipt."
-    ]
+    id: 'cash',
+    name: 'Cash',
+    bn: 'নগদ টাকা',
+    badge: '৳',
+    color: '#2e7d57',
+    steps: ['Pay at the billing counter', 'Collect your printed receipt'],
   },
   {
-    id: "pos",
-    name: "Card (POS)",
-    bn: "ডেবিট / ক্রেডিট কার্ড",
-    badge: "POS",
-    color: "#2563eb",
-    iconName: "card",
-    description: "Visa, Mastercard, Nexus & UnionPay cards accepted with zero extra surcharge.",
+    id: 'pos',
+    name: 'Card (POS)',
+    bn: 'কার্ড / পিওএস',
+    badge: 'POS',
+    color: '#3a5ba0',
     steps: [
-      "Inform the receptionist that you wish to pay using a card.",
-      "Tap, insert chip, or swipe your Debit or Credit card on the POS terminal.",
-      "Enter your card PIN code securely if requested on the machine.",
-      "Collect your customer charge slip along with your dental invoice."
-    ]
+      'Tell the counter you will pay by card',
+      'Tap, insert or swipe your debit/credit card',
+      'Enter PIN if asked and keep the slip',
+    ],
   },
   {
-    id: "qr",
-    name: "Bangla QR",
-    bn: "বাংলা কিউআর (Interoperable QR)",
-    badge: "QR",
-    color: "#0d9488",
-    iconName: "qr",
-    description: "Scan with any Bangladeshi bank or MFS app (City Touch, bKash, etc.).",
+    id: 'qr',
+    name: 'Bangla QR',
+    bn: 'বাংলা কিউআর',
+    badge: 'QR',
+    color: '#0b7a75',
     steps: [
-      "Open your preferred banking or mobile wallet app supporting Bangla QR.",
-      "Tap the QR Scanner icon and scan the counter's official Bangla QR display.",
-      "Enter your total treatment bill amount and review beneficiary name (Tech Dental).",
-      "Authorize with PIN/OTP and present the success confirmation screen to our billing staff."
-    ]
+      'Open any bank or wallet app with QR pay',
+      'Scan the Bangla QR at the counter',
+      'Enter the bill amount and confirm',
+      'Show the success screen to staff',
+    ],
   },
   {
-    id: "bkash",
-    name: "bKash Merchant",
-    bn: "বিকাশ মার্চেন্ট পে",
-    badge: "bK",
-    color: "#e11475",
-    iconName: "smartphone",
-    description: "Instant merchant payment with zero cash-out or additional fee.",
+    id: 'bkash',
+    name: 'bKash',
+    bn: 'বিকাশ',
+    badge: 'bK',
+    color: '#e2136e',
     steps: [
-      "Open the bKash app on your phone and tap 'Make Payment / পেমেন্ট'.",
-      "Scan the branch bKash QR stand or enter the branch merchant number.",
-      "Enter the billed amount, add treatment reference if requested, and enter your PIN.",
-      "Show the transaction successful screen with TrxID to reception staff."
-    ]
+      'Open the bKash app and tap Payment',
+      'Scan the QR or enter the merchant number',
+      'Enter the bill amount and your PIN',
+      'Show the confirmation to staff',
+    ],
   },
   {
-    id: "nagad",
-    name: "Nagad Merchant",
-    bn: "নগদ মার্চেন্ট পে",
-    badge: "Ng",
-    color: "#ea580c",
-    iconName: "smartphone",
-    description: "Fast digital payment through Nagad App or USSD *167#.",
+    id: 'nagad',
+    name: 'Nagad',
+    bn: 'নগদ (মোবাইল)',
+    badge: 'Ng',
+    color: '#f26a21',
     steps: [
-      "Open the Nagad app and tap 'Merchant Pay' (মার্চেন্ট পে).",
-      "Scan the desk QR code or type our branch merchant wallet number.",
-      "Input the total bill amount and submit with your secret 4-digit PIN.",
-      "Present the SMS or screen confirmation to collect your printed receipt."
-    ]
+      'Open the Nagad app and tap Merchant Pay',
+      'Scan the QR or enter the merchant number',
+      'Enter the bill amount and your PIN',
+      'Show the confirmation to staff',
+    ],
   },
   {
-    id: "rocket",
-    name: "DBBL Rocket",
-    bn: "রকেট পেমেন্ট",
-    badge: "Rk",
-    color: "#7e22ce",
-    iconName: "smartphone",
-    description: "Dutch-Bangla Bank Rocket wallet payment via App or *322#.",
+    id: 'rocket',
+    name: 'Rocket',
+    bn: 'রকেট',
+    badge: 'Rk',
+    color: '#8c3494',
     steps: [
-      "Launch Rocket app or dial *322# from your registered mobile number.",
-      "Select 'Merchant Payment' and enter the Tech Dental merchant biller code/number.",
-      "Enter the exact treatment cost and your secret 4-digit Rocket PIN.",
-      "Verify the 12-digit transaction ID with the branch accountant."
-    ]
-  }
+      'Dial *322# or open the Rocket app',
+      'Choose Payment and enter the merchant number',
+      'Enter the amount and your PIN',
+      'Show the confirmation to staff',
+    ],
+  },
 ];
 
-const TECH_DENTAL_BRANCHES: BranchPaymentConfig[] = [
+const DEFAULT_BRANCHES: BranchItem[] = [
   {
-    id: "mirpur",
-    slug: "mirpur",
-    name: "Mirpur",
-    fullName: "Mirpur Branch (শেওড়াপাড়া)",
-    addr: "827 (2nd Floor), Shewrapara, Begum Rokeya Sarani, Mirpur, Dhaka-1216 (East side of Metro Pillar 318)",
-    hours: "Saturday – Thursday: 10:00 AM – 9:00 PM (Friday Closed)",
-    phone: "09638-000505",
-    has: {
-      cash: true,
-      pos: true,
-      qr: true,
-      bkash: true,
-      nagad: true,
-      rocket: true
-    },
-    acct: {
-      bkash: "09638-000505",
-      nagad: "09638-000505",
-      rocket: "09638-000505-1"
-    }
+    id: 'mirpur',
+    name: 'Mirpur',
+    fullName: 'Mirpur Branch',
+    addr: '827 (2nd Floor), Shewrapara, Begum Rokeya Sarani, Mirpur, Dhaka-1216 (Metro Rail Pillar 318)',
+    hours: 'Sat – Thu 10:00 am – 9:00 pm (Friday Closed)',
+    phone: '09638-000505',
+    has: { cash: 1, pos: 1, qr: 1, bkash: 1, nagad: 1, rocket: 1 },
+    acct: { bkash: '01400786162', nagad: '01400786162', rocket: '01400786162-8' },
   },
   {
-    id: "uttara",
-    slug: "uttara",
-    name: "Uttara",
-    fullName: "Uttara Branch (সেক্টর ৩)",
-    addr: "House 18, Road 14, Sector 3, Uttara, Dhaka-1230",
-    hours: "Saturday – Thursday: 3:00 PM – 9:00 PM (Friday Closed)",
-    phone: "09638-000505",
-    has: {
-      cash: true,
-      pos: true,
-      qr: true,
-      bkash: true,
-      nagad: true,
-      rocket: false
-    },
-    acct: {
-      bkash: "09638-000505",
-      nagad: "09638-000505"
-    }
+    id: 'uttara',
+    name: 'Uttara',
+    fullName: 'Uttara Branch',
+    addr: 'House 18, Road 14, Sector 3, Uttara, Dhaka-1230',
+    hours: 'Sat – Thu 10:00 am – 9:00 pm (Friday Closed)',
+    phone: '09638-000505',
+    has: { cash: 1, pos: 1, qr: 1, bkash: 1, nagad: 1, rocket: 0 },
+    acct: { bkash: '01400786162', nagad: '01400786162' },
   },
   {
-    id: "badda",
-    slug: "badda",
-    name: "Badda",
-    fullName: "Badda Branch (উত্তর বাড্ডা)",
-    addr: "Haji Abdur Rashid Mansion (3rd Floor), North Badda Bazar, Pragati Sarani, Dhaka-1212",
-    hours: "Saturday – Thursday: 3:00 PM – 9:00 PM (Friday Closed)",
-    phone: "09638-000505",
-    has: {
-      cash: true,
-      pos: true,
-      qr: true,
-      bkash: true,
-      nagad: true,
-      rocket: false
-    },
-    acct: {
-      bkash: "09638-000505",
-      nagad: "09638-000505"
-    }
+    id: 'badda',
+    name: 'Badda',
+    fullName: 'Badda Branch',
+    addr: 'Haji Abdur Rashid Mansion (3rd Floor), North Badda Bazar, Dhaka-1212',
+    hours: 'Sat – Thu 10:00 am – 9:00 pm (Friday Closed)',
+    phone: '09638-000505',
+    has: { cash: 1, pos: 1, qr: 1, bkash: 1, nagad: 1, rocket: 0 },
+    acct: { bkash: '01400786162', nagad: '01400786162' },
   },
   {
-    id: "jatrabari",
-    slug: "jatrabari",
-    name: "Jatrabari",
-    fullName: "Jatrabari Branch (দক্ষিণ যাত্রাবাড়ী)",
-    addr: "Shahid Faruk Road, South Jatrabari, Dhaka-1204",
-    hours: "Saturday – Thursday: 3:00 PM – 9:00 PM (Friday Closed)",
-    phone: "09638-000505",
-    has: {
-      cash: true,
-      pos: true,
-      qr: true,
-      bkash: true,
-      nagad: true,
-      rocket: false
-    },
-    acct: {
-      bkash: "09638-000505",
-      nagad: "09638-000505"
-    }
-  }
+    id: 'jatrabari',
+    name: 'Jatrabari',
+    fullName: 'Jatrabari Branch',
+    addr: 'Shahid Faruk Road, South Jatrabari, Dhaka-1204',
+    hours: 'Sat – Thu 10:00 am – 9:00 pm (Friday Closed)',
+    phone: '09638-000505',
+    has: { cash: 1, pos: 1, qr: 1, bkash: 1, nagad: 0, rocket: 0 },
+    acct: { bkash: '01400786162' },
+  },
 ];
 
 export default function HowToPayPublicShow({
   locations = [],
   nav_menu,
-  canonical_url = "https://techdentalbd.com/how-to-pay"
+  home_content,
+  initial_branch,
 }: Props) {
-  const [selectedBranchId, setSelectedBranchId] = useState<string>("mirpur");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  // Merge database locations with payment config
+  const branches = useMemo<BranchItem[]>(() => {
+    if (!locations || locations.length === 0) {
+      return DEFAULT_BRANCHES;
+    }
+
+    return DEFAULT_BRANCHES.map((defBranch) => {
+      const match = locations.find((loc: any) => {
+        const slug = String(loc.slug || '').toLowerCase();
+        const name = String(loc.name || '').toLowerCase();
+        return slug.includes(defBranch.id) || name.includes(defBranch.id);
+      });
+
+      if (!match) return defBranch;
+
+      return {
+        ...defBranch,
+        name: match.name ? match.name.replace(/\s*branch$/i, '') : defBranch.name,
+        fullName: match.name || defBranch.fullName,
+        addr: match.address || defBranch.addr,
+        phone: match.phone || defBranch.phone,
+      };
+    });
+  }, [locations]);
+
+  // Selected branch
+  const [currentId, setCurrentId] = useState<string>(() => {
+    if (initial_branch) {
+      const found = branches.find(
+        (b) => b.id === initial_branch.toLowerCase() || b.name.toLowerCase() === initial_branch.toLowerCase()
+      );
+      if (found) return found.id;
+    }
+    return branches[0]?.id || 'mirpur';
+  });
+
   const branchCardRef = useRef<HTMLDivElement>(null);
 
-  const currentBranch =
-    TECH_DENTAL_BRANCHES.find((b) => b.id === selectedBranchId) ||
-    TECH_DENTAL_BRANCHES[0];
-
-  const availableCount = PAYMENT_METHODS.filter(
-    (m) => currentBranch.has[m.id]
-  ).length;
-
-  const handleSelectBranch = (id: string, scroll: boolean = false) => {
-    setSelectedBranchId(id);
-    if (scroll && branchCardRef.current) {
-      branchCardRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
+  const selectBranch = (id: string, shouldScroll = false) => {
+    setCurrentId(id);
+    if (shouldScroll && branchCardRef.current) {
+      branchCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2500);
-    }
-  };
+  const currentBranch = useMemo(() => {
+    return branches.find((b) => b.id === currentId) || branches[0];
+  }, [branches, currentId]);
+
+  const availableMethodsCount = useMemo(() => {
+    if (!currentBranch) return 0;
+    return METHODS.filter((m) => currentBranch.has[m.id]).length;
+  }, [currentBranch]);
 
   return (
-    <div className="bg-[#f8fafc] flex flex-col min-h-screen text-slate-800 font-sans selection:bg-rose-900 selection:text-white">
+    <div className="bg-white flex flex-col min-h-screen text-[#0a0a0a] font-['Plus_Jakarta_Sans',sans-serif]">
       <Head>
-        <title>How to Pay | Accepted Payment Methods by Branch | Tech Dental Care</title>
+        <title>How to Pay | Payment Methods by Branch | Tech Dental Care</title>
         <meta
           name="description"
-          content="Choose your Tech Dental branch (Mirpur, Uttara, Badda, Jatrabari) to see all accepted payment options: Cash, Visa/Mastercard POS Card, Bangla QR, bKash, and Nagad."
+          content="Choose your branch to see accepted payment methods at Tech Dental Care: Cash, POS Debit/Credit Card, Bangla QR, bKash, Nagad, and Rocket."
         />
-        <link rel="canonical" href={canonical_url} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Hind+Siliguri:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
       </Head>
 
-      {/* Global Navigation Header */}
-      <TopHeader locations={locations} nav_menu={nav_menu} />
+      {/* Top Header */}
+      <TopHeader
+        locations={locations}
+        nav_menu={nav_menu}
+        showBranchPicker={false}
+      />
 
-      {/* Main Container */}
-      <main className="flex-1 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
-        {/* Hero Section */}
-        <header className="mb-8 sm:mb-10 text-left">
-          <div className="inline-flex items-center gap-2 border-l-4 border-rose-600 pl-3 py-0.5 text-xs sm:text-sm font-extrabold uppercase tracking-wider text-rose-700 bg-rose-50/70 pr-3 rounded-r-lg mb-3">
-            <Receipt className="w-4 h-4 text-rose-600" />
-            <span>Payment Methods by Branch</span>
-          </div>
+      <main className="flex-grow">
+        {/* Scoped How to Pay Container */}
+        <div className="how-to-pay-wrap max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-8 py-8 md:py-12">
+          {/* Hero Section */}
+          <header className="hero pt-2 pb-6 md:pb-8">
+            <div className="tag inline-block border-l-3 border-[#f0480f] pl-2.5 font-['Barlow_Condensed',sans-serif] font-extrabold text-[18px] sm:text-[22px] md:text-[26px] leading-[1.1] uppercase text-[#0a0a0a] tracking-wide">
+              Payment methods by branch
+            </div>
+            <h1 className="font-['Barlow_Condensed',sans-serif] font-extrabold text-[46px] sm:text-[68px] md:text-[88px] lg:text-[96px] leading-[0.95] uppercase tracking-[0.005em] my-3.5 sm:my-4 text-[#0a0a0a]">
+              How to pay
+              <br />
+              <span className="pk text-[#f0047f]">at our clinic</span>
+            </h1>
+            <p className="lead text-[#5c5c5c] max-w-[52ch] m-0 text-base sm:text-[17px] leading-relaxed">
+              Choose your branch to see exactly which payment methods work there.
+            </p>
+          </header>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 uppercase font-sans mb-3 leading-tight">
-            How to Pay <span className="text-rose-700">at our clinic</span>
-          </h1>
-
-          <p className="text-slate-600 text-base sm:text-lg max-w-2xl leading-relaxed">
-            Choose your branch to see exactly which payment methods work there.
-            <span className="block text-sm sm:text-base text-slate-500 font-medium mt-1">
-              টেক ডেন্টালের প্রতিটি শাখায় উপলব্ধ পেমেন্ট পদ্ধতি ও মার্চেন্ট নম্বর দেখে নিন।
-            </span>
-          </p>
-        </header>
-
-        {/* Branch Selection Pills */}
-        <section className="mb-6">
-          <div className="flex items-center justify-between gap-4 mb-2">
-            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 uppercase tracking-tight">
-              Select Your Branch
+          {/* Branch Picker Header */}
+          <div className="mt-4">
+            <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[24px] sm:text-[28px] uppercase tracking-[0.01em] m-0 mb-1 text-[#0a0a0a]">
+              Select your branch
             </h2>
-            <span className="text-xs font-semibold text-slate-500 hidden sm:inline-block">
-              Payment options differ by branch
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mb-3">
-            শাখা ভিত্তিক পেমেন্ট অপশন ও মার্চেন্ট ডিটেইলস দেখতে নিচের বাটনে ক্লিক করুন:
-          </p>
+            <p className="sub text-[#5c5c5c] m-0 mb-4 text-sm sm:text-[14.5px]">
+              Payment options differ from branch to branch.
+            </p>
 
-          <div
-            className="flex flex-wrap gap-2.5 sm:gap-3"
-            role="group"
-            aria-label="Tech Dental Branches"
-          >
-            {TECH_DENTAL_BRANCHES.map((b) => {
-              const isSelected = b.id === selectedBranchId;
-              return (
-                <button
-                  key={b.id}
-                  type="button"
-                  onClick={() => handleSelectBranch(b.id)}
-                  aria-pressed={isSelected}
-                  className={`px-5 py-2.5 sm:px-6 sm:py-3 rounded-full text-sm font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer ${
-                    isSelected
-                      ? "bg-rose-800 text-white shadow-md ring-2 ring-rose-800 ring-offset-2 scale-[1.02]"
-                      : "bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-100 hover:border-slate-300"
-                  }`}
-                >
-                  <MapPin
-                    className={`w-4 h-4 ${
-                      isSelected ? "text-rose-200" : "text-rose-700"
+            {/* Branch Pills */}
+            <div className="picker flex flex-wrap gap-2 py-1 pb-3" role="group" aria-label="Branches">
+              {branches.map((b) => {
+                const isSelected = b.id === currentId;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => selectBranch(b.id)}
+                    aria-pressed={isSelected}
+                    className={`pill flex-initial border-[1.5px] rounded-full px-4 sm:px-5 py-2.5 font-['Plus_Jakarta_Sans',sans-serif] font-semibold text-sm sm:text-[15px] cursor-pointer min-h-[44px] transition-all select-none active:scale-[0.98] ${
+                      isSelected
+                        ? 'bg-[#f0047f] border-[#f0047f] text-white shadow-sm'
+                        : 'border-[#e2e2e2] bg-white text-[#0a0a0a] hover:border-slate-400'
                     }`}
-                  />
-                  <span>{b.name} Branch</span>
-                  {isSelected && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Selected Branch Active Info Card */}
-        <div
-          ref={branchCardRef}
-          className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 p-5 sm:p-7 shadow-xs mb-8 transition-all relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-48 h-48 bg-rose-50/50 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none" />
-
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
-              <Sparkles className="w-3.5 h-3.5 text-rose-700" />
-              {availableCount} of {PAYMENT_METHODS.length} methods available
-            </span>
-
-            <Link
-              href={`/branch/${currentBranch.slug}`}
-              className="text-xs font-bold text-rose-700 hover:text-rose-800 hover:underline flex items-center gap-1"
-            >
-              View Full Branch Details →
-            </Link>
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-2">
-            {currentBranch.fullName}
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-slate-100 text-slate-600 text-xs sm:text-sm">
-            <div className="flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <span>{currentBranch.addr}</span>
+                  >
+                    {b.name}
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="flex items-start gap-2.5">
-              <Clock className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <span>{currentBranch.hours}</span>
-            </div>
-
-            <div className="flex items-start gap-2.5">
-              <PhoneCall className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-              <span>
-                Hotline:{" "}
-                <a
-                  href={`tel:${currentBranch.phone.replace(/[^0-9]/g, "")}`}
-                  className="font-bold text-slate-900 hover:text-rose-700 underline"
-                >
-                  {currentBranch.phone}
-                </a>
-              </span>
-            </div>
+            {/* Active Branch Overview Card */}
+            {currentBranch && (
+              <div
+                ref={branchCardRef}
+                className="branch grid gap-3.5 bg-white border border-[#e2e2e2] rounded-[18px] p-4 sm:p-5 my-2 mb-5 shadow-2xs"
+                aria-live="polite"
+              >
+                <span className="count inline-block bg-[#f0480f] text-white font-bold rounded-lg px-2.5 py-0.5 text-xs sm:text-[14px] w-max">
+                  {availableMethodsCount} of {METHODS.length} methods available
+                </span>
+                <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[28px] sm:text-[34px] uppercase m-0 leading-tight text-[#0a0a0a]">
+                  {currentBranch.name} branch
+                </h2>
+                <div className="meta flex flex-wrap gap-x-5 gap-y-1.5 text-[#5c5c5c] text-xs sm:text-[14.5px]">
+                  <span>{currentBranch.addr}</span>
+                  <span>{currentBranch.hours}</span>
+                  <span>
+                    Call{' '}
+                    <a
+                      href={`tel:${currentBranch.phone.replace(/[^0-9]/g, '')}`}
+                      className="font-bold text-[#1d4ed8] hover:underline"
+                    >
+                      {currentBranch.phone}
+                    </a>
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Payment Methods Cards Grid */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-extrabold text-slate-900 uppercase tracking-tight">
-              Accepted Methods at {currentBranch.name}
-            </h2>
-            <span className="text-xs text-slate-500 font-medium">
-              Click &quot;How to pay&quot; for step-by-step instructions
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {PAYMENT_METHODS.map((m) => {
-              const isAvailable = Boolean(currentBranch.has[m.id]);
-              const acctNum = currentBranch.acct[m.id];
-              const whereAvailable = TECH_DENTAL_BRANCHES.filter(
-                (b) => b.has[m.id]
-              )
+          {/* Methods Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 my-4">
+            {METHODS.map((m) => {
+              const isOn = currentBranch ? Boolean(currentBranch.has[m.id]) : false;
+              const merchantNumber = currentBranch?.acct?.[m.id];
+              const whereAvailable = branches
+                .filter((b) => b.has[m.id])
                 .map((b) => b.name)
-                .join(", ");
+                .join(', ');
 
               return (
                 <article
                   key={m.id}
-                  className={`rounded-2xl p-5 border transition-all flex flex-col justify-between ${
-                    isAvailable
-                      ? "bg-white border-slate-200/90 shadow-xs hover:shadow-md hover:border-slate-300"
-                      : "bg-slate-100/70 border-dashed border-slate-300/80 opacity-75"
+                  className={`m rounded-[14px] p-4 flex flex-col gap-2.5 transition-all ${
+                    isOn
+                      ? 'bg-white border border-[#e2e2e2] shadow-2xs'
+                      : 'bg-[#f2f2f2] border border-dashed border-[#e2e2e2]'
                   }`}
                 >
-                  <div>
-                    {/* Top strip: Badge + Name + Status */}
-                    <div className="flex items-center gap-3.5 mb-3">
-                      <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-base text-white shrink-0 shadow-xs"
-                        style={{
-                          backgroundColor: isAvailable ? m.color : "#94a3b8"
-                        }}
-                      >
-                        {m.badge}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base sm:text-lg text-slate-900 leading-snug truncate">
-                          {m.name}
-                        </h3>
-                        <span className="text-xs text-slate-500 block truncate font-medium">
-                          {m.bn}
-                        </span>
-                      </div>
-
-                      <span
-                        className={`text-xs font-extrabold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 ${
-                          isAvailable
-                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                            : "bg-slate-200/80 text-slate-600 border border-slate-300"
-                        }`}
-                      >
-                        {isAvailable ? "Available" : "Not here"}
-                      </span>
+                  {/* Top row: Badge, Name, Status */}
+                  <div className="top flex items-center gap-3">
+                    <div
+                      className="badge w-11 h-11 rounded-xl grid place-items-center font-extrabold text-[15px] text-white shrink-0 select-none shadow-2xs"
+                      style={{ background: isOn ? m.color : '#e2e2e2', color: isOn ? '#fff' : '#8a8a8a' }}
+                    >
+                      {m.badge}
                     </div>
+                    <div className="name font-['Barlow_Condensed',sans-serif] font-bold text-[21px] leading-[1.2] uppercase text-[#0a0a0a]">
+                      <span className={isOn ? 'text-[#0a0a0a]' : 'text-[#8a8a8a]'}>{m.name}</span>
+                      <small className="block font-sans font-medium text-[#5c5c5c] text-[13px] normal-case">
+                        {m.bn}
+                      </small>
+                    </div>
+                    <span
+                      className={`status ml-auto text-[13px] font-bold rounded-full px-2.5 py-0.5 whitespace-nowrap select-none ${
+                        isOn
+                          ? 'text-[#0a8f5b] bg-[#e0f4ea]'
+                          : 'text-[#8a8a8a] bg-transparent border border-[#e2e2e2]'
+                      }`}
+                    >
+                      {isOn ? 'Available' : 'Not here'}
+                    </span>
+                  </div>
 
-                    <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                      {m.description}
+                  {/* Account / Merchant Number */}
+                  {isOn && merchantNumber && (
+                    <div className="acct text-[14px] sm:text-[14.5px] bg-[#e8effe] text-[#1e3a8a] rounded-[10px] p-2 sm:px-3">
+                      Merchant number: <b className="font-mono font-bold tracking-wide">{merchantNumber}</b>
+                    </div>
+                  )}
+
+                  {/* Accordion Steps or Alternate Info */}
+                  {isOn ? (
+                    <details className="group mt-1">
+                      <summary className="cursor-pointer font-semibold text-[14.5px] text-[#1d4ed8] min-h-[32px] flex items-center select-none hover:underline">
+                        How to pay
+                      </summary>
+                      <ol className="mt-1.5 pl-5 text-[#5c5c5c] text-[14px] sm:text-[14.5px] list-decimal space-y-1">
+                        {m.steps.map((step, sIdx) => (
+                          <li key={sIdx}>{step}</li>
+                        ))}
+                      </ol>
+                    </details>
+                  ) : (
+                    <p className="alt text-[13.5px] text-[#5c5c5c] m-0 mt-1">
+                      {whereAvailable
+                        ? `Available at: ${whereAvailable}`
+                        : 'Currently not offered at any branch'}
                     </p>
-
-                    {/* Merchant Account Box (if applicable) */}
-                    {isAvailable && acctNum && (
-                      <div className="mb-3.5 p-2.5 bg-rose-50/60 rounded-xl border border-rose-100 flex items-center justify-between gap-2">
-                        <div className="text-xs text-slate-700">
-                          <span className="font-bold text-slate-900 block text-[11px] uppercase tracking-wider text-rose-900">
-                            Merchant Wallet
-                          </span>
-                          <span className="font-mono font-bold text-slate-900 text-sm">
-                            {acctNum}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(acctNum, m.id)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white border border-rose-200 hover:bg-rose-100 text-rose-800 text-xs font-bold transition flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs"
-                          title="Copy merchant number"
-                        >
-                          {copiedId === m.id ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              <span className="text-emerald-700 font-extrabold">Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5" />
-                              <span>Copy</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Steps / Alternative info */}
-                  <div className="pt-3 border-t border-slate-100">
-                    {isAvailable ? (
-                      <details className="group cursor-pointer">
-                        <summary className="text-xs font-bold text-rose-700 hover:text-rose-800 flex items-center justify-between list-none py-1 select-none">
-                          <span className="flex items-center gap-1.5">
-                            <Info className="w-3.5 h-3.5 text-rose-600" />
-                            How to pay with {m.name}
-                          </span>
-                          <ChevronDown className="w-4 h-4 transition-transform duration-200 group-open:rotate-180" />
-                        </summary>
-                        <ol className="mt-2.5 pl-5 space-y-1.5 text-xs text-slate-600 list-decimal leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-                          {m.steps.map((st, i) => (
-                            <li key={i}>{st}</li>
-                          ))}
-                        </ol>
-                      </details>
-                    ) : (
-                      <p className="text-xs text-slate-500 italic">
-                        Available at:{" "}
-                        <strong className="text-slate-700 font-semibold">
-                          {whereAvailable || "Currently unavailable"}
-                        </strong>
-                      </p>
-                    )}
-                  </div>
+                  )}
                 </article>
               );
             })}
           </div>
-        </section>
 
-        {/* Comparison Matrix Table */}
-        <section className="mb-10">
-          <div className="mb-4">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
-              All Branches at a Glance
+          {/* Section: All Branches at a Glance Matrix */}
+          <section className="mt-9 sm:mt-12">
+            <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[24px] sm:text-[28px] uppercase tracking-[0.01em] m-0 mb-1 text-[#0a0a0a]">
+              All branches at a glance
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Tap any branch header to jump to that branch&apos;s details.
+            <p className="sub text-[#5c5c5c] m-0 mb-4 text-sm sm:text-[14.5px]">
+              Tap a branch name to jump to its details.
             </p>
-          </div>
 
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="matrix-wrap overflow-x-auto border border-[#e2e2e2] rounded-[14px] bg-white mt-1.5 shadow-2xs">
+              <table className="w-full border-collapse table-fixed text-[13px] sm:text-[14.5px]">
+                <colgroup>
+                  <col className="w-[30%] sm:w-[26%]" />
+                  {branches.map((b) => (
+                    <col key={b.id} className={b.id === currentId ? 'bg-[#e8effe]' : ''} />
+                  ))}
+                </colgroup>
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="py-4 px-4 sm:px-6 text-xs sm:text-sm font-extrabold uppercase text-slate-700 w-1/3">
-                      Payment Method
+                  <tr>
+                    <th className="p-2.5 sm:p-3 text-left pl-3 sm:pl-4 font-semibold border-b border-[#e2e2e2] sticky left-0 bg-white z-10 text-[#0a0a0a]">
+                      Method
                     </th>
-                    {TECH_DENTAL_BRANCHES.map((b) => {
-                      const isSel = b.id === selectedBranchId;
+                    {branches.map((b) => {
+                      const isSelected = b.id === currentId;
                       return (
                         <th
                           key={b.id}
-                          className={`py-3.5 px-3 sm:px-4 text-center transition-colors ${
-                            isSel ? "bg-rose-50/90" : ""
+                          className={`p-2 sm:p-3 text-center border-b border-[#e2e2e2] ${
+                            isSelected ? 'bg-[#e8effe]' : ''
                           }`}
                         >
                           <button
                             type="button"
-                            onClick={() => handleSelectBranch(b.id, true)}
-                            className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-extrabold transition cursor-pointer ${
-                              isSel
-                                ? "bg-rose-800 text-white shadow-xs"
-                                : "text-slate-700 hover:bg-slate-200/70"
+                            onClick={() => selectBranch(b.id, true)}
+                            className={`inline-block text-xs sm:text-sm font-bold leading-tight px-2.5 sm:px-3 py-1.5 rounded-full cursor-pointer transition-all ${
+                              isSelected
+                                ? 'bg-[#1d4ed8] text-white shadow-xs'
+                                : 'text-[#0a0a0a] hover:bg-[#f2f2f2]'
                             }`}
                           >
                             {b.name}
@@ -572,49 +432,40 @@ export default function HowToPayPublicShow({
                     })}
                   </tr>
                 </thead>
-
-                <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
-                  {PAYMENT_METHODS.map((m) => (
-                    <tr key={m.id} className="hover:bg-slate-50/60 transition">
-                      <td className="py-3.5 px-4 sm:px-6 font-bold text-slate-800">
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className="w-3 h-3 rounded-full shrink-0"
-                            style={{ backgroundColor: m.color }}
+                <tbody>
+                  {METHODS.map((m) => (
+                    <tr key={m.id} className="hover:bg-slate-50/50">
+                      <td className="p-2.5 sm:p-3 text-left pl-3 sm:pl-4 font-semibold border-b border-[#e2e2e2] sticky left-0 bg-white z-10 text-[#0a0a0a]">
+                        <span className="mk inline-flex items-center gap-2">
+                          <i
+                            className="w-2.5 h-2.5 rounded-[3px] shrink-0"
+                            style={{ background: m.color }}
                           />
-                          <div>
-                            <span className="block font-bold">{m.name}</span>
-                            <span className="text-[11px] text-slate-400 font-normal">
-                              {m.bn}
-                            </span>
-                          </div>
-                        </div>
+                          <span>{m.name}</span>
+                        </span>
                       </td>
-
-                      {TECH_DENTAL_BRANCHES.map((b) => {
-                        const hasIt = Boolean(b.has[m.id]);
-                        const isSel = b.id === selectedBranchId;
+                      {branches.map((b) => {
+                        const isSelected = b.id === currentId;
+                        const hasMethod = Boolean(b.has[m.id]);
                         return (
                           <td
                             key={b.id}
-                            className={`py-3.5 px-3 sm:px-4 text-center ${
-                              isSel ? "bg-rose-50/50" : ""
+                            className={`p-2 sm:p-3 text-center border-b border-[#e2e2e2] ${
+                              isSelected ? 'bg-[#e8effe]' : ''
                             }`}
                           >
-                            {hasIt ? (
+                            {hasMethod ? (
                               <span
-                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs shadow-2xs"
-                                title="Available"
+                                className="dot inline-grid place-items-center w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#0a8f5b] text-white text-xs sm:text-[15px] font-extrabold mx-auto select-none"
+                                aria-label="Available"
                               >
                                 ✓
                               </span>
                             ) : (
                               <span
-                                className="inline-flex items-center justify-center w-7 h-7 rounded-full border border-dashed border-slate-300 text-slate-400 text-xs"
-                                title="Not available at this branch"
-                              >
-                                —
-                              </span>
+                                className="dot no inline-block w-6 h-6 sm:w-7 sm:h-7 rounded-full border-[1.5px] border-dashed border-[#e2e2e2] mx-auto"
+                                aria-label="Not available"
+                              />
                             )}
                           </td>
                         );
@@ -622,23 +473,22 @@ export default function HowToPayPublicShow({
                     </tr>
                   ))}
                 </tbody>
-
                 <tfoot>
-                  <tr className="bg-slate-100/80 font-bold border-t border-slate-200 text-xs sm:text-sm text-slate-700">
-                    <td className="py-3.5 px-4 sm:px-6 uppercase tracking-wider text-slate-600 font-extrabold">
-                      Total Available
+                  <tr className="bg-[#f2f2f2] font-bold text-xs sm:text-[13.5px] text-[#5c5c5c]">
+                    <td className="p-2.5 sm:p-3 text-left pl-3 sm:pl-4 border-t border-[#e2e2e2] sticky left-0 bg-[#f2f2f2] z-10">
+                      Methods
                     </td>
-                    {TECH_DENTAL_BRANCHES.map((b) => {
-                      const count = PAYMENT_METHODS.filter((m) => b.has[m.id]).length;
-                      const isSel = b.id === selectedBranchId;
+                    {branches.map((b) => {
+                      const isSelected = b.id === currentId;
+                      const count = METHODS.filter((m) => b.has[m.id]).length;
                       return (
                         <td
                           key={b.id}
-                          className={`py-3.5 px-3 sm:px-4 text-center font-extrabold ${
-                            isSel ? "bg-rose-100/70 text-rose-900" : "text-slate-800"
+                          className={`p-2 sm:p-3 text-center border-t border-[#e2e2e2] ${
+                            isSelected ? 'bg-[#e8effe] text-[#1d4ed8]' : ''
                           }`}
                         >
-                          {count} of {PAYMENT_METHODS.length}
+                          {count} of {METHODS.length}
                         </td>
                       );
                     })}
@@ -646,28 +496,15 @@ export default function HowToPayPublicShow({
                 </tfoot>
               </table>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Good to Know / Important Advice Callout */}
-        <section className="bg-white rounded-2xl border-l-4 border-rose-600 border-y border-r border-slate-200 p-5 sm:p-6 shadow-xs flex items-start gap-4 mb-8">
-          <ShieldCheck className="w-6 h-6 text-rose-600 shrink-0 mt-0.5" />
-          <div className="text-slate-600 text-xs sm:text-sm leading-relaxed space-y-1.5">
-            <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">
-              Good to Know (পেমেন্ট সংক্রান্ত জরুরি নির্দেশিকা):
-            </h4>
-            <p>
-              Always collect your official computer-generated billing receipt or transaction ID after payment. For mobile wallet transactions (bKash/Nagad/Rocket), please show the successful confirmation SMS or app screen to our billing desk before leaving.
-            </p>
-            <p className="text-slate-500">
-              পেমেন্ট সম্পন্ন করার পর অবশ্যই ক্যাশ মেমো বা ট্রানজেকশন স্লিপ সংগ্রহ করুন। কোনো তথ্যের প্রয়োজন হলে আমাদের ফ্রন্ট ডেস্কে অথবা সেন্ট্রাল হটলাইনে যোগাযোগ করুন:{" "}
-              <a href="tel:09638000505" className="font-bold text-rose-700 underline">
-                09638-000505
-              </a>
-              .
-            </p>
+          {/* Good to know footer card */}
+          <div className="foot my-8 sm:my-10 p-4 sm:p-5 border-l-4 border-[#1d4ed8] bg-white rounded-r-xl text-[#5c5c5c] text-sm sm:text-[14.5px] shadow-2xs leading-relaxed">
+            <b className="text-[#0a0a0a]">Good to know:</b> Always keep your payment receipt or transaction ID. For
+            mobile payments, show the success message at the counter before you leave. Need help? Ask the front desk
+            at any branch.
           </div>
-        </section>
+        </div>
       </main>
 
       {/* Global Footer */}

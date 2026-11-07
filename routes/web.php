@@ -173,7 +173,7 @@ Route::get('/feedback', fn() => redirect('/complaint-box', 301));
 Route::get('/how-to-pay', [PaymentMethodsController::class, 'publicShow'])->name('how-to-pay.public');
 Route::get('/payment-methods', fn() => redirect('/how-to-pay', 301));
 Route::get('/payment', fn() => redirect('/how-to-pay', 301));
-Route::get('/pay', fn() => redirect('/how-to-pay', 301));
+Route::get('/howtopay', fn() => redirect('/how-to-pay', 301));
 
 // ---------- Appointment (public) ----------
 Route::get('/appointment', [AppointmentController::class, 'publicBook'])->name('appointment.public');

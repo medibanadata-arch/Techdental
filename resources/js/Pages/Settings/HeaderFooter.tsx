@@ -128,8 +128,8 @@ export default function HeaderFooterAdmin({
       { label: 'Services & Pricing', url: '/services' },
       { label: 'Specialist Doctors', url: '/doctors' },
       { label: 'Treatment Price List', url: '/price-list' },
-      { label: 'How to Pay', url: '/how-to-pay' },
       { label: 'Medicines & Care', url: '/medicines' },
+      { label: 'How to Pay', url: '/how-to-pay' },
       { label: 'About Tech Dental', url: '/about' },
       { label: 'Book Appointment', url: '/appointment' },
     ];
