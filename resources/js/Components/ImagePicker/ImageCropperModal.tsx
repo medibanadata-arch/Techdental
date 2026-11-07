@@ -13,7 +13,7 @@ import {
     Image as ImageIcon
 } from 'lucide-react';
 
-export type AspectRatioPreset = 'free' | '16:9' | '1:1' | '4:3' | '3:2';
+export type AspectRatioPreset = 'free' | '16:9' | '1:1' | '4:3' | '3:2' | '3:4';
 
 interface Props {
     isOpen: boolean;
@@ -83,6 +83,7 @@ export default function ImageCropperModal({
             case '1:1': return 1;
             case '4:3': return 4 / 3;
             case '3:2': return 3 / 2;
+            case '3:4': return 3 / 4;
             case 'free':
             default:
                 return null;
@@ -545,9 +546,10 @@ export default function ImageCropperModal({
                             <div className="grid grid-cols-3 gap-2">
                                 {(
                                     [
-                                        { key: '16:9', label: '16:9 Cover' },
+                                        { key: '3:4', label: '3:4 Doctor' },
                                         { key: '1:1', label: '1:1 Square' },
                                         { key: '4:3', label: '4:3 Standard' },
+                                        { key: '16:9', label: '16:9 Cover' },
                                         { key: '3:2', label: '3:2 Photo' },
                                         { key: 'free', label: 'Freeform' },
                                     ] as { key: AspectRatioPreset; label: string }[]

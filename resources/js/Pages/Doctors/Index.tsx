@@ -20,10 +20,18 @@ import {
     Clock,
     FileText,
     Globe,
-    Sparkles
+    Sparkles,
+    Crop,
+    FolderOpen,
+    UploadCloud,
+    Eye,
+    Info,
+    Check
 } from 'lucide-react';
 import SeoMetaBox from '@/Components/SeoMetaBox';
 import RichContentEditor from '@/Components/RichContentEditor';
+import ImageCropperModal from '@/Components/ImagePicker/ImageCropperModal';
+import MediaLibraryModal from '@/Components/ImagePicker/MediaLibraryModal';
 import { PageProps } from '@inertiajs/core';
 
 interface Doctor {
@@ -221,6 +229,13 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
         phone: '01400786162',
         img: '',
     });
+
+    // Image upload, crop, preview & media library states
+    const [previewMode, setPreviewMode] = useState<'single' | 'category' | 'avatar'>('single');
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+    const [cropFile, setCropFile] = useState<File | null>(null);
+    const [cropTarget, setCropTarget] = useState<'edit' | 'new'>('edit');
 
     const handleSaveProfile = (e: React.FormEvent) => {
         e.preventDefault();
@@ -428,22 +443,203 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                         <form onSubmit={handleSaveProfile} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Column 1: Image & Stats */}
                             <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-2xs space-y-4">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Profile Photo &amp; Stats</h3>
-                                <div className="text-center">
-                                    <div className="w-40 h-52 mx-auto rounded-2xl overflow-hidden border border-gray-200 shadow-sm mb-3 bg-gray-50">
-                                        <img
-                                            src={editForm.img || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400'}
-                                            alt="Doctor"
-                                            className="w-full h-full object-cover"
-                                        />
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
+                                        <Sparkles size={13} className="text-[#800038]" /> Profile Photo &amp; Stats
+                                    </h3>
+                                    <span className="text-[10px] font-bold text-[#800038] bg-rose-50 px-2 py-0.5 rounded border border-rose-100 uppercase tracking-wider">
+                                        3:4 Portrait
+                                    </span>
+                                </div>
+
+                                {/* Live Preview Switcher Tabs */}
+                                <div className="bg-gray-100 p-1 rounded-xl flex items-center gap-1 text-[11px] font-bold">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreviewMode('single')}
+                                        className={`flex-1 py-1.5 px-1.5 rounded-lg transition text-center cursor-pointer ${
+                                            previewMode === 'single'
+                                                ? 'bg-white text-gray-900 shadow-xs'
+                                                : 'text-gray-500 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        Single (3:4)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreviewMode('category')}
+                                        className={`flex-1 py-1.5 px-1.5 rounded-lg transition text-center cursor-pointer ${
+                                            previewMode === 'category'
+                                                ? 'bg-white text-gray-900 shadow-xs'
+                                                : 'text-gray-500 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        Category Card
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreviewMode('avatar')}
+                                        className={`flex-1 py-1.5 px-1.5 rounded-lg transition text-center cursor-pointer ${
+                                            previewMode === 'avatar'
+                                                ? 'bg-white text-gray-900 shadow-xs'
+                                                : 'text-gray-500 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        Home Avatar
+                                    </button>
+                                </div>
+
+                                {/* Preview Card Display */}
+                                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 flex flex-col items-center justify-center min-h-[260px] relative">
+                                    {previewMode === 'single' && (
+                                        <div className="w-full flex flex-col items-center">
+                                            <div className="w-44 h-58 rounded-2xl overflow-hidden border-2 border-slate-200/90 shadow-md bg-white relative group">
+                                                <img
+                                                    src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
+                                                    alt="Doctor Single Profile Preview"
+                                                    className="w-full h-full object-cover object-top"
+                                                    onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
+                                                />
+                                                <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-xs text-[#059669] text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1 border border-emerald-100">
+                                                    <CheckCircle2 size={10} /> Verified
+                                                </div>
+                                            </div>
+                                            <p className="text-[11px] font-semibold text-gray-600 mt-2 text-center">
+                                                Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.id}</code>)
+                                            </p>
+                                            <span className="text-[10px] text-gray-400">Desktop aspect ratio 3:4 (w: 288px, h: 384px)</span>
+                                        </div>
+                                    )}
+
+                                    {previewMode === 'category' && (
+                                        <div className="w-full">
+                                            <div className="w-full max-w-[240px] mx-auto bg-white rounded-xl p-3 shadow-sm border-2 border-[#a21caf] text-center">
+                                                <div className="w-full h-40 rounded-lg overflow-hidden bg-slate-100 relative mb-2">
+                                                    <img
+                                                        src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
+                                                        alt="Doctor Category Card Preview"
+                                                        className="w-full h-full object-cover object-top"
+                                                        onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
+                                                    />
+                                                    <span className="absolute top-1.5 right-1.5 bg-white/90 text-pink-700 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
+                                                        <MapPin size={8} className="inline mr-0.5" /> {selectedDoctor.branch || 'Mirpur'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs font-bold text-gray-900 truncate">{editForm.name || 'Doctor Name'}</p>
+                                                <p className="text-[10px] text-gray-500 truncate">{editForm.designation || 'Dental Surgeon'}</p>
+                                            </div>
+                                            <p className="text-[11px] font-semibold text-gray-600 mt-2 text-center">
+                                                Category Page (<code className="text-[#800038] font-mono">/doctors</code>) Card
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {previewMode === 'avatar' && (
+                                        <div className="w-full flex flex-col items-center">
+                                            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-pink-200 shadow-md bg-white my-3">
+                                                <img
+                                                    src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
+                                                    alt="Doctor Avatar Preview"
+                                                    className="w-full h-full object-cover object-top"
+                                                    onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
+                                                />
+                                            </div>
+                                            <p className="text-xs font-bold text-gray-900">{editForm.name || 'Doctor Name'}</p>
+                                            <p className="text-[11px] font-semibold text-gray-600 mt-1 text-center">
+                                                Homepage Carousel Avatar (64×64 circle)
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Actions: Upload & Crop, Media Library, Crop Existing */}
+                                <div className="space-y-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <label className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-[#800038] hover:bg-[#990044] rounded-xl shadow-xs transition cursor-pointer text-center">
+                                            <UploadCloud size={14} className="shrink-0" />
+                                            <span>Upload &amp; Crop</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        setCropTarget('edit');
+                                                        setCropFile(e.target.files[0]);
+                                                        setIsCropperOpen(true);
+                                                        e.target.value = '';
+                                                    }
+                                                }}
+                                                className="hidden"
+                                            />
+                                        </label>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setCropTarget('edit');
+                                                setIsLibraryOpen(true);
+                                            }}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition cursor-pointer shadow-2xs"
+                                        >
+                                            <FolderOpen size={14} className="text-[#800038] shrink-0" />
+                                            <span>Media Library</span>
+                                        </button>
                                     </div>
-                                    <input
-                                        type="text"
-                                        value={editForm.img}
-                                        onChange={(e) => setEditForm({ ...editForm, img: e.target.value })}
-                                        placeholder="Photo Image URL"
-                                        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl mb-2"
-                                    />
+
+                                    {editForm.img && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setCropTarget('edit');
+                                                setCropFile(null);
+                                                setIsCropperOpen(true);
+                                            }}
+                                            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#800038] bg-rose-50 hover:bg-rose-100/70 border border-rose-200 rounded-xl transition cursor-pointer"
+                                        >
+                                            <Crop size={13} />
+                                            <span>Crop / Adjust Current Image (3:4)</span>
+                                        </button>
+                                    )}
+
+                                    {/* Direct URL input with clear */}
+                                    <div className="relative flex items-center">
+                                        <input
+                                            type="text"
+                                            value={editForm.img}
+                                            onChange={(e) => setEditForm({ ...editForm, img: e.target.value })}
+                                            placeholder="Paste Image URL or choose above"
+                                            className="w-full pl-3 pr-8 py-2 text-xs border border-gray-200 rounded-xl font-mono text-[11px] text-gray-700"
+                                        />
+                                        {editForm.img && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditForm({ ...editForm, img: '' })}
+                                                className="absolute right-2 p-1 text-gray-400 hover:text-red-500 rounded-lg transition cursor-pointer"
+                                                title="Clear Image"
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Size & Framing Recommendation Guide Box */}
+                                <div className="p-3 bg-amber-50/70 border border-amber-200/70 rounded-xl text-left space-y-1.5">
+                                    <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs">
+                                        <Info size={13} className="text-amber-700 shrink-0" />
+                                        <span>Recommended Image Specs</span>
+                                    </div>
+                                    <div className="text-[11px] text-amber-950 space-y-1 leading-relaxed">
+                                        <p>
+                                            • <strong>Best Size:</strong> 600 × 800 px (Aspect Ratio <strong>3:4 Portrait</strong>).
+                                        </p>
+                                        <p>
+                                            • <strong>Framing Tip:</strong> ডাক্তারের মাথা ও মুখ ছবির ওপরের ৭০% অংশের মাঝ বরাবর রাখুন (Centered Head &amp; Shoulders)।
+                                        </p>
+                                        <p className="text-[10px] text-amber-800">
+                                            এতে সিঙ্গেল প্রোফাইল (3:4), ডক্টর ক্যাটাগরি কার্ড এবং হোমপেজ গোল অবতারে কোনো অংশ কাটবে না।
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div>
@@ -1181,14 +1377,44 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block font-bold text-gray-700 mb-1">Photo Image URL</label>
-                                    <input
-                                        type="text"
-                                        value={newDoctorForm.img}
-                                        onChange={(e) => setNewDoctorForm({ ...newDoctorForm, img: e.target.value })}
-                                        placeholder="https://..."
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-xl"
-                                    />
+                                    <label className="block font-bold text-gray-700 mb-1">Doctor Photo (3:4 Portrait)</label>
+                                    <div className="flex items-center gap-1.5">
+                                        <input
+                                            type="text"
+                                            value={newDoctorForm.img}
+                                            onChange={(e) => setNewDoctorForm({ ...newDoctorForm, img: e.target.value })}
+                                            placeholder="https://... or upload"
+                                            className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs font-mono"
+                                        />
+                                        <label className="inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-white bg-[#800038] hover:bg-[#990044] rounded-xl transition cursor-pointer shrink-0">
+                                            <UploadCloud size={13} />
+                                            <span>Upload</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        setCropTarget('new');
+                                                        setCropFile(e.target.files[0]);
+                                                        setIsCropperOpen(true);
+                                                        e.target.value = '';
+                                                    }
+                                                }}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setCropTarget('new');
+                                                setIsLibraryOpen(true);
+                                            }}
+                                            className="p-2 text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 hover:bg-gray-100 rounded-xl transition cursor-pointer shrink-0"
+                                            title="Media Library"
+                                        >
+                                            <FolderOpen size={14} className="text-[#800038]" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1222,6 +1448,45 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                     </div>
                 </div>
             )}
+
+            {/* Image Cropper Modal for Doctor Photo */}
+            <ImageCropperModal
+                isOpen={isCropperOpen}
+                onClose={() => {
+                    setIsCropperOpen(false);
+                    setCropFile(null);
+                }}
+                imageFile={cropFile}
+                imageSrc={cropFile ? undefined : (cropTarget === 'edit' ? editForm.img : newDoctorForm.img)}
+                defaultAspect="3:4"
+                title="Crop & Upload Doctor Photo (3:4 Portrait)"
+                onCropComplete={(url) => {
+                    if (cropTarget === 'edit') {
+                        setEditForm((prev) => ({ ...prev, img: url }));
+                    } else {
+                        setNewDoctorForm((prev) => ({ ...prev, img: url }));
+                    }
+                    setIsCropperOpen(false);
+                    setCropFile(null);
+                }}
+            />
+
+            {/* Media Library Modal for Doctor Photo */}
+            <MediaLibraryModal
+                isOpen={isLibraryOpen}
+                onClose={() => setIsLibraryOpen(false)}
+                defaultAspect="3:4"
+                title="Select Doctor Photo from Media Library"
+                currentImage={cropTarget === 'edit' ? editForm.img : newDoctorForm.img}
+                onSelectImage={(url) => {
+                    if (cropTarget === 'edit') {
+                        setEditForm((prev) => ({ ...prev, img: url }));
+                    } else {
+                        setNewDoctorForm((prev) => ({ ...prev, img: url }));
+                    }
+                    setIsLibraryOpen(false);
+                }}
+            />
         </AdminLayout>
     );
 }
