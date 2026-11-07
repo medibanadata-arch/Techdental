@@ -723,48 +723,48 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               display: none;
             }
             .hero-stage {
-              height: 480px;
-              border-radius: 28px;
+              height: 340px;
+              border-radius: 24px;
             }
             .hero-chips-top {
-              left: 16px;
-              right: 16px;
-              top: 16px;
+              left: 14px;
+              right: 14px;
+              top: 14px;
             }
             .hero-chip {
-              height: 34px;
-              padding: 0 12px;
-              font-size: 12.5px;
+              height: 32px;
+              padding: 0 10px;
+              font-size: 11.5px;
             }
             .hero-chip-views {
               display: none;
             }
             .hero-stage-body {
-              left: 20px;
-              right: 20px;
-              bottom: 20px;
+              left: 16px;
+              right: 16px;
+              bottom: 14px;
               display: block;
             }
             .hero-rating {
-              height: 32px;
-              padding: 0 12px;
-              font-size: 12.5px;
+              height: 28px;
+              padding: 0 10px;
+              font-size: 11.5px;
             }
             .hero-stage h1 {
-              font-size: 32px;
-              margin: 8px 0 0;
+              font-size: 26px;
+              margin: 6px 0 0;
               line-height: 1.15;
             }
             .hero-stage-ctrl {
-              margin-top: 12px;
+              margin-top: 8px;
               justify-content: space-between;
             }
             .hero-counter {
               display: none;
             }
             .hero-round {
-              width: 44px;
-              height: 44px;
+              width: 38px;
+              height: 38px;
             }
             .hero-dots {
               display: flex;
