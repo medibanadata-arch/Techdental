@@ -411,7 +411,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                             >
                                 {data.map((doc) => (
                                     <option key={doc.id} value={doc.id}>
-                                        {doc.name} — ({doc.branch || 'Mirpur'})
+                                        {doc.name}
                                     </option>
                                 ))}
                             </select>
