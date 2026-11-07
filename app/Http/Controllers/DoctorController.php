@@ -73,6 +73,17 @@ class DoctorController extends Controller
     {
         $validated = $this->validateDoctor($request);
 
+        if (!empty($validated['branch'])) {
+            $b = strtolower($validated['branch']);
+            $clean = 'Mirpur';
+            if (str_contains($b, 'uttara')) $clean = 'Uttara';
+            elseif (str_contains($b, 'badda')) $clean = 'Badda';
+            elseif (str_contains($b, 'jatra')) $clean = 'Jatrabari';
+            elseif (str_contains($b, 'mirpur')) $clean = 'Mirpur';
+            $validated['branch'] = $clean;
+            $validated['branch_location'] = $clean;
+        }
+
         Doctor::create($validated);
         return redirect()->route('doctors.index')->with('success', 'Doctor created successfully.');
     }
@@ -98,6 +109,17 @@ class DoctorController extends Controller
         }
         if ($request->has('verified')) {
             $validated['verified'] = $request->boolean('verified');
+        }
+
+        if (!empty($validated['branch'])) {
+            $b = strtolower($validated['branch']);
+            $clean = 'Mirpur';
+            if (str_contains($b, 'uttara')) $clean = 'Uttara';
+            elseif (str_contains($b, 'badda')) $clean = 'Badda';
+            elseif (str_contains($b, 'jatra')) $clean = 'Jatrabari';
+            elseif (str_contains($b, 'mirpur')) $clean = 'Mirpur';
+            $validated['branch'] = $clean;
+            $validated['branch_location'] = $clean;
         }
 
         $doctor->update($validated);

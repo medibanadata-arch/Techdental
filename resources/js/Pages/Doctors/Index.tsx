@@ -108,6 +108,15 @@ interface Props extends PageProps {
     settings?: DoctorSettingData;
 }
 
+export const normalizeBranch = (val?: string) => {
+    if (!val) return 'Mirpur';
+    const s = val.toLowerCase();
+    if (s.includes('uttara')) return 'Uttara';
+    if (s.includes('badda')) return 'Badda';
+    if (s.includes('jatra')) return 'Jatrabari';
+    return 'Mirpur';
+};
+
 export default function DoctorsIndex({ data = [], settings }: Props) {
     const [activeTab, setActiveTab] = useState<'profiles' | 'categories' | 'ranking' | 'page_seo'>('profiles');
     const [selectedDoctorId, setSelectedDoctorId] = useState<number>(data[0]?.id || 0);
@@ -159,7 +168,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
         specialty_banner: selectedDoctor?.specialty_banner || '',
         deg: selectedDoctor?.deg || '',
         spec: selectedDoctor?.spec || '',
-        branch: selectedDoctor?.branch || 'Tech Dental, Mirpur Branch',
+        branch: normalizeBranch(selectedDoctor?.branch || selectedDoctor?.branch_location),
         bmdc: selectedDoctor?.bmdc || '',
         visiting_time: selectedDoctor?.visiting_time || '4:00 PM – 9:00 PM (Sat–Thu)',
         phone: selectedDoctor?.phone || '01400786162',
@@ -192,7 +201,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                 specialty_banner: selectedDoctor.specialty_banner || '',
                 deg: selectedDoctor.deg || '',
                 spec: selectedDoctor.spec || '',
-                branch: selectedDoctor.branch || 'Tech Dental, Mirpur Branch',
+                branch: normalizeBranch(selectedDoctor.branch || selectedDoctor.branch_location),
                 bmdc: selectedDoctor.bmdc || '',
                 visiting_time: selectedDoctor.visiting_time || '4:00 PM – 9:00 PM (Sat–Thu)',
                 phone: selectedDoctor.phone || '01400786162',
@@ -737,14 +746,22 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                     <div>
                                         <label className="block text-xs font-bold text-gray-700 mb-1">Assigned Clinic Branch</label>
                                         <select
-                                            value={editForm.branch}
-                                            onChange={(e) => setEditForm({ ...editForm, branch: e.target.value })}
+                                            value={normalizeBranch(editForm.branch)}
+                                            onChange={(e) => {
+                                                const b = e.target.value;
+                                                setEditForm({
+                                                    ...editForm,
+                                                    branch: b,
+                                                    branch_location: b,
+                                                    chamber_title: `Tech Dental (${b} Branch)`,
+                                                });
+                                            }}
                                             className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-medium"
                                         >
-                                            <option value="Tech Dental, Mirpur Branch">Tech Dental (Mirpur Branch)</option>
-                                            <option value="Tech Dental, Uttara Branch">Tech Dental (Uttara Branch)</option>
-                                            <option value="Tech Dental, Badda Branch">Tech Dental (Badda Branch)</option>
-                                            <option value="Tech Dental, Jatrabari Branch">Tech Dental (Jatrabari Branch)</option>
+                                            <option value="Mirpur">Tech Dental (Mirpur Branch)</option>
+                                            <option value="Uttara">Tech Dental (Uttara Branch)</option>
+                                            <option value="Badda">Tech Dental (Badda Branch)</option>
+                                            <option value="Jatrabari">Tech Dental (Jatrabari Branch)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1091,8 +1108,10 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                                 {doc.bmdc || 'Verified BMDC'}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4 font-medium text-gray-700">
-                                            {doc.branch || 'Mirpur Branch'}
+                                        <td className="py-3 px-4 font-semibold text-gray-800">
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-pink-50 text-[#800038] border border-pink-100">
+                                                <MapPin size={10} /> {normalizeBranch(doc.branch || doc.branch_location)}
+                                            </span>
                                         </td>
                                         <td className="py-3 px-4 text-gray-500">
                                             {doc.visiting_time || '4 PM - 9 PM'}
@@ -1370,10 +1389,10 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                         onChange={(e) => setNewDoctorForm({ ...newDoctorForm, branch: e.target.value })}
                                         className="w-full px-3 py-2 border border-gray-200 rounded-xl"
                                     >
-                                        <option value="Tech Dental (Mirpur Branch)">Tech Dental (Mirpur Branch)</option>
-                                        <option value="Tech Dental (Uttara Branch)">Tech Dental (Uttara Branch)</option>
-                                        <option value="Tech Dental (Badda Branch)">Tech Dental (Badda Branch)</option>
-                                        <option value="Tech Dental (Jatrabari Branch)">Tech Dental (Jatrabari Branch)</option>
+                                        <option value="Mirpur">Tech Dental (Mirpur Branch)</option>
+                                        <option value="Uttara">Tech Dental (Uttara Branch)</option>
+                                        <option value="Badda">Tech Dental (Badda Branch)</option>
+                                        <option value="Jatrabari">Tech Dental (Jatrabari Branch)</option>
                                     </select>
                                 </div>
                                 <div>
