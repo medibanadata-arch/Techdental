@@ -555,7 +555,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                             ) : (
                                                 /* Mobile Image View (clean preview without phone frame) */
                                                 <div className="w-full flex flex-col items-center animate-fade-in">
-                                                    <div className="w-48 h-60 rounded-2xl overflow-hidden border-2 border-slate-200/90 shadow-md bg-white relative group">
+                                                    <div className="w-56 h-42 rounded-2xl overflow-hidden border-2 border-slate-200/90 shadow-md bg-white relative group">
                                                         <img
                                                             src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
                                                             alt="Doctor Mobile Preview"
@@ -570,7 +570,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                                     <p className="text-[11px] font-semibold text-gray-600 mt-3 text-center">
                                                         Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.id}</code>)
                                                     </p>
-                                                    <span className="text-[10px] text-gray-400">Mobile portrait card (object center 20%)</span>
+                                                    <span className="text-[10px] text-gray-400">Mobile responsive 4:3 card (object center 20%)</span>
                                                 </div>
                                             )}
                                         </div>

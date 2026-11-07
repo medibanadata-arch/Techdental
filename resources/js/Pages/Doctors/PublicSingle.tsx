@@ -225,8 +225,8 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
         {/* Hero Section */}
         <section className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:items-start mb-6">
           {/* Profile Picture with Verified Badge */}
-          <div className="w-full max-w-[260px] sm:max-w-xs md:max-w-none md:w-72 mx-auto md:mx-0 flex-shrink-0 relative">
-            <div className="w-full aspect-[4/5] sm:aspect-[3/4] md:aspect-[3/4] rounded-2xl overflow-hidden shadow-sm border border-slate-100 relative bg-slate-50">
+          <div className="w-full md:w-72 flex-shrink-0 relative">
+            <div className="w-full aspect-[4/3] md:aspect-[3/4] rounded-2xl overflow-hidden shadow-sm border border-slate-100 relative bg-slate-50">
               <img
                 src={item.img}
                 alt={item.name}
