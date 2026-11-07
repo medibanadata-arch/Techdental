@@ -350,6 +350,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             border-radius: 32px;
             overflow: hidden;
             background: #EBC3D0;
+            cursor: pointer;
           }
           .hero-stage-bg {
             position: absolute;
@@ -357,24 +358,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             background-size: cover;
             background-position: center;
             transition: background-image 0.25s ease;
-            cursor: pointer;
-          }
-          .hero-dots-pattern {
-            position: absolute;
-            inset: 0;
-            background-image: radial-gradient(rgba(255,255,255,.55) 1.2px, transparent 1.4px);
-            background-size: 22px 22px;
-            opacity: .7;
-            pointer-events: none;
-          }
-          .hero-shade {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 72%;
-            background: linear-gradient(to top, rgba(38,10,22,.84), rgba(38,10,22,.38) 55%, rgba(38,10,22,0));
-            pointer-events: none;
           }
           .hero-chips-top {
             position: absolute;
@@ -386,6 +369,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             align-items: center;
             gap: 12px;
             z-index: 2;
+            pointer-events: auto;
           }
           .hero-chip {
             height: 36px;
@@ -430,10 +414,12 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             flex-wrap: wrap;
             color: #fff;
             z-index: 2;
+            pointer-events: none;
           }
           .hero-stage-info {
             min-width: 0;
             flex: 1 1 360px;
+            pointer-events: none;
           }
           .hero-rating {
             display: inline-flex;
@@ -442,12 +428,13 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             height: 34px;
             padding: 0 14px;
             border-radius: 999px;
-            background: rgba(255,255,255,.16);
-            backdrop-filter: blur(6px);
+            background: rgba(16,12,14,.68);
+            backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,.3);
             font-size: 13px;
             font-weight: 600;
             color: #fff;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
           }
           .hero-stage h1 {
             margin: 14px 0 6px;
@@ -456,17 +443,13 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             font-weight: 800;
             letter-spacing: -.025em;
             color: #fff;
-          }
-          .hero-stage-addr {
-            font-size: 15px;
-            font-weight: 500;
-            opacity: .9;
-            color: #fff;
+            text-shadow: 0 2px 14px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.95);
           }
           .hero-stage-ctrl {
             display: flex;
             align-items: center;
             gap: 12px;
+            pointer-events: auto;
           }
           .hero-counter {
             font-size: 14px;
@@ -581,13 +564,17 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             color: currentColor;
           }
           .hero-act-book {
-            background: #861A3D;
-            color: #fff;
+            background: #861A3D !important;
+            color: #fff !important;
             font-weight: 800;
             box-shadow: 0 10px 22px -10px #861A3D;
           }
           .hero-act-book svg {
-            color: #fff;
+            color: #fff !important;
+            stroke: #fff !important;
+          }
+          .hero-act-book span {
+            color: #fff !important;
           }
 
           /* Branch Info Section */
@@ -844,6 +831,17 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               font-size: 16px;
               border: 0;
               border-radius: 20px;
+              background: #861A3D !important;
+              color: #ffffff !important;
+              box-shadow: 0 10px 22px -10px #861A3D;
+            }
+            .hero-act-book span {
+              color: #ffffff !important;
+              font-weight: 800;
+            }
+            .hero-act-book svg {
+              color: #ffffff !important;
+              stroke: #ffffff !important;
             }
             .branch-info-sec {
               margin-top: 22px;
@@ -907,9 +905,11 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
         {/* 1. HERO SLIDER */}
         <section className="hero-mirpur" aria-label="Branch photos">
           <div
-            className="hero-stage"
+            className="hero-stage group/stage"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
+            onClick={() => openLightbox(activeSlide)}
+            title="Click to view full photo"
           >
             <div
               className="hero-stage-bg"
@@ -917,14 +917,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                 backgroundImage: `url('${galleryImages[activeSlide]}')`,
                 backgroundColor: '#EBC3D0',
               }}
-              onClick={() => openLightbox(activeSlide)}
-              title="Click to view full photo"
             />
-            <div className="hero-dots-pattern" />
-            <div className="hero-shade" />
 
             {/* Top Status & Views Chips */}
-            <div className="hero-chips-top">
+            <div className="hero-chips-top" onClick={(e) => e.stopPropagation()}>
               <div className="hero-chip hero-chip-open">
                 <i />
                 <span>
@@ -950,11 +946,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                   <span>· {branch?.reviews_text || '2,500+ verified reviews'}</span>
                 </div>
                 <h1>{branchName}</h1>
-                <div className="hero-stage-addr">{addressMain}</div>
               </div>
 
               {/* Controls */}
-              <div className="hero-stage-ctrl">
+              <div className="hero-stage-ctrl" onClick={(e) => e.stopPropagation()}>
                 <div className="hero-counter">
                   <b>{activeSlide + 1}</b> <span>/ {galleryImages.length}</span>
                 </div>
@@ -964,7 +959,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                       key={k}
                       type="button"
                       className={`hero-dot ${k === activeSlide ? 'on' : ''}`}
-                      onClick={() => setActiveSlide(k)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveSlide(k);
+                      }}
                       aria-label={`Slide ${k + 1}`}
                     />
                   ))}
@@ -973,7 +971,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                   <button
                     type="button"
                     className="hero-round"
-                    onClick={prevSlide}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      prevSlide();
+                    }}
                     aria-label="Previous photo"
                   >
                     <ChevronLeft size={20} />
@@ -981,7 +982,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                   <button
                     type="button"
                     className="hero-round"
-                    onClick={nextSlide}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      nextSlide();
+                    }}
                     aria-label="Next photo"
                   >
                     <ChevronRight size={20} />
@@ -1032,9 +1036,12 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             </svg>
             <span>{whatsappLabel}</span>
           </a>
-          <Link href={bookingUrl} className="hero-act hero-act-book">
-            <CalendarCheck size={18} />
-            <span>{bookLabel} appointment</span>
+          <Link
+            href={bookingUrl}
+            className="hero-act hero-act-book !bg-[#861A3D] !text-white hover:opacity-95"
+          >
+            <CalendarCheck size={18} className="text-white shrink-0" />
+            <span className="text-white font-extrabold">{bookLabel} appointment</span>
           </Link>
         </nav>
 
@@ -1098,8 +1105,9 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           </div>
         </section>
 
-        {/* 4. Doctors, Services & More Details */}
+        {/* 4. Main Body Content (Doctors, Services, Reviews) */}
         <div className="w-full flex flex-col gap-6 mt-6">
+
           {/* Specialist Doctors Section */}
           <div className="bg-white rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 mb-4 relative group">
             <div className="flex justify-between items-center mb-4">
