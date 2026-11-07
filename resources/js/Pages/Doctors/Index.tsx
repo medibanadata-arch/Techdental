@@ -690,24 +690,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                     </div>
                                 </div>
 
-                                {/* Size & Framing Recommendation Guide Box */}
-                                <div className="p-3 bg-amber-50/70 border border-amber-200/70 rounded-xl text-left space-y-1.5">
-                                    <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs">
-                                        <Info size={13} className="text-amber-700 shrink-0" />
-                                        <span>Recommended Image Specs &amp; Framing</span>
-                                    </div>
-                                    <div className="text-[11px] text-amber-950 space-y-1 leading-relaxed">
-                                        <p>
-                                            • <strong>Best Size:</strong> 600 × 800 px (Aspect Ratio <strong>3:4 Portrait</strong>) অথবা 800 × 600 px (4:3)।
-                                        </p>
-                                        <p>
-                                            • <strong>Framing Tip:</strong> ডাক্তারের ছবি তোলার সময় বা ক্রপ করার সময় একদম ক্লোজ-আপ (শুধু মুখ) না রেখে কিছুটা দূর থেকে (মাথা, ঘাড়, দুই কাঁধ ও ডাক্তারের কোট/অ্যাপ্রন সহ) রাখুন — যেমন ড. আয়েশা সিদ্দিকার ছবিতে দেখা যায়।
-                                        </p>
-                                        <p className="text-[10px] text-amber-800">
-                                            এতে ক্যাটাগরি কার্ড, সিঙ্গেল প্রোফাইল এবং হোমপেজের গোল অবতারে ছবি নিখুঁত ও প্রফেশনাল দেখাবে।
-                                        </p>
-                                    </div>
-                                </div>
+
 
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 mb-1">BMDC Registration No.</label>
