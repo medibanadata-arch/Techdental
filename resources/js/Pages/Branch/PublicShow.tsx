@@ -408,9 +408,9 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           }
           .hero-stage-body {
             position: absolute;
-            left: 36px;
-            right: 36px;
-            bottom: 84px;
+            left: 32px;
+            right: 32px;
+            bottom: 28px;
             display: flex;
             align-items: flex-end;
             justify-content: space-between;
@@ -526,18 +526,56 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             box-shadow: 0 2px 6px rgba(0,0,0,0.08);
           }
 
-          /* Actions */
+          /* Actions (Web / Desktop Grid matching columns above) */
           .hero-actions {
             position: relative;
-            margin: -38px 40px 0;
+            margin: 16px 0 0;
+            padding: 0;
+            background: none;
+            box-shadow: none;
+            border-radius: 0;
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            z-index: 10;
+          }
+          .hero-actions-left {
+            flex: 3 1 0;
+            min-width: 0;
             background: #fff;
             border-radius: 28px;
-            padding: 12px;
-            box-shadow: 0 18px 40px -18px rgba(70,20,40,.28), 0 0 0 1px #EFE6E9;
+            padding: 10px;
+            box-shadow: 0 14px 34px -14px rgba(70,20,40,.18), 0 0 0 1px #EFE6E9;
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1.6fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            z-index: 10;
+          }
+          .hero-actions-right {
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 340px;
+            display: flex;
+          }
+          .hero-actions-right .hero-act-book {
+            width: 100%;
+            height: 100%;
+            min-height: 56px;
+            border-radius: 24px;
+            background: #861A3D !important;
+            color: #fff !important;
+            font-weight: 800;
+            font-size: 15.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 22px -10px #861A3D;
+            text-decoration: none;
+            transition: transform .15s, filter .15s;
+          }
+          .hero-actions-right .hero-act-book:hover {
+            transform: translateY(-1px);
+            filter: brightness(.97);
           }
           .hero-act {
             height: 56px;
@@ -799,13 +837,29 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               background: #fff;
             }
             .hero-actions {
+              display: flex;
+              flex-direction: column;
               margin: 14px 0 0;
               padding: 0;
               background: none;
               box-shadow: none;
               border-radius: 0;
+              gap: 10px;
+              width: 100%;
+            }
+            .hero-actions-left {
+              display: grid;
               grid-template-columns: repeat(3, 1fr);
               gap: 10px;
+              background: none;
+              padding: 0;
+              box-shadow: none;
+              border-radius: 0;
+            }
+            .hero-actions-right {
+              display: block;
+              max-width: none;
+              width: 100%;
             }
             .hero-act {
               height: 80px;
@@ -824,21 +878,22 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               background: #E6F5EC;
               border-color: #CFEBDB;
             }
+            .hero-actions-right .hero-act-book,
             .hero-act-book {
-              grid-column: 1 / -1;
-              height: 58px;
-              flex-direction: row;
-              gap: 10px;
-              font-size: 16px;
-              border: 0;
-              border-radius: 20px;
+              width: 100% !important;
+              height: 58px !important;
+              flex-direction: row !important;
+              gap: 10px !important;
+              font-size: 16px !important;
+              border: 0 !important;
+              border-radius: 20px !important;
               background: #861A3D !important;
               color: #ffffff !important;
-              box-shadow: 0 10px 22px -10px #861A3D;
+              box-shadow: 0 10px 22px -10px #861A3D !important;
             }
             .hero-act-book span {
               color: #ffffff !important;
-              font-weight: 800;
+              font-weight: 800 !important;
             }
             .hero-act-book svg {
               color: #ffffff !important;
@@ -1023,27 +1078,31 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
         {/* 2. ACTIONS BAR */}
         <nav className="hero-actions" aria-label="Quick actions">
-          <a href={`tel:${hotline}`} className="hero-act">
-            <Phone size={18} />
-            <span>{callLabel}</span>
-          </a>
-          <a href={mapUrl} target="_blank" rel="noreferrer" className="hero-act">
-            <Send size={18} />
-            <span>{directionsLabel}</span>
-          </a>
-          <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="hero-act hero-act-wa">
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.983zm11.455-7.394c-.068-.113-.25-.181-.524-.318-.274-.137-1.62-.8-1.871-.891-.25-.092-.432-.137-.614.137-.182.274-.707.891-.866 1.073-.16.182-.319.205-.593.068-.274-.137-1.157-.426-2.203-1.359-.815-.726-1.365-1.623-1.524-1.897-.16-.274-.017-.422.12-.559.123-.122.274-.319.41-.478.137-.16.182-.274.274-.457.091-.182.046-.342-.023-.478-.068-.137-.614-1.482-.841-2.031-.222-.535-.447-.462-.614-.471l-.524-.01c-.182 0-.478.068-.729.342-.25.274-.956.935-.956 2.28 0 1.345.979 2.645 1.116 2.828.137.182 1.928 2.943 4.671 4.128 2.743 1.185 2.743.79 3.245.744.502-.046 1.62-.662 1.848-1.3.228-.639.228-1.186.16-1.301z" />
-            </svg>
-            <span>{whatsappLabel}</span>
-          </a>
-          <Link
-            href={bookingUrl}
-            className="hero-act hero-act-book !bg-[#861A3D] !text-white hover:opacity-95"
-          >
-            <CalendarCheck size={18} className="text-white shrink-0" />
-            <span className="text-white font-extrabold">{bookLabel} appointment</span>
-          </Link>
+          <div className="hero-actions-left">
+            <a href={`tel:${hotline}`} className="hero-act">
+              <Phone size={18} />
+              <span>{callLabel}</span>
+            </a>
+            <a href={mapUrl} target="_blank" rel="noreferrer" className="hero-act">
+              <Send size={18} />
+              <span>{directionsLabel}</span>
+            </a>
+            <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="hero-act hero-act-wa">
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.983zm11.455-7.394c-.068-.113-.25-.181-.524-.318-.274-.137-1.62-.8-1.871-.891-.25-.092-.432-.137-.614.137-.182.274-.707.891-.866 1.073-.16.182-.319.205-.593.068-.274-.137-1.157-.426-2.203-1.359-.815-.726-1.365-1.623-1.524-1.897-.16-.274-.017-.422.12-.559.123-.122.274-.319.41-.478.137-.16.182-.274.274-.457.091-.182.046-.342-.023-.478-.068-.137-.614-1.482-.841-2.031-.222-.535-.447-.462-.614-.471l-.524-.01c-.182 0-.478.068-.729.342-.25.274-.956.935-.956 2.28 0 1.345.979 2.645 1.116 2.828.137.182 1.928 2.943 4.671 4.128 2.743 1.185 2.743.79 3.245.744.502-.046 1.62-.662 1.848-1.3.228-.639.228-1.186.16-1.301z" />
+              </svg>
+              <span>{whatsappLabel}</span>
+            </a>
+          </div>
+          <div className="hero-actions-right">
+            <Link
+              href={bookingUrl}
+              className="hero-act hero-act-book !bg-[#861A3D] !text-white hover:opacity-95"
+            >
+              <CalendarCheck size={18} className="text-white shrink-0" />
+              <span className="text-white font-extrabold">{bookLabel} appointment</span>
+            </Link>
+          </div>
         </nav>
 
         {/* 3. BRANCH INFO CARD */}
