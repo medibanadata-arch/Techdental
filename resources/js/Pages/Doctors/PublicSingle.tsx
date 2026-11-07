@@ -128,8 +128,8 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
     return list.length > 0 ? list : ['Aesthetic Dentistry', 'Root Canal (RCT)', 'Crown & Bridge', 'Dental Fillings', 'Ultrasonic Scaling', 'Teeth Whitening'];
   }, [item?.spec]);
 
-  const visibleSpecs = specs.slice(0, 5);
-  const hiddenSpecs = specs.slice(5);
+  const visibleSpecs = specs.slice(0, 7);
+  const hiddenSpecs = specs.slice(7);
 
   const bioParas = useMemo(() => {
     const list = (item?.bio || '').split(/\n\n+/).filter(Boolean);
