@@ -553,41 +553,24 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                                     <span className="text-[10px] text-gray-400">Desktop 3:4 portrait (w: 288px, h: 384px)</span>
                                                 </div>
                                             ) : (
-                                                /* Mobile Smartphone View */
+                                                /* Mobile Image View (clean preview without phone frame) */
                                                 <div className="w-full flex flex-col items-center animate-fade-in">
-                                                    <div className="w-[195px] rounded-[22px] border-[3px] border-slate-800 bg-white p-2 shadow-lg relative overflow-hidden text-center">
-                                                        {/* Phone Notch */}
-                                                        <div className="w-14 h-1.5 bg-slate-800 rounded-full mx-auto mb-2" />
-                                                        
-                                                        {/* Mini Doctor Image Card */}
-                                                        <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative shadow-2xs mb-1.5">
-                                                            <img
-                                                                src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
-                                                                alt="Doctor Mobile Preview"
-                                                                className="w-full h-full object-cover object-top"
-                                                                onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
-                                                            />
-                                                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white border border-slate-200 shadow-2xs px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
-                                                                <CheckCircle2 size={8} className="text-emerald-500" />
-                                                                <span className="text-[7.5px] font-bold text-slate-700">BMDC Verified</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Doctor Mini Details */}
-                                                        <p className="text-[10.5px] font-bold text-gray-900 truncate mt-2.5 leading-tight">
-                                                            {editForm.name || 'Doctor Name'}
-                                                        </p>
-                                                        <p className="text-[8.5px] text-gray-500 truncate mt-0.5">
-                                                            {editForm.designation || 'Dental Surgeon'}
-                                                        </p>
-                                                        <div className="w-full py-1 bg-[#800038] text-white rounded-md text-[8.5px] font-bold mt-2">
-                                                            Book Now
+                                                    <div className="w-56 h-42 rounded-2xl overflow-hidden border-2 border-slate-200/90 shadow-md bg-white relative group">
+                                                        <img
+                                                            src={editForm.img || 'https://placehold.co/800x600/f1f5f9/64748b?text=Doctor+Photo'}
+                                                            alt="Doctor Mobile Preview"
+                                                            className="w-full h-full object-cover object-top"
+                                                            onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/800x600/f1f5f9/64748b?text=Doctor+Photo'; }}
+                                                        />
+                                                        <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-white border border-slate-200/90 shadow-xs px-2.5 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
+                                                            <CheckCircle2 size={10} className="text-emerald-500" />
+                                                            <span className="text-[9px] font-bold text-slate-700">BMDC Verified</span>
                                                         </div>
                                                     </div>
-                                                    <p className="text-[11px] font-semibold text-gray-600 mt-2 text-center">
-                                                        Mobile Single Profile Preview
+                                                    <p className="text-[11px] font-semibold text-gray-600 mt-3 text-center">
+                                                        Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.id}</code>)
                                                     </p>
-                                                    <span className="text-[10px] text-gray-400">Mobile responsive 4:3 landscape</span>
+                                                    <span className="text-[10px] text-gray-400">Mobile 4:3 landscape framing (full width on phones)</span>
                                                 </div>
                                             )}
                                         </div>
