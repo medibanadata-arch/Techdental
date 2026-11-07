@@ -13,26 +13,21 @@ class AiAssistantController extends Controller
     const DEFAULT_TRAINING_DATA = "
 [প্রতিষ্ঠান পরিচিতি]
 প্রতিষ্ঠান: টেক ডেন্টাল কেয়ার (Tech Dental Care)
-হটলাইন: 01400786162
+হটলাইন (কল করার জন্য): 09638-000505
+হোয়াটসঅ্যাপ নম্বর (শুধুমাত্র রোগী চাইলে): 01400-786162
 ওয়েবসাইট: techdentalcare.com
 রোগী দেখার সময়সূচী: প্রতিদিন সকাল ১০:০০ টা থেকে রাত ৯:০০ টা পর্যন্ত (শুক্রবার সাপ্তাহিক ছুটি)।
 
 [শাখাসমূহ ও লোকেশন]
-১. মিরপুর শাখা: ৮২৭ (২য় তলা), শেওড়াপাড়া, বেগম রোকেয়া সরণি, ঢাকা (মেট্রোরেল ৩১৮ নং পিলারের পূর্ব পাশে)। ফোন: 01400786162
-২. উত্তরা শাখা: হাউস ১৮, রোড ১৪, সেক্টর ৩, উত্তরা, ঢাকা। ফোন: 01400786162
-৩. বাড্ডা শাখা: হাজী আব্দুর রশিদ ম্যানশন (৩য় তলা), উত্তর বাড্ডা বাজার, ঢাকা। ফোন: 01400786162
-৪. যাত্রাবাড়ী শাখা: শহীদ ফারুক রোড, দক্ষিণ যাত্রাবাড়ী, ঢাকা। ফোন: 01400786162
+১. মিরপুর শাখা: ৮২৭ (২য় তলা), শেওড়াপাড়া, বেগম রোকেয়া সরণি, ঢাকা (মেট্রোরেল ৩১৮ নং পিলারের পূর্ব পাশে)। হটলাইন: 09638-000505
+২. উত্তরা শাখা: আকাশ প্লাজা (২য় তলা), প্লট-২১, রোড-৭/ডি, সেক্টর-০৯, উত্তরা, ঢাকা। হটলাইন: 09638-000505
+৩. বাড্ডা শাখা: হাজী আব্দুর রশিদ ম্যানশন (৩য় তলা), উত্তর বাড্ডা বাজার, ঢাকা। হটলাইন: 09638-000505
+৪. যাত্রাবাড়ী শাখা: ৩১/সি (৩য় তলা), শহীদ ফারুক রোড, দক্ষিণ যাত্রাবাড়ী, ঢাকা। হটলাইন: 09638-000505
 
-[চিকিৎসা সেবা ও আনুমানিক খরচ তালিকা]
-• ডেন্টাল স্কেলিং ও পলিশিং (দাঁত পরিষ্কার): ১,০০০ - ২,০০০ টাকা
-• রুট ক্যানেল ট্রিটমেন্ট (RCT): ৩,৫০০ - ৫,৫০০ টাকা (দাঁতের অবস্থা ভেদে)
-• ডেন্টাল ক্যাপ / ক্রাউন (পোরসেলিন / জিরকোনিয়া): ৩,০০০ - ১০,০০০ টাকা
-• দাঁত তোলা (Simple & Surgical Extraction): ১,০০০ - ৪,০০০ টাকা
-• দাঁত ফিলিং (Composite / Laser Filling): ১,০০০ - ২,৫০০ টাকা
-• ডেন্টাল ইমপ্ল্যান্ট (স্থায়ী কৃত্রিম দাঁত): ৩৫,০০০ - ৬০,০০০ টাকা
-• অর্থোডন্টিক ব্রেসেস ও ক্লিয়ার অ্যালাইনার্স: ৬০,০০০ - ১,৫০,০০০ টাকা
-• দাঁত সাদা করা (Teeth Whitening): ৮,০০০ - ১৫,০০০ টাকা
-• শিশুদের ডেন্টাল কেয়ার ও পরামর্শ: ৫০০ - ১,০০০ টাকা
+[যোগাযোগের নীতি (STRICT)]
+• সাধারণ যেকোনো প্রশ্নের উত্তরে শুধুমাত্র হটলাইন নম্বর 09638-000505 প্রদান করতে হবে।
+• সাধারণ উত্তরে কখনোই হোয়াটসঅ্যাপ নম্বর দেওয়া যাবে না।
+• শুধুমাত্র যদি রোগী সুনির্দিষ্টভাবে WhatsApp বা মোবাইল নম্বর জানতে চান, তখনই WhatsApp নম্বর 01400-786162 জানাতে হবে।
 ";
     /**
      * Admin Dashboard view for AI Assistant
@@ -224,9 +219,10 @@ class AiAssistantController extends Controller
 
             $instructionText = "ROLE & INSTRUCTIONS FOR TECH DENTAL AI ASSISTANT:\n{$systemPrompt}\n\n### TECH DENTAL OFFICIAL COMPANY TRAINING DATA & KNOWLEDGE BASE:\n{$trainingData}\n\nSTRICT GUIDELINES:
 1. Always answer the patient's questions using the above official company training data.
-2. For treatment costs (e.g. scaling, root canal, dental caps, implants), quote the exact prices from the training data (e.g. scaling: ১,০০০ - ২,০০০ টাকা).
-3. Mention our relevant branch locations (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী) and hotline 01400786162 when helpful.
-4. Keep the answer warm, concise (2-4 sentences), and in polite Bengali text format only.";
+2. For treatment costs (e.g. scaling, root canal, dental caps, implants), quote the exact prices from the training data.
+3. Mention our relevant branch locations (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী) and official hotline 09638-000505 when helpful.
+4. STRICT WHATSAPP RULE: NEVER provide the WhatsApp number (01400-786162) in normal replies. Only provide WhatsApp if the patient specifically asks for WhatsApp or mobile number.
+5. Keep the answer warm, concise (2-4 bullet points), and in polite Bengali text format only.";
 
             $candidateModels = array_values(array_unique(array_merge(
                 [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],
@@ -265,6 +261,15 @@ class AiAssistantController extends Controller
                             }
                         }
                         $aiText = trim($aiText);
+
+                        // If user did NOT explicitly ask for WhatsApp, strip WhatsApp number from normal responses
+                        $isAskingWhatsapp = (bool)preg_match('/whatsapp|হোয়াটসঅ্যাপ|হোয়াটসএপ|হোয়াটসঅ্যাপ|watsapp|what\'s app/ui', $query);
+                        if (!$isAskingWhatsapp && !empty($aiText)) {
+                            $aiText = preg_replace('/01400[- ]?786162\s*(?:\/|বা|,)\s*/u', '', $aiText);
+                            $aiText = preg_replace('/\s*(?:\/|বা|,)?\s*(?:WhatsApp:\s*)?01400[- ]?786162/ui', '', $aiText);
+                            $aiText = preg_replace('/কল করুন:\s*$/u', 'কল করুন: 09638-000505', $aiText);
+                            $aiText = trim($aiText);
+                        }
 
                         if (!empty($aiText)) {
                             DB::table('ai_chat_logs')->insert([
@@ -482,7 +487,7 @@ class AiAssistantController extends Controller
         $matchedLines = array_unique($matchedLines);
         $extractedText = implode("\n", $matchedLines);
 
-        $reply = "টেক ডেন্টালের ট্রেনিং ডাটা অনুযায়ী আপনার প্রশ্নের তথ্য নিচে দেওয়া হলো:\n\n" . $extractedText . "\n\nআমাদের ৪টি শাখা (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী)-তে প্রতিদিন সকাল ১০টা থেকে রাত ৯টা পর্যন্ত বিশেষজ্ঞ ডাক্তার উপস্থিত থাকেন। সিরিয়াল বা যেকোনো তথ্যের জন্য কল করুন: 01400786162।";
+        $reply = "টেক ডেন্টালের ট্রেনিং ডাটা অনুযায়ী আপনার প্রশ্নের তথ্য নিচে দেওয়া হলো:\n\n" . $extractedText . "\n\nআমাদের ৪টি শাখা (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী)-তে প্রতিদিন সকাল ১০টা থেকে রাত ৯টা পর্যন্ত বিশেষজ্ঞ ডাক্তার উপস্থিত থাকেন। সিরিয়াল বা যেকোনো তথ্যের জন্য সরাসরি কল করুন: 09638-000505।";
 
         return [
             'title' => 'টেক ডেন্টাল',

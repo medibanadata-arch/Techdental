@@ -380,12 +380,22 @@ export default function Home({
 
       const data = await res.json();
       if (data && data.reply) {
+        let cleanReplyText = data.reply;
+        const isAskingWhatsapp = /whatsapp|হোয়াটসঅ্যাপ|হোয়াটসএপ|হোয়াটসঅ্যাপ|watsapp|what\'s app/i.test(cleanQuery);
+        if (!isAskingWhatsapp) {
+          cleanReplyText = cleanReplyText
+            .replace(/01400[- ]?786162\s*(?:\/|বা|,)\s*/g, '')
+            .replace(/\s*(?:\/|বা|,)?\s*(?:WhatsApp:\s*)?01400[- ]?786162/gi, '')
+            .replace(/কল করুন:\s*$/g, 'কল করুন: 09638-000505')
+            .trim();
+        }
+
         const aiMsg: ChatMessage = {
           id: `ai-${Date.now()}`,
           role: "assistant",
           answer: {
             title: data.title || "টেক ডেন্টাল",
-            reply: data.reply,
+            reply: cleanReplyText,
             icon: data.icon || "fa-sparkles",
             iconColor: data.icon_color || "text-blue-600",
             iconBg: data.icon_bg || "bg-blue-100",
