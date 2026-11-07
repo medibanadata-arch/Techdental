@@ -432,24 +432,144 @@ export default function Home({
     // Detect Bangladesh mobile/hotline numbers in English or Bengali digits
     const phoneRegex = /((?:\+?(?:88|৮৮))?(?:0|০)[0-9০-৯]{2,4}[-\s]?[0-9০-৯]{3,4}[-\s]?[0-9০-৯]{3,4})/g;
 
-    const parts = reply.split(phoneRegex);
+    // Helper: format phone numbers and raw URLs inside a plain text chunk
+    const formatPhonesAndUrls = (text: string, keyPrefix: string): React.ReactNode[] => {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const urlParts = text.split(urlRegex);
 
-    return parts.map((part, index) => {
-      if (part.match(phoneRegex)) {
-        const cleanTel = bengaliToEnglishDigits(part).replace(/[^0-9+]/g, '');
+      return urlParts.flatMap((uPart, uIdx) => {
+        const uKey = `${keyPrefix}-u-${uIdx}`;
+        if (uPart.match(/^https?:\/\//)) {
+          return (
+            <a
+              key={uKey}
+              href={uPart}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-blue-600 hover:text-blue-800 underline underline-offset-2 mx-0.5"
+            >
+              {uPart}
+            </a>
+          );
+        }
+
+        const phoneParts = uPart.split(phoneRegex);
+        return phoneParts.map((pPart, pIdx) => {
+          const pKey = `${uKey}-p-${pIdx}`;
+          if (pPart.match(phoneRegex)) {
+            const cleanTel = bengaliToEnglishDigits(pPart).replace(/[^0-9+]/g, '');
+            return (
+              <a
+                key={pKey}
+                href={`tel:${cleanTel}`}
+                className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md underline underline-offset-2 transition mx-0.5 cursor-pointer"
+                title={`এখনই কল করুন: ${cleanTel}`}
+              >
+                <i className="fa-solid fa-phone text-[11px]" />
+                <span>{pPart}</span>
+              </a>
+            );
+          }
+          return <React.Fragment key={pKey}>{pPart}</React.Fragment>;
+        });
+      });
+    };
+
+    // Helper: format markdown links [text](url)
+    const formatMarkdownLinks = (text: string, keyPrefix: string): React.ReactNode[] => {
+      const linkRegex = /(\[[^\]]+\]\([^)]+\))/g;
+      const linkParts = text.split(linkRegex);
+
+      return linkParts.flatMap((part, idx) => {
+        const lKey = `${keyPrefix}-ml-${idx}`;
+        const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (match) {
+          const [, label, href] = match;
+          return (
+            <a
+              key={lKey}
+              href={href}
+              target={href.startsWith('http') ? '_blank' : '_self'}
+              rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              className="font-semibold text-blue-600 hover:text-blue-800 underline underline-offset-2 mx-0.5"
+            >
+              {label}
+            </a>
+          );
+        }
+        return formatPhonesAndUrls(part, lKey);
+      });
+    };
+
+    // Helper: format italic (*text* or _text_)
+    const formatItalic = (text: string, keyPrefix: string): React.ReactNode[] => {
+      const italicRegex = /(\*[^\s*][^*]*?[^\s*]\*|_[^\s_][^_]*?[^\s_]_)/g;
+      const parts = text.split(italicRegex);
+
+      return parts.flatMap((part, idx) => {
+        const iKey = `${keyPrefix}-i-${idx}`;
+        if (
+          ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) &&
+          part.length >= 3
+        ) {
+          const inner = part.slice(1, -1);
+          return (
+            <em key={iKey} className="italic">
+              {formatMarkdownLinks(inner, iKey)}
+            </em>
+          );
+        }
+        return formatMarkdownLinks(part, iKey);
+      });
+    };
+
+    // Helper: format bold (**text** or __text__)
+    const formatBold = (text: string, keyPrefix: string): React.ReactNode[] => {
+      const boldRegex = /(\*\*[^*]+?\*\*|__[^_]+?__)/g;
+      const parts = text.split(boldRegex);
+
+      return parts.flatMap((part, idx) => {
+        const bKey = `${keyPrefix}-b-${idx}`;
+        if (
+          ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('__') && part.endsWith('__'))) &&
+          part.length >= 4
+        ) {
+          const inner = part.slice(2, -2);
+          return (
+            <strong key={bKey} className="font-bold text-slate-900">
+              {formatItalic(inner, bKey)}
+            </strong>
+          );
+        }
+        return formatItalic(part, bKey);
+      });
+    };
+
+    // Process line by line to handle markdown headings cleanly while preserving newlines
+    const lines = reply.split('\n');
+    return lines.map((line, lIdx) => {
+      const lKey = `line-${lIdx}`;
+      const isLast = lIdx === lines.length - 1;
+
+      // Check for markdown headings: ### Heading or ## Heading or # Heading
+      const headingMatch = line.match(/^#{1,4}\s+(.+)$/);
+      if (headingMatch) {
         return (
-          <a
-            key={index}
-            href={`tel:${cleanTel}`}
-            className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md underline underline-offset-2 transition mx-0.5 cursor-pointer"
-            title={`এখনই কল করুন: ${cleanTel}`}
-          >
-            <i className="fa-solid fa-phone text-[11px]" />
-            <span>{part}</span>
-          </a>
+          <React.Fragment key={lKey}>
+            <strong className="block font-bold text-slate-900 text-[15px] sm:text-base mt-2 mb-1">
+              {formatBold(headingMatch[1], `${lKey}-h`)}
+            </strong>
+            {!isLast && '\n'}
+          </React.Fragment>
         );
       }
-      return <span key={index}>{part}</span>;
+
+      return (
+        <React.Fragment key={lKey}>
+          {formatBold(line, lKey)}
+          {!isLast && '\n'}
+        </React.Fragment>
+      );
     });
   };
 
