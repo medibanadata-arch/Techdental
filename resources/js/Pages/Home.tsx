@@ -354,15 +354,36 @@ export default function Home({
     }, 2200);
   };
 
-  const scrollChatToBottom = () => {
-    setTimeout(() => {
+  const scrollChatToQuestion = (userMsgId: string) => {
+    const doScroll = () => {
       if (chatScrollRef.current) {
-        chatScrollRef.current.scrollTo({ top: chatScrollRef.current.scrollHeight, behavior: "smooth" });
+        const targetEl = chatScrollRef.current.querySelector<HTMLElement>(`[data-msg-id="${userMsgId}"]`);
+        if (targetEl) {
+          const containerRect = chatScrollRef.current.getBoundingClientRect();
+          const targetRect = targetEl.getBoundingClientRect();
+          const relativeTop = targetRect.top - containerRect.top + chatScrollRef.current.scrollTop;
+          chatScrollRef.current.scrollTo({
+            top: Math.max(0, relativeTop - 12),
+            behavior: "smooth"
+          });
+        }
       }
       if (modalChatScrollRef.current) {
-        modalChatScrollRef.current.scrollTo({ top: modalChatScrollRef.current.scrollHeight, behavior: "smooth" });
+        const targetEl = modalChatScrollRef.current.querySelector<HTMLElement>(`[data-msg-id="${userMsgId}"]`);
+        if (targetEl) {
+          const containerRect = modalChatScrollRef.current.getBoundingClientRect();
+          const targetRect = targetEl.getBoundingClientRect();
+          const relativeTop = targetRect.top - containerRect.top + modalChatScrollRef.current.scrollTop;
+          modalChatScrollRef.current.scrollTo({
+            top: Math.max(0, relativeTop - 12),
+            behavior: "smooth"
+          });
+        }
       }
-    }, 60);
+    };
+
+    setTimeout(doScroll, 40);
+    setTimeout(doScroll, 180);
   };
 
   const handleSelectSuggestion = (text: string) => {
@@ -436,7 +457,7 @@ export default function Home({
 
     setChatMessages((prev) => [...prev, userMsg]);
     setIsAiLoading(true);
-    scrollChatToBottom();
+    scrollChatToQuestion(userMsgId);
 
     try {
       const res = await fetch("/api/ai-chat", {
@@ -477,7 +498,7 @@ export default function Home({
         };
         setChatMessages((prev) => [...prev, aiMsg]);
         setIsAiLoading(false);
-        scrollChatToBottom();
+        scrollChatToQuestion(userMsgId);
         return;
       }
     } catch (err) {
@@ -498,7 +519,7 @@ export default function Home({
     };
     setChatMessages((prev) => [...prev, fallbackMsg]);
     setIsAiLoading(false);
-    scrollChatToBottom();
+    scrollChatToQuestion(userMsgId);
   };
 
   const bengaliToEnglishDigits = (str: string) => {
@@ -668,7 +689,7 @@ export default function Home({
   const renderChatMessage = (msg: ChatMessage) => {
     if (msg.role === "user") {
       return (
-        <div key={msg.id} className="flex justify-end pt-2">
+        <div key={msg.id} data-msg-id={msg.id} className="flex justify-end pt-2">
           <div className="bg-blue-50 text-blue-950 font-medium px-4 py-2 rounded-2xl rounded-tr-xs text-xs sm:text-sm max-w-[85%] border border-blue-100 shadow-2xs font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
             {msg.text}
           </div>
@@ -677,7 +698,7 @@ export default function Home({
     }
 
     return (
-      <div key={msg.id} className="text-[14px] sm:text-[15px] leading-relaxed text-[#202124] space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+      <div key={msg.id} data-msg-id={msg.id} className="text-[14px] sm:text-[15px] leading-relaxed text-[#202124] space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
         <div className="text-slate-800 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide">
           {renderFormattedReply(msg.answer?.reply || "")}
         </div>
