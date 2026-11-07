@@ -223,7 +223,8 @@ class AiAssistantController extends Controller
 3. Mention our relevant branch locations (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী) and official hotline 09638-000505 when helpful.
 4. STRICT WHATSAPP RULE: NEVER provide the WhatsApp number (01400-786162) in normal replies. Only provide WhatsApp if the patient specifically asks for WhatsApp or mobile number.
 5. Keep the answer warm, concise (2-4 bullet points), and in polite Bengali text format only.
-6. YOUTUBE VIDEOS: If the training data contains a YouTube video link (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...) related to the treatment, procedure, or topic the patient is inquiring about, include the full YouTube link on its own line so the patient can watch the video directly in the chat box.";
+6. YOUTUBE VIDEOS: If the training data contains a YouTube video link (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...) related to the treatment, procedure, or topic the patient is inquiring about, include the full YouTube link on its own line so the patient can watch the video directly in the chat box.
+7. CRITICAL: Output ONLY the final polite Bengali message to the patient. NEVER output internal thoughts, checklists, reasoning, or self-verifications (such as '(2-4 bullet points)? Yes' or 'Checked').";
 
             $candidateModels = array_values(array_unique(array_merge(
                 [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],
@@ -235,18 +236,26 @@ class AiAssistantController extends Controller
                     $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
                     $payload = [
+                        'system_instruction' => [
+                            'parts' => [
+                                ['text' => $instructionText]
+                            ]
+                        ],
                         'contents' => [
                             [
                                 'role' => 'user',
                                 'parts' => [
-                                    ['text' => "{$instructionText}\n\nPATIENT QUERY: {$query}"]
+                                    ['text' => $query]
                                 ]
                             ]
                         ],
                         'generationConfig' => [
-                            'temperature' => 0.4,
+                            'temperature' => 0.3,
                             'maxOutputTokens' => 700,
                             'responseModalities' => ['TEXT'],
+                            'thinkingConfig' => [
+                                'thinkingBudget' => 0,
+                            ],
                         ]
                     ];
 
@@ -257,11 +266,21 @@ class AiAssistantController extends Controller
                         $parts = $resData['candidates'][0]['content']['parts'] ?? [];
                         $aiText = '';
                         foreach ($parts as $part) {
+                            if (!empty($part['thought'])) {
+                                continue;
+                            }
                             if (!empty($part['text'])) {
                                 $aiText .= $part['text'];
                             }
                         }
                         $aiText = trim($aiText);
+
+                        // Strip any potential internal reasoning / checklist leakage
+                        $aiText = preg_replace('/^\s*\(?\d+[- ]?\d*\s*bullet points\)?\??.*$/umi', '', $aiText);
+                        $aiText = preg_replace('/^\s*\*?\s*No WhatsApp number mentioned\??.*$/umi', '', $aiText);
+                        $aiText = preg_replace('/^\s*\*?\s*No [৳Tk\/]+.*$/umi', '', $aiText);
+                        $aiText = preg_replace('/^\s*\*?\s*Checked\s*$/umi', '', $aiText);
+                        $aiText = trim(preg_replace('/\n{3,}/', "\n\n", $aiText));
 
                         // If user did NOT explicitly ask for WhatsApp, strip WhatsApp number from normal responses
                         $isAskingWhatsapp = (bool)preg_match('/whatsapp|হোয়াটসঅ্যাপ|হোয়াটসএপ|হোয়াটসঅ্যাপ|watsapp|what\'s app/ui', $query);
@@ -272,7 +291,7 @@ class AiAssistantController extends Controller
                             $aiText = trim($aiText);
                         }
 
-                        if (!empty($aiText)) {
+                        if (!empty($aiText) && mb_strlen($aiText) >= 15) {
                             DB::table('ai_chat_logs')->insert([
                                 'user_query' => $query,
                                 'reply' => $aiText,
