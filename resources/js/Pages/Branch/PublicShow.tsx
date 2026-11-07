@@ -894,7 +894,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                     <img
                       src={doc.img || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=400'}
                       alt={doc.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-[center_20%]"
                     />
                   </div>
 

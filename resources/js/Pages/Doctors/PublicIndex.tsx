@@ -174,11 +174,11 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
             <div key={doc.id} className="bg-white rounded-xl p-5 text-center flex flex-col justify-between shadow-sm border-2 border-[#a21caf] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
               <div>
                 {/* Doctor Image */}
-                <div className="w-full h-52 sm:h-56 mb-4 rounded-lg overflow-hidden bg-slate-100 relative">
+                <div className="w-full h-56 sm:h-60 mb-4 rounded-lg overflow-hidden bg-slate-100 relative">
                   <img
                     src={doc.img}
                     alt={doc.name}
-                    className="w-full h-full object-cover object-center"
+                    className="w-full h-full object-cover object-[center_20%]"
                     onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/400x500/f1f5f9/64748b?text=Doctor+Photo'; }}
                   />
                   <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-sm text-pink-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">

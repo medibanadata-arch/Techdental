@@ -523,11 +523,11 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                     {previewMode === 'category' && (
                                         <div className="w-full">
                                             <div className="w-full max-w-[240px] mx-auto bg-white rounded-xl p-3 shadow-sm border-2 border-[#a21caf] text-center">
-                                                <div className="w-full h-40 rounded-lg overflow-hidden bg-slate-100 relative mb-2">
+                                                <div className="w-full h-44 rounded-lg overflow-hidden bg-slate-100 relative mb-2">
                                                     <img
                                                         src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
                                                         alt="Doctor Category Card Preview"
-                                                        className="w-full h-full object-cover object-center"
+                                                        className="w-full h-full object-cover object-[center_20%]"
                                                         onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
                                                     />
                                                     <span className="absolute top-1.5 right-1.5 bg-white/90 text-pink-700 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
@@ -636,17 +636,17 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                 <div className="p-3 bg-amber-50/70 border border-amber-200/70 rounded-xl text-left space-y-1.5">
                                     <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs">
                                         <Info size={13} className="text-amber-700 shrink-0" />
-                                        <span>Recommended Image Specs</span>
+                                        <span>Recommended Image Specs &amp; Framing</span>
                                     </div>
                                     <div className="text-[11px] text-amber-950 space-y-1 leading-relaxed">
                                         <p>
-                                            • <strong>Best Size:</strong> 600 × 800 px (Aspect Ratio <strong>3:4 Portrait</strong>).
+                                            • <strong>Best Size:</strong> 600 × 800 px (Aspect Ratio <strong>3:4 Portrait</strong>) অথবা 800 × 600 px (4:3)।
                                         </p>
                                         <p>
-                                            • <strong>Framing Tip:</strong> ডাক্তারের মাথা ও মুখ ছবির ওপরের ৭০% অংশের মাঝ বরাবর রাখুন (Centered Head &amp; Shoulders)।
+                                            • <strong>Framing Tip:</strong> ডাক্তারের ছবি তোলার সময় বা ক্রপ করার সময় একদম ক্লোজ-আপ (শুধু মুখ) না রেখে কিছুটা দূর থেকে (মাথা, ঘাড়, দুই কাঁধ ও ডাক্তারের কোট/অ্যাপ্রন সহ) রাখুন — যেমন ড. আয়েশা সিদ্দিকার ছবিতে দেখা যায়।
                                         </p>
                                         <p className="text-[10px] text-amber-800">
-                                            এতে সিঙ্গেল প্রোফাইল (3:4), ডক্টর ক্যাটাগরি কার্ড এবং হোমপেজ গোল অবতারে কোনো অংশ কাটবে না।
+                                            এতে ক্যাটাগরি কার্ড, সিঙ্গেল প্রোফাইল এবং হোমপেজের গোল অবতারে ছবি নিখুঁত ও প্রফেশনাল দেখাবে।
                                         </p>
                                     </div>
                                 </div>
