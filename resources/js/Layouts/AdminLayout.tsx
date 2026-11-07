@@ -21,15 +21,15 @@ import {
 
 // Dedicated tooth outline icon matching the PDF exactly
 const ToothIcon = ({ size = 18, className = "" }: { size?: number; className?: string }) => (
-    <svg 
-        width={size} 
-        height={size} 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="1.8" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
+    <svg
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         className={className}
     >
         <path d="M7 3C4.24 3 2 5.24 2 8c0 3.32 1.5 6.64 2.5 10 .62 2.06 2.03 3 3.5 3 1.57 0 2.22-1.39 3-3 .7-1.46 1.3-3 1-3s.3 1.54 1 3c.78 1.61 1.43 3 3 3 1.47 0 2.88-.94 3.5-3 1-3.36 2.5-6.68 2.5-10 0-2.76-2.24-5-5-5-2.26 0-3.6 1.47-4.5 3C11.6 4.47 10.26 3 7 3z" />
@@ -279,11 +279,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                             <button
                                                 type="button"
                                                 onClick={() => toggleSubmenu(item.name)}
-                                                className={`w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-medium rounded-xl transition-all cursor-pointer ${
-                                                    item.active
+                                                className={`w-full flex items-center justify-between px-3.5 py-2.5 text-sm font-medium rounded-xl transition-all cursor-pointer ${item.active
                                                         ? 'text-white bg-slate-800/50'
                                                         : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
-                                                }`}
+                                                    }`}
                                             >
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <item.icon
@@ -310,11 +309,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                                     <button
                                                                         type="button"
                                                                         onClick={(e) => toggleNestedSubmenu(sub.name, e)}
-                                                                        className={`w-full flex items-center justify-between py-1.5 px-2.5 text-[13px] rounded-lg transition-colors font-medium cursor-pointer ${
-                                                                            sub.active
+                                                                        className={`w-full flex items-center justify-between py-1.5 px-2.5 text-[13px] rounded-lg transition-colors font-medium cursor-pointer ${sub.active
                                                                                 ? 'text-white font-semibold'
                                                                                 : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         <span className="truncate">{sub.name}</span>
                                                                         <span className="text-slate-400 ml-1 shrink-0">
@@ -329,11 +327,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                                                     key={cidx}
                                                                                     href={child.href}
                                                                                     onClick={() => setIsMobileMenuOpen(false)}
-                                                                                    className={`block py-1.5 px-2.5 text-xs rounded-lg transition-colors ${
-                                                                                        child.active
+                                                                                    className={`block py-1.5 px-2.5 text-xs rounded-lg transition-colors ${child.active
                                                                                             ? 'text-white font-semibold bg-[#800038] shadow-xs'
                                                                                             : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
-                                                                                    }`}
+                                                                                        }`}
                                                                                 >
                                                                                     {child.name}
                                                                                 </Link>
@@ -349,11 +346,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                                                 key={sidx}
                                                                 href={sub.href || '#'}
                                                                 onClick={() => setIsMobileMenuOpen(false)}
-                                                                className={`block py-1.5 px-2.5 text-[13px] rounded-lg transition-colors ${
-                                                                    sub.active
+                                                                className={`block py-1.5 px-2.5 text-[13px] rounded-lg transition-colors ${sub.active
                                                                         ? 'text-white font-semibold bg-[#800038] shadow-xs'
                                                                         : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
-                                                                }`}
+                                                                    }`}
                                                             >
                                                                 {sub.name}
                                                             </Link>
@@ -370,11 +366,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                         key={idx}
                                         href={item.href || '#'}
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-medium rounded-xl transition-all ${
-                                            item.active
+                                        className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-medium rounded-xl transition-all ${item.active
                                                 ? 'bg-[#800038] text-white font-semibold shadow-sm'
                                                 : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
                                             <item.icon
@@ -423,9 +418,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Mobile Sidebar Drawer */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 transform ${
-                    isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-                } transition-transform duration-300 ease-in-out md:hidden shadow-2xl`}
+                className={`fixed inset-y-0 left-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                    } transition-transform duration-300 ease-in-out md:hidden shadow-2xl`}
             >
                 <SidebarContent />
             </aside>

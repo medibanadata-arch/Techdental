@@ -180,3 +180,4 @@ class PaymentMethodSetting extends Model
         ];
     }
 }
+

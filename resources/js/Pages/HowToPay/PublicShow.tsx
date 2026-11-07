@@ -388,14 +388,19 @@ export default function HowToPayPublicShow({
                   {/* Top row: Badge (or uploaded image), Name, Status */}
                   <div className="top flex items-center gap-3">
                     <div
-                      className="badge w-11 h-11 rounded-xl grid place-items-center font-extrabold text-[15px] text-white shrink-0 select-none shadow-2xs overflow-hidden"
-                      style={{ background: isOn ? m.color || '#3a5ba0' : '#e2e2e2', color: isOn ? '#fff' : '#8a8a8a' }}
+                      className={`badge w-12 h-12 rounded-xl grid place-items-center font-extrabold text-[15px] shrink-0 select-none shadow-2xs overflow-hidden aspect-square ${
+                        m.image ? 'bg-white border border-[#e2e2e2] p-1' : ''
+                      }`}
+                      style={{
+                        background: m.image ? '#ffffff' : (isOn ? m.color || '#3a5ba0' : '#e2e2e2'),
+                        color: isOn ? '#fff' : '#8a8a8a',
+                      }}
                     >
                       {m.image ? (
                         <img
                           src={m.image}
                           alt={m.name}
-                          className="w-full h-full object-contain p-1 rounded-xl bg-white"
+                          className="w-full h-full object-contain aspect-square select-none pointer-events-none"
                         />
                       ) : (
                         <span>{m.badge || m.name.substring(0, 2).toUpperCase()}</span>

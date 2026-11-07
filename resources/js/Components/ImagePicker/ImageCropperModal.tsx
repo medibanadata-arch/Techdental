@@ -89,15 +89,51 @@ export default function ImageCropperModal({
         }
     }, []);
 
+    // Accurately compute rendered image dimensions and letterbox offsets within object-contain container
+    const getImageRenderBounds = useCallback(() => {
+        if (!imgRef.current || !containerRef.current) return null;
+        const cWidth = containerRef.current.clientWidth || 1;
+        const cHeight = containerRef.current.clientHeight || 1;
+        const nw = imgRef.current.naturalWidth || 1;
+        const nh = imgRef.current.naturalHeight || 1;
+
+        const containerRatio = cWidth / cHeight;
+        const imgRatio = nw / nh;
+
+        let renderedW = cWidth;
+        let renderedH = cHeight;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (imgRatio > containerRatio) {
+            renderedW = cWidth;
+            renderedH = cWidth / imgRatio;
+            offsetY = (cHeight - renderedH) / 2;
+        } else {
+            renderedH = cHeight;
+            renderedW = cHeight * imgRatio;
+            offsetX = (cWidth - renderedW) / 2;
+        }
+
+        const scale = nw / renderedW;
+        return { cWidth, cHeight, nw, nh, renderedW, renderedH, offsetX, offsetY, scale };
+    }, []);
+
     // Initialize or adjust crop box when aspect changes or image loads
     const resetCropBox = useCallback((preset: AspectRatioPreset) => {
         if (!containerRef.current) return;
+        const bounds = getImageRenderBounds();
         const cWidth = containerRef.current.clientWidth || 400;
         const cHeight = containerRef.current.clientHeight || 300;
 
+        const renderedW = bounds?.renderedW || cWidth;
+        const renderedH = bounds?.renderedH || cHeight;
+        const offsetX = bounds?.offsetX || 0;
+        const offsetY = bounds?.offsetY || 0;
+
         const ratio = getRatioValue(preset);
-        let w = cWidth * 0.75;
-        let h = cHeight * 0.75;
+        let w = renderedW * 0.9;
+        let h = renderedH * 0.9;
 
         if (ratio) {
             if (w / h > ratio) {
@@ -107,10 +143,10 @@ export default function ImageCropperModal({
             }
         }
 
-        const x = Math.max(10, (cWidth - w) / 2);
-        const y = Math.max(10, (cHeight - h) / 2);
+        const x = offsetX + Math.max(0, (renderedW - w) / 2);
+        const y = offsetY + Math.max(0, (renderedH - h) / 2);
         setCropBox({ x, y, w, h });
-    }, [getRatioValue]);
+    }, [getRatioValue, getImageRenderBounds]);
 
     useEffect(() => {
         if (rawImageSrc) {
@@ -199,22 +235,21 @@ export default function ImageCropperModal({
         const pCtx = previewCanvas.getContext('2d');
         if (!pCtx) return;
 
-        // Container dimensions
-        const cWidth = containerRef.current.clientWidth || 1;
-        const cHeight = containerRef.current.clientHeight || 1;
+        const bounds = getImageRenderBounds();
+        if (!bounds) return;
+        const { nw, nh, offsetX, offsetY, scale } = bounds;
 
-        // Natural image dimensions
-        const nw = img.naturalWidth;
-        const nh = img.naturalHeight;
+        const relX = cropBox.x - offsetX;
+        const relY = cropBox.y - offsetY;
+        const rawSx = relX * scale;
+        const rawSy = relY * scale;
+        const rawSw = cropBox.w * scale;
+        const rawSh = cropBox.h * scale;
 
-        // Scale factors
-        const scaleX = nw / cWidth;
-        const scaleY = nh / cHeight;
-
-        const sourceX = cropBox.x * scaleX;
-        const sourceY = cropBox.y * scaleY;
-        const sourceW = cropBox.w * scaleX;
-        const sourceH = cropBox.h * scaleY;
+        const sourceX = Math.max(0, Math.min(nw - 1, rawSx));
+        const sourceY = Math.max(0, Math.min(nh - 1, rawSy));
+        const sourceW = Math.max(1, Math.min(nw - sourceX, rawSw - Math.max(0, -rawSx)));
+        const sourceH = Math.max(1, Math.min(nh - sourceY, rawSh - Math.max(0, -rawSy)));
 
         previewCanvas.width = 160;
         previewCanvas.height = 160 / (cropBox.w / cropBox.h);
@@ -223,10 +258,10 @@ export default function ImageCropperModal({
         try {
             pCtx.drawImage(
                 img,
-                Math.max(0, sourceX),
-                Math.max(0, sourceY),
-                Math.min(nw - sourceX, sourceW),
-                Math.min(nh - sourceY, sourceH),
+                sourceX,
+                sourceY,
+                sourceW,
+                sourceH,
                 0,
                 0,
                 previewCanvas.width,
@@ -235,7 +270,54 @@ export default function ImageCropperModal({
         } catch {
             // Ignore cross-origin error in preview if any
         }
-    }, [cropBox, rawImageSrc, rotation, zoom]);
+    }, [cropBox, rawImageSrc, rotation, zoom, getImageRenderBounds]);
+
+    // Upload original file directly without cropping
+    const handleUploadOriginal = async () => {
+        if (!imageFile) {
+            if (rawImageSrc) {
+                if (typeof onCropComplete === 'function') onCropComplete(rawImageSrc);
+                if (typeof onSelectImage === 'function') onSelectImage(rawImageSrc);
+                if (typeof onSelect === 'function') onSelect(rawImageSrc);
+                onClose();
+            }
+            return;
+        }
+
+        setIsUploading(true);
+        setErrorMsg('');
+
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const formData = new FormData();
+            formData.append('file', imageFile);
+            formData.append('title', imageFile.name.replace(/\.[^/.]+$/, ''));
+
+            const res = await fetch('/admin-api/media/upload', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+
+            const data = await res.json();
+            if (data.success && data.url) {
+                if (typeof onCropComplete === 'function') onCropComplete(data.url);
+                if (typeof onSelectImage === 'function') onSelectImage(data.url);
+                if (typeof onSelect === 'function') onSelect(data.url);
+                onClose();
+            } else {
+                throw new Error(data.message || 'Upload failed');
+            }
+        } catch (err: any) {
+            console.error('Direct upload error:', err);
+            setErrorMsg(err.message || 'Failed to upload original image. Please try again.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     // Execute Crop & Upload
     const handleCropAndUpload = async () => {
@@ -245,16 +327,21 @@ export default function ImageCropperModal({
 
         try {
             const img = imgRef.current;
-            const cWidth = containerRef.current.clientWidth;
-            const cHeight = containerRef.current.clientHeight;
+            const bounds = getImageRenderBounds();
+            if (!bounds) throw new Error('Could not calculate image render bounds');
+            const { nw, nh, offsetX, offsetY, scale } = bounds;
 
-            const scaleX = img.naturalWidth / cWidth;
-            const scaleY = img.naturalHeight / cHeight;
+            const relX = cropBox.x - offsetX;
+            const relY = cropBox.y - offsetY;
+            const rawSx = relX * scale;
+            const rawSy = relY * scale;
+            const rawSw = cropBox.w * scale;
+            const rawSh = cropBox.h * scale;
 
-            const sourceX = cropBox.x * scaleX;
-            const sourceY = cropBox.y * scaleY;
-            const sourceW = cropBox.w * scaleX;
-            const sourceH = cropBox.h * scaleY;
+            const sourceX = Math.max(0, Math.min(nw - 1, rawSx));
+            const sourceY = Math.max(0, Math.min(nh - 1, rawSy));
+            const sourceW = Math.max(1, Math.min(nw - sourceX, rawSw - Math.max(0, -rawSx)));
+            const sourceH = Math.max(1, Math.min(nh - sourceY, rawSh - Math.max(0, -rawSy)));
 
             // Target canvas for output
             const outCanvas = document.createElement('canvas');
@@ -364,6 +451,7 @@ export default function ImageCropperModal({
                                         src={rawImageSrc}
                                         alt="To crop"
                                         crossOrigin="anonymous"
+                                        onLoad={() => resetCropBox(aspect)}
                                         className="w-full h-full object-contain pointer-events-none"
                                         style={{
                                             transform: `rotate(${rotation}deg) scale(${zoom})`,
@@ -522,6 +610,19 @@ export default function ImageCropperModal({
                                     </>
                                 )}
                             </button>
+
+                            {imageFile && (
+                                <button
+                                    type="button"
+                                    onClick={handleUploadOriginal}
+                                    disabled={isUploading}
+                                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+                                    title="Upload original file without cropping"
+                                >
+                                    <UploadCloud size={14} />
+                                    <span>Use Full Image (No Crop)</span>
+                                </button>
+                            )}
 
                             <button
                                 type="button"

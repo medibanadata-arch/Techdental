@@ -441,14 +441,16 @@ export default function HowToPayAdminIndex({ settings, locations = [] }: Props) 
                       <div className="flex items-center gap-3">
                         {/* Custom Image Icon or Text Badge */}
                         <div
-                          className="w-12 h-12 rounded-xl grid place-items-center font-extrabold text-sm text-white shrink-0 overflow-hidden shadow-2xs border border-gray-100"
-                          style={{ background: m.color || '#3a5ba0' }}
+                          className={`w-12 h-12 rounded-xl grid place-items-center font-extrabold text-sm shrink-0 overflow-hidden shadow-2xs border aspect-square ${
+                            m.image ? 'bg-white border-gray-200 p-1' : 'border-gray-100 text-white'
+                          }`}
+                          style={{ background: m.image ? '#ffffff' : (m.color || '#3a5ba0') }}
                         >
                           {m.image ? (
                             <img
                               src={m.image}
                               alt={m.name}
-                              className="w-full h-full object-contain p-1 rounded-xl bg-white"
+                              className="w-full h-full object-contain aspect-square select-none pointer-events-none"
                             />
                           ) : (
                             <span>{m.badge || m.name.substring(0, 2).toUpperCase()}</span>
@@ -1032,3 +1034,4 @@ export default function HowToPayAdminIndex({ settings, locations = [] }: Props) 
     </AdminLayout>
   );
 }
+
