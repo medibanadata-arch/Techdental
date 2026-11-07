@@ -339,29 +339,18 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                 </div>
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Area of Expertise</h2>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {visibleSpecs.map((s, i) => (
+              <div className="flex flex-wrap gap-2 items-center">
+                {(seeMore ? specs : visibleSpecs).map((s, i) => (
                   <span key={i} className="px-3 py-1.5 bg-slate-50 hover:bg-pink-50/60 text-slate-700 text-xs font-medium rounded-xl border border-slate-200/70 transition flex items-center gap-1.5">
                     <i className="fas fa-check text-[#c81e62] text-[10px]"></i> {s}
                   </span>
                 ))}
 
-                {/* Hidden tags revealed on See More */}
-                {seeMore && hiddenSpecs.length > 0 && (
-                  <div className="flex flex-wrap gap-2 w-full mt-1">
-                    {hiddenSpecs.map((s, i) => (
-                      <span key={i} className="px-3 py-1.5 bg-slate-50 hover:bg-pink-50/60 text-slate-700 text-xs font-medium rounded-xl border border-slate-200/70 transition flex items-center gap-1.5">
-                        <i className="fas fa-check text-[#c81e62] text-[10px]"></i> {s}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
                 {hiddenSpecs.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setSeeMore(!seeMore)}
-                    className="px-3.5 py-1.5 bg-pink-50 hover:bg-pink-100/70 text-[#c81e62] text-xs font-semibold rounded-xl border border-pink-200/60 transition flex items-center gap-1.5 cursor-pointer"
+                    className="px-3.5 py-1.5 bg-pink-50 hover:bg-pink-100/70 text-[#c81e62] text-xs font-semibold rounded-xl border border-pink-200/60 transition flex items-center gap-1.5 cursor-pointer select-none"
                   >
                     <span>{seeMore ? 'See Less' : 'See More'}</span>
                     <i className={`fas fa-chevron-down text-[10px] transform transition-transform duration-300 ${seeMore ? 'rotate-180' : ''}`}></i>
