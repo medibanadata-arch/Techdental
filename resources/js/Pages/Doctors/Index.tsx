@@ -560,11 +560,11 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                                         <div className="w-14 h-1.5 bg-slate-800 rounded-full mx-auto mb-2" />
                                                         
                                                         {/* Mini Doctor Image Card */}
-                                                        <div className="w-full aspect-[3/4] rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative shadow-2xs mb-1.5">
+                                                        <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative shadow-2xs mb-1.5">
                                                             <img
                                                                 src={editForm.img || 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'}
                                                                 alt="Doctor Mobile Preview"
-                                                                className="w-full h-full object-cover object-[center_20%]"
+                                                                className="w-full h-full object-cover object-top"
                                                                 onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x800/f1f5f9/64748b?text=Doctor+Photo'; }}
                                                             />
                                                             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white border border-slate-200 shadow-2xs px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
@@ -587,7 +587,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                                     <p className="text-[11px] font-semibold text-gray-600 mt-2 text-center">
                                                         Mobile Single Profile Preview
                                                     </p>
-                                                    <span className="text-[10px] text-gray-400">Mobile responsive 3:4 portrait</span>
+                                                    <span className="text-[10px] text-gray-400">Mobile responsive 4:3 landscape</span>
                                                 </div>
                                             )}
                                         </div>
