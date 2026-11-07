@@ -590,10 +590,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             background: #fff;
             border-radius: 32px;
             border: 1px solid #EFE6E9;
-            padding: 56px;
+            padding: 28px 36px 32px;
             display: flex;
             flex-direction: column;
-            gap: 48px;
+            gap: 20px;
             box-shadow: 0 4px 24px -10px rgba(70,20,40,.06);
           }
           .branch-eyebrow {
@@ -850,8 +850,8 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             }
             .branch-info-card {
               border-radius: 28px;
-              padding: 28px 24px;
-              gap: 32px;
+              padding: 20px 18px 24px;
+              gap: 18px;
             }
             .branch-info-card h2 {
               font-size: 30px;
