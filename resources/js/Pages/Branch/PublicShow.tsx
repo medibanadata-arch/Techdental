@@ -441,8 +441,8 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             box-shadow: 0 4px 14px rgba(0,0,0,0.25);
           }
           .hero-stage h1 {
-            margin: 14px 0 6px;
-            font-size: 48px;
+            margin: 12px 0 0;
+            font-size: 46px;
             line-height: 1.05;
             font-weight: 800;
             letter-spacing: -.025em;
@@ -751,15 +751,12 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               font-size: 12.5px;
             }
             .hero-stage h1 {
-              font-size: 34px;
-              margin: 12px 0 6px;
-            }
-            .hero-stage-addr {
-              font-size: 13.5px;
-              line-height: 1.4;
+              font-size: 32px;
+              margin: 8px 0 0;
+              line-height: 1.15;
             }
             .hero-stage-ctrl {
-              margin-top: 18px;
+              margin-top: 12px;
               justify-content: space-between;
             }
             .hero-counter {
