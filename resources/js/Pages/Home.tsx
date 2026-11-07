@@ -473,11 +473,13 @@ export default function Home({
               <a
                 key={pKey}
                 href={`tel:${cleanTel}`}
-                className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-md underline underline-offset-2 transition mx-0.5 cursor-pointer"
+                className="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200/90 hover:border-blue-400 px-3 py-1 rounded-full shadow-2xs hover:shadow-xs transition-all duration-200 no-underline mx-1 align-middle group cursor-pointer"
                 title={`এখনই কল করুন: ${cleanTel}`}
               >
-                <i className="fa-solid fa-phone text-[11px]" />
-                <span>{pPart}</span>
+                <span className="w-5 h-5 rounded-full bg-blue-600 group-hover:bg-blue-700 text-white flex items-center justify-center text-[9px] group-hover:scale-110 transition-transform shadow-2xs shrink-0">
+                  <i className="fa-solid fa-phone text-[9px]" />
+                </span>
+                <span className="tracking-wide text-xs sm:text-[13px] font-bold font-sans">{pPart}</span>
               </a>
             );
           }
