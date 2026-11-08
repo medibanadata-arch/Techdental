@@ -23,14 +23,18 @@ class BranchController extends Controller
             ->orWhere('id', $slug)
             ->firstOrFail();
 
-        $gallery = FeaturedImage::where('branch', $branch->short_name ?? $branch->name)
-            ->where('is_active', true)
+        $branchKey = strtolower(trim(str_ireplace(['branch', '-'], ['', ''], $branch->slug ?? $branch->short_name ?? $branch->name)));
+
+        $gallery = FeaturedImage::where('is_active', true)
+            ->where(function ($q) use ($branch, $branchKey) {
+                $q->where('branch', $branch->short_name)
+                  ->orWhere('branch', $branch->name)
+                  ->orWhere('branch', $branch->slug)
+                  ->orWhere('branch', 'like', "%{$branchKey}%")
+                  ->orWhere('branch', 'all');
+            })
             ->orderBy('sort_order')
             ->get();
-
-        if ($gallery->isEmpty()) {
-            $gallery = FeaturedImage::where('is_active', true)->orderBy('sort_order')->take(4)->get();
-        }
 
         $doctors = Doctor::where('branch', 'LIKE', '%' . ($branch->short_name ?? $branch->name) . '%')
             ->orWhere('branch_location', ($branch->short_name ?? $branch->name))

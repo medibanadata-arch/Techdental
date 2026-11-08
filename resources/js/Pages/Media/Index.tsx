@@ -21,8 +21,11 @@ import {
     HardDrive,
     Layers,
     Download,
-    Save
+    Save,
+    RotateCw,
+    Crop
 } from 'lucide-react';
+import ImageCropperModal from '@/Components/ImagePicker/ImageCropperModal';
 import { PageProps } from '@inertiajs/core';
 
 interface MediaItem {
@@ -54,6 +57,48 @@ export default function MediaIndex({ media }: Props) {
     const [uploadStatusText, setUploadStatusText] = useState('');
     const [isDragging, setIsDragging] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [isRotating, setIsRotating] = useState(false);
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+
+    const handleRotateImage = async (id: number, degrees: number = 90) => {
+        setIsRotating(true);
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const res = await fetch(`/admin-api/media/${id}/rotate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ degrees }),
+            });
+            const data = await res.json();
+            if (data.success && data.url) {
+                setEditForm(prev => ({ ...prev, url: data.url }));
+                if (selectedMedia) {
+                    selectedMedia.url = data.url;
+                    if (data.dimensions) selectedMedia.dimensions = data.dimensions;
+                    if (data.file_size) selectedMedia.file_size = data.file_size;
+                }
+            } else {
+                alert(data.message || 'Failed to rotate image');
+            }
+        } catch (e: any) {
+            console.error('Rotate error:', e);
+            alert('Failed to rotate image. Please try again.');
+        } finally {
+            setIsRotating(false);
+        }
+    };
+
+    const handleCroppedComplete = (newUrl: string) => {
+        setEditForm(prev => ({ ...prev, url: newUrl }));
+        if (selectedMedia) {
+            selectedMedia.url = newUrl;
+        }
+        setIsCropperOpen(false);
+    };
 
     const [editForm, setEditForm] = useState({
         title: '',
@@ -493,6 +538,31 @@ export default function MediaIndex({ media }: Props) {
                                         )}
                                     </div>
 
+                                    {/* Image Rotate & Crop Action Bar */}
+                                    {getMediaType(selectedMedia) === 'image' && (
+                                        <div className="flex items-center gap-2 mt-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRotateImage(selectedMedia.id, 90)}
+                                                disabled={isRotating}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 shadow-2xs transition cursor-pointer disabled:opacity-50"
+                                                title="Rotate 90° Clockwise"
+                                            >
+                                                <RotateCw size={13} className={isRotating ? 'animate-spin text-[#800038]' : 'text-gray-600'} />
+                                                <span>{isRotating ? 'Rotating...' : 'Rotate 90°'}</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsCropperOpen(true)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 shadow-2xs transition cursor-pointer"
+                                                title="Crop & Resize image"
+                                            >
+                                                <Crop size={13} className="text-[#800038]" />
+                                                <span>Crop &amp; Edit</span>
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {/* File Specs Details Box */}
                                     <div className="bg-[#f0f4f9]/80 border border-[#e2e8f0] rounded-xl p-4 mt-4 space-y-1.5 text-xs text-[#334155]">
                                         <div>
@@ -718,6 +788,17 @@ export default function MediaIndex({ media }: Props) {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* Nested Interactive Image Cropper / Editor */}
+                {isCropperOpen && (
+                    <ImageCropperModal
+                        isOpen={isCropperOpen}
+                        onClose={() => setIsCropperOpen(false)}
+                        imageSrc={editForm.url || selectedMedia?.url}
+                        onCropComplete={handleCroppedComplete}
+                        title="Crop & Edit Media Photo"
+                    />
                 )}
             </div>
         </AdminLayout>

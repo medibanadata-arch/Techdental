@@ -236,7 +236,7 @@ export default function HomeContentAdminIndex({
         setGalleryForm({
             title: '',
             src: '',
-            badge: 'Mirpur',
+            badge: 'Homepage',
             alt: 'Clinic Life',
             view_count: '2,200',
             is_active: true,
@@ -689,15 +689,23 @@ export default function HomeContentAdminIndex({
                 <div className="space-y-4">
                     <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="text-xs text-gray-500 font-medium">
-                            Hero banner slider at the top of homepage. Click Up/Down arrows to rank images, or add and edit photos.
+                            Hero banner slider at the top of homepage. For branch-specific clinic sliders, manage them in <Link href="/featured-images" className="text-[#800038] font-bold underline">Featured Sliders</Link>.
                         </div>
-                        <button
-                            type="button"
-                            onClick={openAddGallery}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
-                        >
-                            <Plus size={15} /> Add Slider Image
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href="/featured-images"
+                                className="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition shadow-xs"
+                            >
+                                <Sliders size={14} /> All Sliders Manager
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={openAddGallery}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                            >
+                                <Plus size={15} /> Add Homepage Slider
+                            </button>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

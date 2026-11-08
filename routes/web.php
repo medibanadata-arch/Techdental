@@ -45,7 +45,16 @@ $homeHandler = function () {
             ->orderBy('published_at', 'desc')
             ->orderBy('id', 'desc')
             ->get(),
-        'featured_images' => \Illuminate\Support\Facades\DB::table('featured_images')->where('is_active', 1)->orderBy('sort_order')->get(),
+        'featured_images' => \Illuminate\Support\Facades\DB::table('featured_images')
+            ->where('is_active', 1)
+            ->where(function ($q) {
+                $q->where('branch', 'homepage')
+                  ->orWhere('branch', 'all')
+                  ->orWhereNull('branch')
+                  ->orWhere('branch', '');
+            })
+            ->orderBy('sort_order')
+            ->get(),
         'nav_menu' => \App\Models\NavMenu::first(),
         'home_content' => $homeContent,
         'ai_chips' => $aiChips,
@@ -102,6 +111,7 @@ Route::middleware('auth')->group(function () {
     Route::get('media/{id}/download', [MediaController::class, 'download'])->name('media.download');
     Route::get('admin-api/media', [MediaController::class, 'apiIndex'])->name('admin.api.media');
     Route::post('admin-api/media/upload', [MediaController::class, 'apiUpload'])->name('admin.api.media.upload');
+    Route::post('admin-api/media/{id}/rotate', [MediaController::class, 'rotate'])->name('admin.api.media.rotate');
     Route::resource('media', MediaController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('doctors/reorder', [DoctorController::class, 'reorder'])->name('doctors.reorder');
     Route::resource('doctors', DoctorController::class)->except(['index', 'show']);
@@ -185,7 +195,10 @@ Route::get('/gallery', function () {
     return Inertia::render('Gallery/PublicIndex', [
         'locations' => \Illuminate\Support\Facades\DB::table('locations')->orderBy('sort_order')->orderBy('id')->get(),
         'nav_menu' => \App\Models\NavMenu::first(),
-        'featured_images' => \Illuminate\Support\Facades\DB::table('featured_images')->where('is_active', 1)->orderBy('sort_order')->get(),
+        'featured_images' => \Illuminate\Support\Facades\DB::table('featured_images')
+            ->where('is_active', 1)
+            ->orderBy('sort_order')
+            ->get(),
     ]);
 })->name('gallery.public');
 Route::get('/photos', fn() => redirect('/gallery', 301));

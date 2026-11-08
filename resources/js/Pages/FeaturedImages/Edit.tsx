@@ -1,38 +1,65 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { ArrowLeft, Save, Eye, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, MapPin } from 'lucide-react';
 import MediaImagePicker from '@/components/ImagePicker/MediaImagePicker';
 import { PageProps } from '@inertiajs/core';
+
+interface LocationItem {
+    id: number;
+    name: string;
+    short_name?: string;
+    slug?: string;
+}
 
 interface ImageItem {
     id: number;
     title: string;
     src: string;
-    branch: string;
-    badge: string;
-    alt: string;
-    sort_order: number;
-    view_count: number;
-    real_views?: number;
+    branch?: string;
+    badge?: string;
+    alt?: string;
+    sort_order?: number;
+    is_active?: boolean;
 }
 
 interface Props extends PageProps {
     image: ImageItem;
+    locations?: LocationItem[];
 }
 
-export default function FeaturedImagesEdit({ image }: Props) {
+export default function FeaturedImagesEdit({ image, locations = [] }: Props) {
+    const rawBranch = (image.branch || image.badge || 'homepage').toLowerCase();
+    const initialBranch = rawBranch.includes('uttara')
+        ? 'uttara'
+        : rawBranch.includes('mirpur')
+        ? 'mirpur'
+        : rawBranch.includes('badda')
+        ? 'badda'
+        : rawBranch.includes('jatrabari')
+        ? 'jatrabari'
+        : rawBranch === 'all'
+        ? 'all'
+        : 'homepage';
+
     const { data, setData, put, processing, errors } = useForm({
         title: image.title || '',
         src: image.src || '',
-        branch: image.branch || image.badge || 'Mirpur',
-        badge: image.branch || image.badge || 'Mirpur',
+        branch: initialBranch,
+        badge: image.badge || (initialBranch === 'homepage' ? 'Homepage' : 'Branch'),
         alt: image.alt || '',
         type: 'half-size',
         sort_order: image.sort_order || 1,
-        view_count: image.view_count || 500,
-        is_active: 1,
+        is_active: image.is_active !== false ? 1 : 0,
     });
+
+    const handleBranchChange = (newBranch: string) => {
+        setData((prev) => ({
+            ...prev,
+            branch: newBranch,
+            badge: newBranch === 'homepage' ? 'Homepage' : (newBranch === 'all' ? 'All' : `${newBranch.replace('branch', '').trim()} Branch`),
+        }));
+    };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,35 +68,63 @@ export default function FeaturedImagesEdit({ image }: Props) {
 
     return (
         <AdminLayout>
-            <Head title={`Edit Image #${image.id} - Tech Dental`} />
+            <Head title={`Edit Slider Image #${image.id} - Tech Dental`} />
 
             <div className="max-w-3xl mx-auto space-y-6">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Link
-                            href={route('featured-images.index')}
+                            href={route('featured-images.index', { branch: data.branch })}
                             className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
                         >
                             <ArrowLeft size={16} />
                         </Link>
-                        <h1 className="text-xl font-bold text-gray-900">Edit Featured Image</h1>
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-900">Edit Slider Image</h1>
+                            <p className="text-xs text-gray-500">Configure slider image placement &amp; attributes</p>
+                        </div>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-xs">
                     <form onSubmit={submit} className="space-y-4">
+                        {/* Target Placement / Branch Selector */}
+                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                            <label className="block text-xs font-bold text-gray-800 mb-1.5 flex items-center gap-1.5">
+                                <MapPin size={14} className="text-[#800038]" />
+                                <span>Where will this slider appear? *</span>
+                            </label>
+                            <select
+                                value={data.branch}
+                                onChange={(e) => handleBranchChange(e.target.value)}
+                                className="w-full text-xs font-semibold bg-white border border-gray-300 rounded-xl px-3.5 py-2.5 focus:ring-1 focus:ring-[#800038] focus:border-[#800038] focus:outline-none"
+                            >
+                                <option value="homepage">🏠 Homepage Main Slider (Hero Banner)</option>
+                                <option value="mirpur">📍 Mirpur Branch Slider</option>
+                                <option value="uttara">📍 Uttara Branch Slider</option>
+                                <option value="badda">📍 Badda Branch Slider</option>
+                                <option value="jatrabari">📍 Jatrabari Branch Slider</option>
+                                <option value="all">🌐 All Pages (Shared across Homepage &amp; Branches)</option>
+                            </select>
+                            {errors.branch && <span className="text-red-500 text-xs mt-1 block">{errors.branch}</span>}
+                            <p className="text-[11px] text-gray-500 mt-1.5">
+                                Images uploaded for Homepage will only appear on the main website. Branch sliders will only appear on that branch's page.
+                            </p>
+                        </div>
+
+                        {/* Image picker */}
                         <MediaImagePicker
-                            label="Featured Image *"
+                            label="Slider Image *"
                             value={data.src}
                             onChange={(val) => setData('src', val)}
                             aspectRatio="16:9"
-                            helperText="Recommended 16:9 or 4:3 for branch / clinic showcase"
+                            helperText="Recommended 16:9 ratio for responsive desktop & mobile display"
                         />
                         {errors.src && <span className="text-red-500 text-xs">{errors.src}</span>}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1">Title</label>
+                                <label className="block text-xs font-bold text-gray-700 mb-1">Title (optional)</label>
                                 <input
                                     type="text"
                                     value={data.title}
@@ -101,7 +156,7 @@ export default function FeaturedImagesEdit({ image }: Props) {
 
                         {data.src && (
                             <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                                <span className="text-[11px] font-bold text-gray-500 block mb-2">Current Image:</span>
+                                <span className="text-[11px] font-bold text-gray-500 block mb-2">Live Preview:</span>
                                 <img src={data.src} alt="Preview" className="h-40 rounded-lg object-cover" />
                             </div>
                         )}
@@ -110,10 +165,10 @@ export default function FeaturedImagesEdit({ image }: Props) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="inline-flex items-center gap-2 bg-[#800038] hover:bg-[#990044] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all"
+                                className="inline-flex items-center gap-2 bg-[#800038] hover:bg-[#990044] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
                             >
                                 <Save size={15} />
-                                <span>Update Featured Image</span>
+                                <span>{processing ? 'Saving...' : 'Update Slider Image'}</span>
                             </button>
                         </div>
                     </form>

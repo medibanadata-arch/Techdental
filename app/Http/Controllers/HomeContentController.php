@@ -69,7 +69,12 @@ class HomeContentController extends Controller
 
         $data = [
             'content' => $content,
-            'gallery' => FeaturedImage::orderBy('sort_order')->orderBy('id')->get(),
+            'gallery' => FeaturedImage::where(function ($q) {
+                $q->where('branch', 'homepage')
+                  ->orWhere('branch', 'all')
+                  ->orWhereNull('branch')
+                  ->orWhere('branch', '');
+            })->orderBy('sort_order')->orderBy('id')->get(),
             'branches' => $branches,
             'doctors' => $doctors,
             'services' => $services,
@@ -165,6 +170,8 @@ class HomeContentController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
         $data = array_filter($validated, fn($v) => $v !== null);
+        $data['branch'] = 'homepage';
+        $data['badge'] = 'Homepage';
         $data['sort_order'] = (FeaturedImage::max('sort_order') ?? 0) + 1;
         if (isset($data['view_count'])) {
             $data['view_count'] = (int) preg_replace('/[^\d]/', '', (string)$data['view_count']);

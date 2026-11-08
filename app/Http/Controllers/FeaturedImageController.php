@@ -8,9 +8,34 @@ use Inertia\Inertia;
 
 class FeaturedImageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return redirect()->route('homepage.admin');
+        $branch = $request->query('branch', 'all');
+        $query = FeaturedImage::orderBy('sort_order')->orderBy('id', 'desc');
+
+        if ($branch && $branch !== 'all') {
+            if ($branch === 'homepage') {
+                $query->where(function ($q) {
+                    $q->where('branch', 'homepage')
+                      ->orWhereNull('branch')
+                      ->orWhere('branch', '');
+                });
+            } else {
+                $branchKey = strtolower(trim(str_ireplace('branch', '', $branch)));
+                $query->where(function ($q) use ($branch, $branchKey) {
+                    $q->where('branch', $branch)
+                      ->orWhere('branch', 'like', "%{$branchKey}%");
+                });
+            }
+        }
+
+        $locations = \App\Models\Location::orderBy('sort_order')->get();
+
+        return Inertia::render('FeaturedImages/Index', [
+            'images' => $query->get(),
+            'locations' => $locations,
+            'selectedBranch' => $branch,
+        ]);
     }
 
     public function incrementRealView($id)
@@ -26,9 +51,14 @@ class FeaturedImageController extends Controller
         return response()->json(['success' => false, 'message' => 'Image not found'], 404);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return Inertia::render('FeaturedImages/Create');
+        $branch = $request->query('branch', 'homepage');
+        $locations = \App\Models\Location::orderBy('sort_order')->get();
+        return Inertia::render('FeaturedImages/Create', [
+            'locations' => $locations,
+            'defaultBranch' => $branch,
+        ]);
     }
 
     public function store(Request $request)
@@ -37,7 +67,7 @@ class FeaturedImageController extends Controller
             'title' => 'nullable|string',
             'src' => 'required|string',
             'badge' => 'nullable|string',
-            'branch' => 'nullable|string',
+            'branch' => 'required|string',
             'alt' => 'nullable|string',
             'type' => 'nullable|string',
             'sort_order' => 'nullable|integer',
@@ -45,11 +75,8 @@ class FeaturedImageController extends Controller
             'view_count' => 'nullable',
         ]);
 
-        if (empty($validated['branch']) && !empty($validated['badge'])) {
-            $validated['branch'] = $validated['badge'];
-        }
-        if (empty($validated['badge']) && !empty($validated['branch'])) {
-            $validated['badge'] = $validated['branch'];
+        if (empty($validated['badge'])) {
+            $validated['badge'] = $validated['branch'] === 'homepage' ? 'Homepage' : ucfirst($validated['branch']);
         }
         if (empty($validated['sort_order'])) {
             $validated['sort_order'] = FeaturedImage::count() + 1;
@@ -65,13 +92,18 @@ class FeaturedImageController extends Controller
 
         FeaturedImage::create($validated);
 
-        return redirect()->route('featured-images.index')->with('success', 'Featured image added successfully');
+        return redirect()->route('featured-images.index', ['branch' => $validated['branch']])
+            ->with('success', 'Slider image added successfully');
     }
 
     public function edit($id)
     {
         $image = FeaturedImage::findOrFail($id);
-        return Inertia::render('FeaturedImages/Edit', ['image' => $image]);
+        $locations = \App\Models\Location::orderBy('sort_order')->get();
+        return Inertia::render('FeaturedImages/Edit', [
+            'image' => $image,
+            'locations' => $locations,
+        ]);
     }
 
     public function update(Request $request, $id)
@@ -82,7 +114,7 @@ class FeaturedImageController extends Controller
             'title' => 'nullable|string',
             'src' => 'required|string',
             'badge' => 'nullable|string',
-            'branch' => 'nullable|string',
+            'branch' => 'required|string',
             'alt' => 'nullable|string',
             'type' => 'nullable|string',
             'sort_order' => 'nullable|integer',
@@ -94,16 +126,14 @@ class FeaturedImageController extends Controller
             $validated['view_count'] = (int) preg_replace('/[^\d]/', '', (string)$validated['view_count']);
         }
 
-        if (empty($validated['branch']) && !empty($validated['badge'])) {
-            $validated['branch'] = $validated['badge'];
-        }
-        if (empty($validated['badge']) && !empty($validated['branch'])) {
-            $validated['badge'] = $validated['branch'];
+        if (empty($validated['badge'])) {
+            $validated['badge'] = $validated['branch'] === 'homepage' ? 'Homepage' : ucfirst($validated['branch']);
         }
 
         $image->update($validated);
 
-        return redirect()->route('featured-images.index')->with('success', 'Featured image updated successfully');
+        return redirect()->route('featured-images.index', ['branch' => $validated['branch']])
+            ->with('success', 'Slider image updated successfully');
     }
 
     public function destroy($id)

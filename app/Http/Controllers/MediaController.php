@@ -326,6 +326,80 @@ class MediaController extends Controller
         return redirect()->route('media.index')->with('success', 'Media details updated successfully');
     }
 
+    public function rotate(Request $request, $id)
+    {
+        $media = Media::findOrFail($id);
+        $degrees = (int) $request->input('degrees', 90);
+        // GD rotates counter-clockwise for positive angles, so for clockwise:
+        $gdAngle = (360 - ($degrees % 360)) % 360;
+
+        $url = $media->url;
+        $cleanPath = parse_url($url, PHP_URL_PATH);
+
+        if (str_starts_with($cleanPath, '/uploads/')) {
+            $filePath = public_path(ltrim($cleanPath, '/'));
+            if (File::exists($filePath)) {
+                $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+                $source = null;
+                switch ($ext) {
+                    case 'jpg':
+                    case 'jpeg':
+                        $source = @imagecreatefromjpeg($filePath);
+                        break;
+                    case 'png':
+                        $source = @imagecreatefrompng($filePath);
+                        if ($source) {
+                            imagepalettetotruecolor($source);
+                            imagealphablending($source, false);
+                            imagesavealpha($source, true);
+                        }
+                        break;
+                    case 'webp':
+                        $source = @imagecreatefromwebp($filePath);
+                        break;
+                }
+
+                if ($source) {
+                    $rotated = imagerotate($source, $gdAngle, 0);
+                    imagedestroy($source);
+
+                    if ($rotated) {
+                        if ($ext === 'png') {
+                            imagealphablending($rotated, false);
+                            imagesavealpha($rotated, true);
+                            imagepng($rotated, $filePath);
+                        } elseif ($ext === 'webp') {
+                            imagewebp($rotated, $filePath, 90);
+                        } else {
+                            imagejpeg($rotated, $filePath, 90);
+                        }
+
+                        $newW = imagesx($rotated);
+                        $newH = imagesy($rotated);
+                        imagedestroy($rotated);
+
+                        $media->dimensions = "{$newW} by {$newH} pixels";
+                        $media->file_size = round(filesize($filePath) / 1024, 1) . ' KB';
+                        $media->save();
+
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Image rotated successfully',
+                            'url' => $cleanPath . '?t=' . time(),
+                            'dimensions' => $media->dimensions,
+                            'file_size' => $media->file_size,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Unable to rotate image. File might be remote or unsupported format.',
+        ], 422);
+    }
+
     public function download($id)
     {
         $media = Media::findOrFail($id);

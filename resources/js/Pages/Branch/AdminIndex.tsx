@@ -223,8 +223,12 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
         });
     };
 
+    const branchKey = (selectedBranch?.slug || selectedBranch?.short_name || selectedBranch?.name || '').toLowerCase().replace('branch', '').trim();
     const branchDoctors = doctors.filter(d => (d.branch || '').toLowerCase().includes((selectedBranch?.short_name || selectedBranch?.name || '').toLowerCase()));
-    const branchGallery = gallery.filter(g => (g.branch || '').toLowerCase().includes((selectedBranch?.short_name || selectedBranch?.name || '').toLowerCase())).slice(0, 8);
+    const branchGallery = gallery.filter(g => {
+        const gb = (g.branch || '').toLowerCase();
+        return gb === 'all' || (branchKey && gb.includes(branchKey));
+    });
 
     return (
         <AdminLayout>
@@ -749,30 +753,51 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
                                 <div>
                                     <h2 className="text-base font-bold text-gray-900">
-                                        {selectedBranch.name} Operatory &amp; Clinic Showcase
+                                        {selectedBranch.name} Slider &amp; Clinic Showcase ({branchGallery.length})
                                     </h2>
-                                    <p className="text-xs text-gray-500">Selected clinic interior and treatment operatory photos.</p>
+                                    <p className="text-xs text-gray-500">Dedicated slider &amp; interior photos for {selectedBranch.name}.</p>
                                 </div>
-                                <a
-                                    href="/featured-images"
-                                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold transition shadow-2xs"
-                                >
-                                    <ImageIcon size={14} /> Manage Clinic Sliders &amp; Photos
-                                </a>
+                                <div className="flex items-center gap-2">
+                                    <Link
+                                        href={route('featured-images.create', { branch: branchKey })}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#800038] hover:bg-[#990044] text-white rounded-xl text-xs font-bold transition shadow-2xs"
+                                    >
+                                        <Plus size={14} /> Add Slider for {selectedBranch.short_name || selectedBranch.name}
+                                    </Link>
+                                    <Link
+                                        href={route('featured-images.index', { branch: branchKey })}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition"
+                                    >
+                                        <ImageIcon size={14} /> Manage Sliders
+                                    </Link>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {gallery.length === 0 ? (
+                                {branchGallery.length === 0 ? (
                                     <div className="col-span-full py-12 text-center bg-gray-50/80 rounded-2xl border border-dashed border-gray-200 p-6">
                                         <ImageIcon size={32} className="mx-auto text-gray-300 mb-2" />
-                                        <p className="text-xs font-bold text-gray-600">No photos found in gallery.</p>
+                                        <p className="text-xs font-bold text-gray-700">No sliders uploaded for {selectedBranch.name} yet.</p>
+                                        <p className="text-xs text-gray-500 mt-1 mb-3">Homepage sliders will not be mixed here.</p>
+                                        <Link
+                                            href={route('featured-images.create', { branch: branchKey })}
+                                            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#800038] hover:bg-[#990044] text-white rounded-xl text-xs font-bold transition"
+                                        >
+                                            <Plus size={14} /> Upload First Slider for this Branch
+                                        </Link>
                                     </div>
                                 ) : (
-                                    gallery.slice(0, 12).map((img, idx) => (
+                                    branchGallery.map((img, idx) => (
                                         <div key={idx} className="rounded-xl overflow-hidden border border-gray-200 bg-gray-100 aspect-video relative group shadow-2xs">
                                             <img src={img.src || img.url} alt={img.title || 'Clinic'} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold p-2 text-center">
-                                                {img.title || 'Operatory'}
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-white text-xs font-bold p-2 text-center gap-2">
+                                                <span>{img.title || 'Branch Slider'}</span>
+                                                <Link
+                                                    href={route('featured-images.edit', img.id)}
+                                                    className="px-2.5 py-1 bg-white/20 hover:bg-white/40 text-white rounded-md text-[10px] font-semibold"
+                                                >
+                                                    Edit Slider
+                                                </Link>
                                             </div>
                                         </div>
                                     ))

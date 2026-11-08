@@ -3,6 +3,7 @@ import {
     X,
     Check,
     RotateCw,
+    RotateCcw,
     ZoomIn,
     ZoomOut,
     Crop as CropIcon,
@@ -227,6 +228,28 @@ export default function ImageCropperModal({
         };
     }, [isDragging, handleMouseMove, handleMouseUp]);
 
+    // Rotate image directly on canvas to ensure bounding box, preview and output are 100% synchronized
+    const handleRotate = useCallback((angle: number = 90) => {
+        if (!imgRef.current) return;
+        const sourceImg = imgRef.current;
+        const canvas = document.createElement('canvas');
+        const isSwap = Math.abs(angle % 180) === 90;
+        canvas.width = isSwap ? (sourceImg.naturalHeight || sourceImg.height) : (sourceImg.naturalWidth || sourceImg.width);
+        canvas.height = isSwap ? (sourceImg.naturalWidth || sourceImg.width) : (sourceImg.naturalHeight || sourceImg.height);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((angle * Math.PI) / 180);
+        ctx.drawImage(sourceImg, -sourceImg.naturalWidth / 2, -sourceImg.naturalHeight / 2);
+        try {
+            const rotatedDataUrl = canvas.toDataURL('image/webp', 0.95);
+            setRawImageSrc(rotatedDataUrl);
+            setRotation(0);
+        } catch (err) {
+            console.error('Failed to rotate canvas:', err);
+        }
+    }, []);
+
     // Live preview update
     useEffect(() => {
         if (!imgRef.current || !containerRef.current || !previewCanvasRef.current) return;
@@ -275,24 +298,31 @@ export default function ImageCropperModal({
 
     // Upload original file directly without cropping
     const handleUploadOriginal = async () => {
-        if (!imageFile) {
-            if (rawImageSrc) {
-                if (typeof onCropComplete === 'function') onCropComplete(rawImageSrc);
-                if (typeof onSelectImage === 'function') onSelectImage(rawImageSrc);
-                if (typeof onSelect === 'function') onSelect(rawImageSrc);
-                onClose();
-            }
-            return;
-        }
-
         setIsUploading(true);
         setErrorMsg('');
 
         try {
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const formData = new FormData();
-            formData.append('file', imageFile);
-            formData.append('title', imageFile.name.replace(/\.[^/.]+$/, ''));
+
+            if (rawImageSrc && rawImageSrc.startsWith('data:')) {
+                const res = await fetch(rawImageSrc);
+                const blob = await res.blob();
+                const fileName = (imageFile?.name ? imageFile.name.replace(/\.[^/.]+$/, '') : 'image') + '.webp';
+                formData.append('file', blob, fileName);
+                formData.append('title', fileName.replace('.webp', ''));
+            } else if (imageFile) {
+                formData.append('file', imageFile);
+                formData.append('title', imageFile.name.replace(/\.[^/.]+$/, ''));
+            } else if (rawImageSrc) {
+                if (typeof onCropComplete === 'function') onCropComplete(rawImageSrc);
+                if (typeof onSelectImage === 'function') onSelectImage(rawImageSrc);
+                if (typeof onSelect === 'function') onSelect(rawImageSrc);
+                onClose();
+                return;
+            } else {
+                return;
+            }
 
             const res = await fetch('/admin-api/media/upload', {
                 method: 'POST',
@@ -455,7 +485,7 @@ export default function ImageCropperModal({
                                         onLoad={() => resetCropBox(aspect)}
                                         className="w-full h-full object-contain pointer-events-none"
                                         style={{
-                                            transform: `rotate(${rotation}deg) scale(${zoom})`,
+                                            transform: `scale(${zoom})`,
                                             transition: isDragging ? 'none' : 'transform 0.15s ease',
                                         }}
                                     />
@@ -524,14 +554,26 @@ export default function ImageCropperModal({
                                 <span className="text-[11px] font-bold w-10 text-gray-700">{(zoom).toFixed(1)}x</span>
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() => setRotation((r) => (r + 90) % 360)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold transition cursor-pointer"
-                            >
-                                <RotateCw size={13} />
-                                <span>Rotate 90°</span>
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => handleRotate(-90)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold transition cursor-pointer"
+                                    title="Rotate 90° counter-clockwise"
+                                >
+                                    <RotateCcw size={13} />
+                                    <span>-90°</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleRotate(90)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-semibold transition cursor-pointer"
+                                    title="Rotate 90° clockwise"
+                                >
+                                    <RotateCw size={13} />
+                                    <span>Rotate 90°</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
