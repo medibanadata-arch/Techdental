@@ -155,49 +155,13 @@ export default function Home({
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const modalChatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Gallery sliding & lightbox preview state
+  // Gallery & Video Preview State
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
-  const galleryRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeftState, setScrollLeftState] = useState(0);
-  const [hasDragged, setHasDragged] = useState(false);
-
-  const scrollGallery = (direction: 'left' | 'right') => {
-    if (!galleryRef.current) return;
-    const scrollAmount = 340;
-    galleryRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    });
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!galleryRef.current) return;
-    setIsDragging(true);
-    setHasDragged(false);
-    setStartX(e.pageX - galleryRef.current.offsetLeft);
-    setScrollLeftState(galleryRef.current.scrollLeft);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !galleryRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - galleryRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    if (Math.abs(walk) > 5) {
-      setHasDragged(true);
-    }
-    galleryRef.current.scrollLeft = scrollLeftState - walk;
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
+  const [previewVideo, setPreviewVideo] = useState<{ videoId: string; title?: string; branch?: string } | null>(null);
+  const [showAllImages, setShowAllImages] = useState(false);
+  const [selectedGalleryBranch, setSelectedGalleryBranch] = useState("All");
+  const [showAllVideos, setShowAllVideos] = useState(false);
+  const [selectedVideoBranch, setSelectedVideoBranch] = useState("All");
 
   // Modal State for external actions
   const [modal, setModal] = useState<ModalState>({
@@ -267,16 +231,16 @@ export default function Home({
   }
   const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent("হ্যালো টেক ডেন্টাল, আমি চিকিৎসার বিষয়ে জানতে চাচ্ছি।")}`;
 
-  // Suggested Chips from backend or fallback
+  // Suggested Chips from backend or fallback (excluding crossed out items)
   const suggestedChips = useMemo(() => {
-    if (Array.isArray(ai_chips) && ai_chips.length > 0) {
-      return ai_chips;
-    }
-    return [
-      "শাখার ঠিকানা কোথায়?",
-      "ফাঁকা দাঁতের চিকিৎসা",
-      "দাঁত ব্যথার চিকিৎসা",
-    ];
+    const list = Array.isArray(ai_chips) && ai_chips.length > 0
+      ? ai_chips
+      : [
+          "শাখার ঠিকানা কোথায়?",
+          "ফাঁকা দাঁতের চিকিৎসা",
+          "দাঁত ব্যথার চিকিৎসা",
+        ];
+    return list.filter((c: string) => !c.includes("ইমপ্ল্যান্ট"));
   }, [ai_chips]);
 
   const isChatActive = isWidgetOpen && (chatMessages.length > 0 || isAiLoading);
@@ -309,13 +273,106 @@ export default function Home({
         id: 3,
         title: "উন্নত ও আরামদায়ক চিকিৎসা পরিবেশ",
         src: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80",
-        branch: "Uttara",
+        branch: "Mirpur",
         badge: "বিশেষজ্ঞ পরামর্শ কেন্দ্র",
         badgeColor: "bg-[#059669]",
         view_count: 2237,
       },
+      {
+        id: 4,
+        title: "ডিজিটাল ইন্ট্রাওরাল স্ক্যানিং রুম",
+        src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
+        branch: "Uttara",
+        badge: "ডিজিটাল স্ক্যানিং",
+        badgeColor: "bg-[#0284c7]",
+        view_count: 3105,
+      },
     ];
   }, [featured_images]);
+
+  const imageBranches = useMemo(() => {
+    const list = Array.from(new Set(galleryItems.map((item: any) => item.branch || item.badge || "Uttara").filter(Boolean)));
+    return ["All", ...list];
+  }, [galleryItems]);
+
+  const filteredImages = useMemo(() => {
+    if (selectedGalleryBranch === "All") return galleryItems;
+    return galleryItems.filter((item: any) => (item.branch || item.badge || "Uttara") === selectedGalleryBranch);
+  }, [galleryItems, selectedGalleryBranch]);
+
+  const displayedImages = showAllImages ? filteredImages : filteredImages.slice(0, 4);
+
+  // Video Gallery items matching screenshot style
+  const videoGalleryItems = useMemo(() => [
+    {
+      id: 1,
+      videoId: "szdRKLSLzOE",
+      title: "আল্ট্রাসনিক স্কেলিং ও আধুনিক পলিশিং",
+      branch: "Mirpur",
+      views: 3420,
+    },
+    {
+      id: 2,
+      videoId: "szdRKLSLzOE",
+      title: "কম্পিউটারাইজড পেইনলেস রুট ক্যানেল",
+      branch: "Uttara",
+      views: 2850,
+    },
+    {
+      id: 3,
+      videoId: "szdRKLSLzOE",
+      title: "জার্মান প্রযুক্তির ডেন্টাল ইমপ্ল্যান্ট সার্জারি",
+      branch: "Badda",
+      views: 4120,
+    },
+    {
+      id: 4,
+      videoId: "szdRKLSLzOE",
+      title: "দাঁত ফাঁকা ও আঁকাবাঁকা চিকিৎসা (ব্রেসেস)",
+      branch: "Mirpur",
+      views: 2190,
+    },
+    {
+      id: 5,
+      videoId: "szdRKLSLzOE",
+      title: "ডিজিটাল স্মাইল ডিজাইন ও ভিনিয়ার্স",
+      branch: "Uttara",
+      views: 2640,
+    },
+    {
+      id: 6,
+      videoId: "szdRKLSLzOE",
+      title: "বাচ্চাদের দাঁতের যত্ন ও ক্যাভিটি ফিলিং",
+      branch: "Badda",
+      views: 1850,
+    },
+    {
+      id: 7,
+      videoId: "szdRKLSLzOE",
+      title: "আধুনিক ডিজিটাল ৩ডি ওপিজি এক্স-রে রুম",
+      branch: "Uttara",
+      views: 3200,
+    },
+    {
+      id: 8,
+      videoId: "szdRKLSLzOE",
+      title: "ক্লাস-বি অটোক্লেভ ১০০% জীবাণুমুক্তকরণ ব্যবস্থা",
+      branch: "Mirpur",
+      views: 2950,
+    },
+  ], []);
+
+  const videoBranches = useMemo(() => {
+    const list = Array.from(new Set(videoGalleryItems.map(item => item.branch)));
+    return ["All", ...list];
+  }, [videoGalleryItems]);
+
+  const filteredVideos = useMemo(() => {
+    if (selectedVideoBranch === "All") return videoGalleryItems;
+    return videoGalleryItems.filter(item => item.branch === selectedVideoBranch);
+  }, [videoGalleryItems, selectedVideoBranch]);
+
+  const displayedVideos = showAllVideos ? filteredVideos : filteredVideos.slice(0, 4);
 
   // Keyboard navigation for image lightbox
   useEffect(() => {
@@ -806,21 +863,16 @@ export default function Home({
       <div className="w-full max-w-5xl mx-auto px-4 py-6 md:py-10 flex-grow flex flex-col justify-between">
 
         {/* Top Section: AI Assistant Box */}
-        <header className="w-full max-w-2xl mx-auto text-center flex flex-col items-center mb-10 md:mb-14 pt-2 md:pt-4">
+        <header className="w-full max-w-2xl mx-auto text-center flex flex-col items-center mb-6 md:mb-8 pt-2 md:pt-4">
 
-          {/* Teeth Logo */}
-          <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-blue-500 drop-shadow-md mb-8 md:mb-10 animate-pulse">
-            <i className="fa-solid fa-tooth text-5xl md:text-6xl" />
-          </div>
-
-          {/* Title */}
-          <h1 className={`text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-snug ${isChatActive ? 'mb-4 md:mb-6' : 'mb-8 md:mb-10'}`}>
-            টেক ডেন্টালের চিকিৎসা বিষয়ে কিভাবে সাহায্য করতে পারি?
+          {/* Title - One Line */}
+          <h1 className={`text-xl sm:text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-normal whitespace-nowrap ${isChatActive ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}>
+            কিভাবে সাহায্য করতে পারি?
           </h1>
 
           {/* Suggested Questions / Chips (Dynamically from Admin Dashboard) - Hidden when chat is active */}
           {!isChatActive && (
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-3 mb-8 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-3 mb-6 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
               {suggestedChips.map((chip, idx) => (
                 <button
                   key={idx}
@@ -958,46 +1010,103 @@ export default function Home({
           </div>
         </header>
 
-        {/* Middle Section: Screenshot-like Images & Banners */}
-        <section className="w-full mb-10 md:mb-14 pt-6 border-t border-slate-200/40">
-          <div className="flex items-center justify-between mb-5 px-1">
-            <h2 className="text-base md:text-xl font-bold text-slate-800 flex items-center gap-2">
-              আমাদের শাখাসমূহ ও আধুনিক প্রযুক্তি
+        {/* Quick Action CTA Buttons (Call, Directions, WhatsApp, Book) - Above Image Section */}
+        <div className="flex justify-between items-center max-w-[340px] mx-auto my-6 md:my-8 w-full px-2">
+
+          {/* Call CTA */}
+          <button
+            type="button"
+            onClick={() => handleActionModal("Call")}
+            className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
+          >
+            <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
+              <i className="fa-solid fa-phone text-[#1a73e8] text-xl" />
+            </div>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">Call</span>
+          </button>
+
+          {/* Directions CTA */}
+          <button
+            type="button"
+            onClick={() => handleActionModal("Directions")}
+            className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
+          >
+            <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-[22px] h-[22px] text-[#1a73e8]"
+              >
+                <polygon points="3 11 22 2 13 21 11 13 3 11" />
+              </svg>
+            </div>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">Directions</span>
+          </button>
+
+          {/* WhatsApp CTA */}
+          <button
+            type="button"
+            onClick={() => handleActionModal("WhatsApp")}
+            className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
+          >
+            <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
+              <i className="fa-brands fa-whatsapp text-[#25d366] text-2xl" />
+            </div>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">WhatsApp</span>
+          </button>
+
+          {/* Book CTA */}
+          <button
+            type="button"
+            onClick={() => handleActionModal("Book")}
+            className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
+          >
+            <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
+              <i className="fa-regular fa-calendar-check text-[#881337] text-xl" />
+            </div>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">Book</span>
+          </button>
+
+        </div>
+
+        {/* ========================================== */}
+        {/* TECH DENTAL IMAGE GALLERY */}
+        {/* Web: 4 images, no slide. Dropdown + More Images button */}
+        {/* ========================================== */}
+        <section className="w-full mb-10 md:mb-14 pt-6 border-t border-slate-200/50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 px-1">
+            <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
+              <i className="fa-solid fa-images text-blue-600" />
+              <span>Tech Dental Image Gallery</span>
             </h2>
-            {/* Slide Navigation Arrows for web & desktop */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => scrollGallery('left')}
-                className="w-8 h-8 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 flex items-center justify-center transition shadow-2xs hover:shadow-xs cursor-pointer active:scale-95"
-                title="বামে স্লাইড করুন"
-                aria-label="Previous slide"
+
+            {/* Branch Filter Dropdown */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <label htmlFor="imageBranchFilter" className="text-xs font-semibold text-slate-500 whitespace-nowrap">
+                শাখা:
+              </label>
+              <select
+                id="imageBranchFilter"
+                value={selectedGalleryBranch}
+                onChange={(e) => setSelectedGalleryBranch(e.target.value)}
+                className="bg-white border border-slate-200 hover:border-blue-400 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-2xs cursor-pointer"
               >
-                <i className="fa-solid fa-chevron-left text-xs" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollGallery('right')}
-                className="w-8 h-8 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 hover:text-blue-600 flex items-center justify-center transition shadow-2xs hover:shadow-xs cursor-pointer active:scale-95"
-                title="ডানে স্লাইড করুন"
-                aria-label="Next slide"
-              >
-                <i className="fa-solid fa-chevron-right text-xs" />
-              </button>
+                <option value="All">সকল শাখা (All)</option>
+                {imageBranches.filter(b => b !== "All").map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Horizontal Scroll Cards — smooth sliding on mobile (touch) and web (drag & arrows) with no scrollbar */}
-          <div
-            ref={galleryRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-            className="flex overflow-x-auto gap-3 md:gap-4 hide-scrollbar no-scrollbar pb-1 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth select-none cursor-grab active:cursor-grabbing touch-pan-x"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {galleryItems.map((item: any, idx: number) => {
+          {/* 4 images in web, 2 in mobile — NO SLIDER */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {displayedImages.map((item: any, idx: number) => {
               const branchName = item.branch || item.badge || "Uttara";
               const titleBadge = item.badge || item.title || (idx === 0 ? "টেক ডেন্টাল হেড অফিস" : idx === 1 ? "আধুনিক মাইক্রোস্কোপিক ডেন্টাল কেয়ার" : "উন্নত চিকিৎসা পরিবেশ");
               const views = item.view_count || item.real_views || (2000 + idx * 300);
@@ -1007,33 +1116,32 @@ export default function Home({
                 <div
                   key={item.id || idx}
                   onClick={() => {
-                    if (!hasDragged) {
-                      setPreviewImage({
-                        src: imgSrc,
-                        title: titleBadge,
-                        branch: branchName,
-                        index: idx,
-                      });
-                    }
+                    setPreviewImage({
+                      src: imgSrc,
+                      title: titleBadge,
+                      branch: branchName,
+                      index: idx,
+                    });
                   }}
-                  className="relative rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 shrink-0 w-[74vw] sm:w-[280px] md:w-[320px] aspect-[4/3] md:aspect-auto md:h-[240px] snap-start group cursor-pointer transition-all duration-300 hover:shadow-md"
+                  className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
                   title="ছবি দেখতে ক্লিক করুন"
                 >
                   <img
                     src={imgSrc}
                     alt={titleBadge}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
                     loading="lazy"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
                   {/* Bottom Info matching screenshot style */}
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-                    <div className="flex items-center gap-1.5 bg-[#202124]/75 backdrop-blur-sm text-white px-3 py-1.5 rounded-[10px] text-[13px] font-medium">
-                      <i className="fa-solid fa-building text-blue-400" />
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none text-[11px] sm:text-xs">
+                    <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg font-medium">
+                      <i className="fa-solid fa-building text-blue-400 text-[10px]" />
                       <span>{branchName}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-[#202124]/75 backdrop-blur-sm text-white px-3 py-1.5 rounded-[10px] text-[13px] font-medium">
-                      <i className="fa-solid fa-eye" />
+                    <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2 py-1 rounded-lg font-medium">
+                      <i className="fa-solid fa-eye text-[10px]" />
                       <span>{Number(views).toLocaleString()}</span>
                     </div>
                   </div>
@@ -1041,74 +1149,114 @@ export default function Home({
               );
             })}
           </div>
+
+          {/* More Images Button */}
+          {filteredImages.length > 4 && (
+            <div className="mt-5 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAllImages(!showAllImages)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <span>{showAllImages ? "কম ছবি দেখুন" : "More Images"}</span>
+                <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-300 ${showAllImages ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* Bottom Section: Call to Action (CTA) Section */}
-        <section className="w-full py-4 mt-auto">
+        {/* ========================================== */}
+        {/* TECH DENTAL VIDEO GALLERY */}
+        {/* Same layout as Image Gallery with See More button */}
+        {/* ========================================== */}
+        <section className="w-full mb-10 md:mb-14 pt-6 border-t border-slate-200/50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 px-1">
+            <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
+              <i className="fa-brands fa-youtube text-red-600" />
+              <span>Tech Dental Video Gallery</span>
+            </h2>
 
-          {/* Action Buttons matched exactly to screenshot */}
-          <div className="flex justify-between items-center max-w-[340px] mx-auto mb-10 w-full px-2">
-
-            {/* Call CTA */}
-            <button
-              type="button"
-              onClick={() => handleActionModal("Call")}
-              className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
-            >
-              <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
-                <i className="fa-solid fa-phone text-[#1a73e8] text-xl" />
-              </div>
-              <span className="text-[13px] font-semibold text-[#001d35]">Call</span>
-            </button>
-
-            {/* Directions CTA */}
-            <button
-              type="button"
-              onClick={() => handleActionModal("Directions")}
-              className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
-            >
-              <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-[22px] h-[22px] text-[#1a73e8]"
-                >
-                  <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                </svg>
-              </div>
-              <span className="text-[13px] font-semibold text-[#001d35]">Directions</span>
-            </button>
-
-            {/* WhatsApp CTA */}
-            <button
-              type="button"
-              onClick={() => handleActionModal("WhatsApp")}
-              className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
-            >
-              <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
-                <i className="fa-brands fa-whatsapp text-[#25d366] text-2xl" />
-              </div>
-              <span className="text-[13px] font-semibold text-[#001d35]">WhatsApp</span>
-            </button>
-
-            {/* Book CTA */}
-            <button
-              type="button"
-              onClick={() => handleActionModal("Book")}
-              className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
-            >
-              <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
-                <i className="fa-regular fa-calendar-check text-[#881337] text-xl" />
-              </div>
-              <span className="text-[13px] font-semibold text-[#001d35]">Book</span>
-            </button>
-
+            {/* Video Branch Filter Dropdown */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <label htmlFor="videoBranchFilter" className="text-xs font-semibold text-slate-500 whitespace-nowrap">
+                শাখা:
+              </label>
+              <select
+                id="videoBranchFilter"
+                value={selectedVideoBranch}
+                onChange={(e) => setSelectedVideoBranch(e.target.value)}
+                className="bg-white border border-slate-200 hover:border-red-400 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition shadow-2xs cursor-pointer"
+              >
+                <option value="All">সকল শাখা (All)</option>
+                {videoBranches.filter(b => b !== "All").map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            </div>
           </div>
+
+          {/* 4 videos in web, 2 in mobile — NO SLIDER */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {displayedVideos.map((item, idx) => (
+              <div
+                key={item.id || idx}
+                onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title, branch: item.branch })}
+                className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+                title="ভিডিও দেখতে ক্লিক করুন"
+              >
+                <img
+                  src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100 pointer-events-none"
+                  loading="lazy"
+                />
+
+                {/* Center Red Play Button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-600 transition-all">
+                    <i className="fa-solid fa-play text-xs sm:text-sm translate-x-0.5" />
+                  </div>
+                </div>
+
+                {/* Top Video Title Badge */}
+                <div className="absolute top-2.5 left-2.5 right-2.5 pointer-events-none">
+                  <div className="bg-black/65 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md line-clamp-1">
+                    {item.title}
+                  </div>
+                </div>
+
+                {/* Bottom Info */}
+                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none text-[11px] sm:text-xs">
+                  <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg font-medium">
+                    <i className="fa-solid fa-building text-red-400 text-[10px]" />
+                    <span>{item.branch}</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2 py-1 rounded-lg font-medium">
+                    <i className="fa-solid fa-eye text-[10px]" />
+                    <span>{Number(item.views).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* See More Videos Button */}
+          {filteredVideos.length > 4 && (
+            <div className="mt-5 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAllVideos(!showAllVideos)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <span>{showAllVideos ? "কম ভিডিও দেখুন" : "See More"}</span>
+                <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-300 ${showAllVideos ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* Bottom Section: Call to Action (CTA) & More Accordion */}
+        <section className="w-full py-4 mt-auto">
 
           {/* Very Bottom: More about Tech Dental Accordion Section */}
           <div className={`mx-auto w-full transition-all duration-300 ${isMoreOpen ? 'w-full' : 'max-w-xl'}`}>
@@ -1334,6 +1482,37 @@ export default function Home({
                 {previewImage.index + 1} / {galleryItems.length}
               </span>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN VIDEO MODAL */}
+      {previewVideo && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+          onClick={() => setPreviewVideo(null)}
+        >
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={() => setPreviewVideo(null)}
+            className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+            title="বন্ধ করুন (Esc)"
+          >
+            <i className="fa-solid fa-xmark text-xl" />
+          </button>
+
+          <div
+            className="relative w-full max-w-3xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <iframe
+              src={`https://www.youtube.com/embed/${previewVideo.videoId}?autoplay=1&rel=0&modestbranding=1`}
+              title={previewVideo.title || "Tech Dental Video"}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
           </div>
         </div>
       )}
