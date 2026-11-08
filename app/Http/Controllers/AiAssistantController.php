@@ -249,6 +249,14 @@ class AiAssistantController extends Controller
                 foreach ($candidateModels as $model) {
                     try {
                         $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:streamGenerateContent?alt=sse&key={$apiKey}";
+                        $genConfig = [
+                            'temperature' => 0.3,
+                            'maxOutputTokens' => 4096,
+                        ];
+                        if (str_contains($model, '3.6') || str_contains($model, 'thinking')) {
+                            $genConfig['thinkingConfig'] = ['thinkingBudget' => 0];
+                        }
+
                         $payload = [
                             'system_instruction' => [
                                 'parts' => [
@@ -263,14 +271,7 @@ class AiAssistantController extends Controller
                                     ]
                                 ]
                             ],
-                            'generationConfig' => [
-                                'temperature' => 0.3,
-                                'maxOutputTokens' => 4096,
-                                'responseModalities' => ['TEXT'],
-                                'thinkingConfig' => [
-                                    'thinkingBudget' => 0,
-                                ],
-                            ]
+                            'generationConfig' => $genConfig
                         ];
 
                         $lineBuffer = '';
@@ -352,10 +353,8 @@ class AiAssistantController extends Controller
                             return;
                         }
 
-                        // If 404, 429 (quota limit), or 503 (high demand), try next candidate model
-                        if (!in_array($httpCode, [404, 429, 503])) {
-                            break;
-                        }
+                        // Try next candidate model if this one failed
+                        continue;
                     } catch (\Throwable $e) {
                         Log::error("Gemini Stream Exception for {$model}: " . $e->getMessage());
                     }
@@ -529,6 +528,14 @@ class AiAssistantController extends Controller
                 try {
                     $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
+                    $genConfig = [
+                        'temperature' => 0.3,
+                        'maxOutputTokens' => 4096,
+                    ];
+                    if (str_contains($model, '3.6') || str_contains($model, 'thinking')) {
+                        $genConfig['thinkingConfig'] = ['thinkingBudget' => 0];
+                    }
+
                     $payload = [
                         'system_instruction' => [
                             'parts' => [
@@ -543,14 +550,7 @@ class AiAssistantController extends Controller
                                 ]
                             ]
                         ],
-                        'generationConfig' => [
-                            'temperature' => 0.3,
-                            'maxOutputTokens' => 4096,
-                            'responseModalities' => ['TEXT'],
-                            'thinkingConfig' => [
-                                'thinkingBudget' => 0,
-                            ],
-                        ]
+                        'generationConfig' => $genConfig
                     ];
 
                     $response = Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
@@ -610,11 +610,8 @@ class AiAssistantController extends Controller
                         }
                     }
 
-                    // If 404, 429 (rate/day limit), or 503 (temporary busy), try next candidate model
-                    if (!in_array($response->status(), [404, 429, 503])) {
-                        Log::error("Gemini API Error for {$model}: " . $response->body());
-                        break;
-                    }
+                    Log::warning("Gemini model {$model} returned status {$response->status()}: " . substr($response->body(), 0, 150));
+                    continue;
                 } catch (\Exception $e) {
                     Log::error("Gemini API Exception for {$model}: " . $e->getMessage());
                 }
