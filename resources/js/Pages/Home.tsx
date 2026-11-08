@@ -158,6 +158,8 @@ export default function Home({
   // Gallery & Video Preview State
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
   const [previewVideo, setPreviewVideo] = useState<{ videoId: string; title?: string; branch?: string } | null>(null);
+  const [isImagesExpanded, setIsImagesExpanded] = useState(false);
+  const [isVideosExpanded, setIsVideosExpanded] = useState(false);
 
   // Modal State for external actions
   const [modal, setModal] = useState<ModalState>({
@@ -322,7 +324,7 @@ export default function Home({
     ];
   }, [featured_images]);
 
-  const displayedImages = galleryItems.slice(0, 8);
+  const displayedImages = isImagesExpanded ? galleryItems.slice(0, 8) : galleryItems.slice(0, 4);
 
   // Video Gallery items matching screenshot style
   const videoGalleryItems = useMemo(() => [
@@ -384,7 +386,7 @@ export default function Home({
     },
   ], []);
 
-  const displayedVideos = videoGalleryItems.slice(0, 6);
+  const displayedVideos = isVideosExpanded ? videoGalleryItems.slice(0, 6) : videoGalleryItems.slice(0, 3);
 
   // Keyboard navigation for image lightbox
   useEffect(() => {
@@ -1105,7 +1107,7 @@ export default function Home({
 
         {/* ========================================== */}
         {/* IMAGE GALLERY */}
-        {/* Desktop: 4 columns x 2 rows = 8 images, Mobile: 2 columns x 4 rows = 8 images */}
+        {/* Initial: 4 on desktop, 2 on mobile. Expand: 8 images, then See Less & See More (/gallery) */}
         {/* ========================================== */}
         <section id="image-gallery-section" className="w-full mb-6 md:mb-8 scroll-mt-20">
           <div className="flex items-center justify-between mb-4 px-1">
@@ -1115,11 +1117,12 @@ export default function Home({
             </h2>
           </div>
 
-          {/* 8 images: 4 in desktop, 2 in mobile */}
+          {/* 4 in desktop, 2 in mobile (collapsed) -> 8 images when expanded */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {displayedImages.map((item: any, idx: number) => {
               const titleBadge = item.badge || item.title || "Tech Dental";
               const imgSrc = item.src || item.image || item.url || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80";
+              const isHiddenOnMobile = !isImagesExpanded && idx >= 2;
 
               return (
                 <div
@@ -1131,7 +1134,9 @@ export default function Home({
                       index: idx,
                     });
                   }}
-                  className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+                  className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
+                    isHiddenOnMobile ? "hidden md:block" : ""
+                  }`}
                   title="ছবি দেখতে ক্লিক করুন"
                 >
                   <img
@@ -1146,21 +1151,47 @@ export default function Home({
             })}
           </div>
 
-          {/* See More Link */}
-          <div className="mt-5 flex items-center justify-center">
-            <Link
-              href="/gallery"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
-            >
-              <span>See More</span>
-              <i className="fa-solid fa-arrow-right text-xs" />
-            </Link>
+          {/* Button(s) Area */}
+          <div className="mt-5 flex items-center justify-center gap-3">
+            {!isImagesExpanded ? (
+              <button
+                type="button"
+                onClick={() => setIsImagesExpanded(true)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <span>See More</span>
+                <i className="fa-solid fa-chevron-down text-xs" />
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsImagesExpanded(false);
+                    setTimeout(() => {
+                      document.getElementById('image-gallery-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+                >
+                  <i className="fa-solid fa-chevron-up text-xs" />
+                  <span>See Less</span>
+                </button>
+                <Link
+                  href="/gallery"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-md transition active:scale-95 cursor-pointer"
+                >
+                  <span>See More</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </>
+            )}
           </div>
         </section>
 
         {/* ========================================== */}
         {/* VIDEO GALLERY */}
-        {/* Mobile: 1 column stacked (not side by side), Desktop: 3 columns x 2 rows = 6 videos */}
+        {/* Mobile: 1 column stacked (not side by side), Desktop: 3 columns. Expand: 6 videos, then See Less & See More (/gallery#videos) */}
         {/* ========================================== */}
         <section id="video-gallery-section" className="w-full mb-6 md:mb-8 scroll-mt-20">
           <div className="flex items-center justify-between mb-4 px-1">
@@ -1170,14 +1201,18 @@ export default function Home({
             </h2>
           </div>
 
-          {/* 6 videos: 1 column on mobile (stacked), 2 on sm, 3 on md */}
+          {/* 1 column on mobile (stacked), 2 on sm, 3 on md -> 6 videos when expanded */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4">
             {displayedVideos.map((item, idx) => {
+              const isHiddenOnMobile = !isVideosExpanded && idx >= 2;
+
               return (
                 <div
                   key={item.id || idx}
                   onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title, branch: item.branch })}
-                  className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-video group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+                  className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-video group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
+                    isHiddenOnMobile ? "hidden md:block" : ""
+                  }`}
                   title="ভিডিও দেখতে ক্লিক করুন"
                 >
                   <img
@@ -1205,15 +1240,41 @@ export default function Home({
             })}
           </div>
 
-          {/* See More Link */}
-          <div className="mt-5 flex items-center justify-center">
-            <Link
-              href="/gallery#videos"
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
-            >
-              <span>See More</span>
-              <i className="fa-solid fa-arrow-right text-xs" />
-            </Link>
+          {/* Button(s) Area */}
+          <div className="mt-5 flex items-center justify-center gap-3">
+            {!isVideosExpanded ? (
+              <button
+                type="button"
+                onClick={() => setIsVideosExpanded(true)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <span>See More</span>
+                <i className="fa-solid fa-chevron-down text-xs" />
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsVideosExpanded(false);
+                    setTimeout(() => {
+                      document.getElementById('video-gallery-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+                >
+                  <i className="fa-solid fa-chevron-up text-xs" />
+                  <span>See Less</span>
+                </button>
+                <Link
+                  href="/gallery#videos"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-md transition active:scale-95 cursor-pointer"
+                >
+                  <span>See More</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </>
+            )}
           </div>
         </section>
 
