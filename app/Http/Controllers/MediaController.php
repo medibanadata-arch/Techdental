@@ -85,79 +85,34 @@ class MediaController extends Controller
 
     public function apiUpload(Request $request)
     {
-        // 1. If uploaded as binary file (e.g. from FormData Blob)
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $originalName = $file->getClientOriginalName();
-            $title = $request->input('title') ?: pathinfo($originalName, PATHINFO_FILENAME);
-            $mimeType = $file->getClientMimeType() ?: 'image/jpeg';
-            $sizeBytes = $file->getSize();
-
-            if ($sizeBytes >= 1048576) {
-                $filesize = round($sizeBytes / 1048576, 2) . ' MB';
-            } else {
-                $filesize = round($sizeBytes / 1024, 1) . ' KB';
+        // 1. If uploaded as binary file(s)
+        if ($request->hasFile('files') || $request->hasFile('file')) {
+            $allFiles = [];
+            if ($request->hasFile('files')) {
+                $files = $request->file('files');
+                $allFiles = is_array($files) ? $files : [$files];
+            } elseif ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $allFiles = is_array($file) ? $file : [$file];
             }
 
-            $extension = strtolower($file->getClientOriginalExtension() ?: 'webp');
-            if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'])) {
-                $extension = 'webp';
-            }
-
-            $uploadDir = public_path('uploads/images');
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-
-            $cleanName = Str::slug($title);
-            $filename = time() . '_' . ($cleanName ?: 'cropped_image') . '.' . $extension;
-
-            $file->move($uploadDir, $filename);
-            $originalFilePath = $uploadDir . '/' . $filename;
-
-            // Auto WebP Conversion & Compression
-            if (in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                $webpFilename = time() . '_' . ($cleanName ?: 'cropped_image') . '.webp';
-                $webpPath = $uploadDir . '/' . $webpFilename;
-                if ($this->convertToWebp($originalFilePath, $webpPath, 82)) {
-                    @unlink($originalFilePath); // Remove raw heavy file
-                    $filename = $webpFilename;
-                    $extension = 'webp';
+            $uploadedMedia = [];
+            foreach ($allFiles as $file) {
+                if ($file && $file->isValid()) {
+                    $uploadedMedia[] = $this->processUploadedFile($file, $request);
                 }
             }
 
-            $url = '/uploads/images/' . $filename;
-
-            $dimensions = null;
-            $savedFilePath = $uploadDir . '/' . $filename;
-            $imgInfo = @getimagesize($savedFilePath);
-            if ($imgInfo && isset($imgInfo[0]) && isset($imgInfo[1])) {
-                $dimensions = $imgInfo[0] . ' by ' . $imgInfo[1] . ' pixels';
+            if (!empty($uploadedMedia)) {
+                $first = $uploadedMedia[0];
+                return response()->json([
+                    'success' => true,
+                    'count' => count($uploadedMedia),
+                    'url' => $first->url,
+                    'media' => $first,
+                    'items' => $uploadedMedia,
+                ]);
             }
-
-            $finalSizeBytes = @filesize($savedFilePath) ?: $sizeBytes;
-            if ($finalSizeBytes >= 1048576) {
-                $filesize = round($finalSizeBytes / 1048576, 2) . ' MB';
-            } else {
-                $filesize = round($finalSizeBytes / 1024, 1) . ' KB';
-            }
-
-            $media = Media::create([
-                'title' => $title,
-                'url' => $url,
-                'file_name' => $filename,
-                'file_type' => $extension,
-                'file_size' => $filesize,
-                'dimensions' => $dimensions,
-                'alt_text' => $request->input('alt_text') ?: $title,
-                'caption' => $request->input('caption', ''),
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'url' => $url,
-                'media' => $media,
-            ]);
         }
 
         // 2. If uploaded as base64 data URL
@@ -222,96 +177,130 @@ class MediaController extends Controller
         return response()->json(['success' => false, 'message' => 'No file or valid data_url provided'], 400);
     }
 
+    private function processUploadedFile($file, Request $request)
+    {
+        $originalName = $file->getClientOriginalName();
+        $title = $request->input('title') ?: pathinfo($originalName, PATHINFO_FILENAME);
+        $mimeType = $file->getClientMimeType() ?: 'application/octet-stream';
+        $sizeBytes = $file->getSize();
+
+        // Format size
+        if ($sizeBytes >= 1048576) {
+            $filesize = round($sizeBytes / 1048576, 2) . ' MB';
+        } else {
+            $filesize = round($sizeBytes / 1024, 1) . ' KB';
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension() ?: 'dat');
+
+        // Categorize directory by media type for shared hosting cleanliness
+        $subFolder = 'files';
+        if (str_starts_with($mimeType, 'image/') || in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'])) {
+            $subFolder = 'images';
+        } elseif (str_starts_with($mimeType, 'video/') || in_array($extension, ['mp4', 'webm', 'mov', 'mkv', 'avi'])) {
+            $subFolder = 'videos';
+        } elseif (str_starts_with($mimeType, 'audio/') || in_array($extension, ['mp3', 'wav', 'ogg', 'm4a', 'aac'])) {
+            $subFolder = 'audios';
+        }
+
+        $uploadDir = public_path('uploads/' . $subFolder);
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $cleanName = Str::slug($title);
+        $uniqueSuffix = Str::lower(Str::random(6));
+        $filename = time() . '_' . $uniqueSuffix . '_' . ($cleanName ?: 'media') . '.' . $extension;
+
+        $file->move($uploadDir, $filename);
+        $originalFilePath = $uploadDir . '/' . $filename;
+
+        // Auto WebP Conversion & Compression for uploaded images
+        if ($subFolder === 'images' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
+            $webpFilename = time() . '_' . $uniqueSuffix . '_' . ($cleanName ?: 'media') . '.webp';
+            $webpPath = $uploadDir . '/' . $webpFilename;
+            if ($this->convertToWebp($originalFilePath, $webpPath, 82)) {
+                @unlink($originalFilePath);
+                $filename = $webpFilename;
+                $extension = 'webp';
+            }
+        }
+
+        $url = '/uploads/' . $subFolder . '/' . $filename;
+
+        $dimensions = null;
+        if ($subFolder === 'images') {
+            $imgInfo = @getimagesize($uploadDir . '/' . $filename);
+            if ($imgInfo && isset($imgInfo[0]) && isset($imgInfo[1])) {
+                $dimensions = $imgInfo[0] . ' by ' . $imgInfo[1] . ' pixels';
+            }
+            $finalSize = @filesize($uploadDir . '/' . $filename) ?: $sizeBytes;
+            if ($finalSize >= 1048576) {
+                $filesize = round($finalSize / 1048576, 2) . ' MB';
+            } else {
+                $filesize = round($finalSize / 1024, 1) . ' KB';
+            }
+        }
+
+        return Media::create([
+            'title' => $title,
+            'url' => $url,
+            'file_name' => $filename,
+            'file_type' => $extension,
+            'file_size' => $filesize,
+            'dimensions' => $dimensions,
+            'alt_text' => $request->input('alt_text') ?: $title,
+            'caption' => $request->input('caption', ''),
+        ]);
+    }
+
     public function store(Request $request)
     {
-        if ($request->hasFile('file')) {
+        $allFiles = [];
+        if ($request->hasFile('files')) {
+            $files = $request->file('files');
+            $allFiles = is_array($files) ? $files : [$files];
+        } elseif ($request->hasFile('file')) {
             $file = $request->file('file');
-            $originalName = $file->getClientOriginalName();
-            $title = pathinfo($originalName, PATHINFO_FILENAME);
-            $mimeType = $file->getClientMimeType() ?: 'application/octet-stream';
-            $sizeBytes = $file->getSize();
-
-            // Format size
-            if ($sizeBytes >= 1048576) {
-                $filesize = round($sizeBytes / 1048576, 2) . ' MB';
-            } else {
-                $filesize = round($sizeBytes / 1024, 1) . ' KB';
-            }
-
-            $extension = strtolower($file->getClientOriginalExtension() ?: 'dat');
-
-            // Categorize directory by media type for shared hosting cleanliness
-            $subFolder = 'files';
-            if (str_starts_with($mimeType, 'image/') || in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'])) {
-                $subFolder = 'images';
-            } elseif (str_starts_with($mimeType, 'video/') || in_array($extension, ['mp4', 'webm', 'mov', 'mkv', 'avi'])) {
-                $subFolder = 'videos';
-            } elseif (str_starts_with($mimeType, 'audio/') || in_array($extension, ['mp3', 'wav', 'ogg', 'm4a', 'aac'])) {
-                $subFolder = 'audios';
-            }
-
-            $uploadDir = public_path('uploads/' . $subFolder);
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-
-            $cleanName = Str::slug($title);
-            $filename = time() . '_' . ($cleanName ?: 'media') . '.' . $extension;
-
-            $file->move($uploadDir, $filename);
-            $originalFilePath = $uploadDir . '/' . $filename;
-
-            // Auto WebP Conversion & Compression for uploaded images
-            if ($subFolder === 'images' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
-                $webpFilename = time() . '_' . ($cleanName ?: 'media') . '.webp';
-                $webpPath = $uploadDir . '/' . $webpFilename;
-                if ($this->convertToWebp($originalFilePath, $webpPath, 82)) {
-                    @unlink($originalFilePath);
-                    $filename = $webpFilename;
-                    $extension = 'webp';
-                }
-            }
-
-            $url = '/uploads/' . $subFolder . '/' . $filename;
-
-            $dimensions = null;
-            if ($subFolder === 'images') {
-                $imgInfo = @getimagesize($uploadDir . '/' . $filename);
-                if ($imgInfo && isset($imgInfo[0]) && isset($imgInfo[1])) {
-                    $dimensions = $imgInfo[0] . ' by ' . $imgInfo[1] . ' pixels';
-                }
-                $finalSize = @filesize($uploadDir . '/' . $filename) ?: $sizeBytes;
-                if ($finalSize >= 1048576) {
-                    $filesize = round($finalSize / 1048576, 2) . ' MB';
-                } else {
-                    $filesize = round($finalSize / 1024, 1) . ' KB';
-                }
-            }
-
-            Media::create([
-                'title' => $title,
-                'url' => $url,
-                'file_name' => $filename,
-                'file_type' => $extension,
-                'file_size' => $filesize,
-                'dimensions' => $dimensions,
-                'alt_text' => $request->input('alt_text') ?: $title,
-                'caption' => $request->input('caption', ''),
-            ]);
-        } else {
-            $validated = $request->validate([
-                'title' => 'required|string',
-                'url' => 'required|string',
-                'file_name' => 'nullable|string',
-                'file_type' => 'nullable|string',
-                'file_size' => 'nullable|string',
-                'dimensions' => 'nullable|string',
-                'alt_text' => 'nullable|string',
-                'caption' => 'nullable|string',
-            ]);
-
-            Media::create($validated);
+            $allFiles = is_array($file) ? $file : [$file];
         }
+
+        if (!empty($allFiles)) {
+            $uploadedCount = 0;
+            foreach ($allFiles as $file) {
+                if ($file && $file->isValid()) {
+                    $this->processUploadedFile($file, $request);
+                    $uploadedCount++;
+                }
+            }
+
+            if ($request->expectsJson() || $request->is('*/api/*') || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'count' => $uploadedCount,
+                    'message' => "{$uploadedCount} file(s) uploaded successfully"
+                ]);
+            }
+
+            $message = $uploadedCount > 1 
+                ? "{$uploadedCount} files uploaded successfully to local storage"
+                : 'File uploaded successfully to local storage';
+
+            return redirect()->route('media.index')->with('success', $message);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string',
+            'url' => 'required|string',
+            'file_name' => 'nullable|string',
+            'file_type' => 'nullable|string',
+            'file_size' => 'nullable|string',
+            'dimensions' => 'nullable|string',
+            'alt_text' => 'nullable|string',
+            'caption' => 'nullable|string',
+        ]);
+
+        Media::create($validated);
 
         return redirect()->route('media.index')->with('success', 'File uploaded successfully to local storage');
     }

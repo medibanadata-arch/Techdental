@@ -51,6 +51,8 @@ export default function MediaIndex({ media }: Props) {
     const [copied, setCopied] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadStatusText, setUploadStatusText] = useState('');
+    const [isDragging, setIsDragging] = useState(false);
     const [saving, setSaving] = useState(false);
 
     const [editForm, setEditForm] = useState({
@@ -138,25 +140,71 @@ export default function MediaIndex({ media }: Props) {
         }
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const uploadFiles = (files: File[]) => {
+        if (!files || files.length === 0) return;
 
         setIsUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
+        const count = files.length;
+        setUploadStatusText(`Uploading ${count} file${count > 1 ? 's' : ''}...`);
 
-        router.post(route('media.store'), formData, {
-            forceFormData: true,
-            onSuccess: () => {
-                setIsUploadModalOpen(false);
-                setIsUploading(false);
-            },
-            onError: () => {
-                setIsUploading(false);
-                alert('Upload failed. Please check file size limits.');
+        if (count <= 15) {
+            const formData = new FormData();
+            files.forEach((file) => {
+                formData.append('files[]', file);
+            });
+            formData.append('file', files[0]);
+
+            router.post(route('media.store'), formData, {
+                forceFormData: true,
+                onSuccess: () => {
+                    setIsUploadModalOpen(false);
+                    setIsUploading(false);
+                    setUploadStatusText('');
+                },
+                onError: () => {
+                    setIsUploading(false);
+                    setUploadStatusText('');
+                    alert('Upload failed. Please check file sizes and formats.');
+                }
+            });
+        } else {
+            uploadInBatches(files);
+        }
+    };
+
+    const uploadInBatches = async (files: File[]) => {
+        setIsUploading(true);
+        const total = files.length;
+        const batchSize = 10;
+        const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '';
+
+        for (let i = 0; i < total; i += batchSize) {
+            const chunk = files.slice(i, i + batchSize);
+            const formData = new FormData();
+            chunk.forEach(f => formData.append('files[]', f));
+            formData.append('file', chunk[0]);
+
+            const currentCount = Math.min(i + chunk.length, total);
+            setUploadStatusText(`Uploading ${currentCount} of ${total} files (${Math.round((currentCount / total) * 100)}%)...`);
+
+            try {
+                await fetch('/admin-api/media/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                });
+            } catch (err) {
+                console.error('Batch upload error:', err);
             }
-        });
+        }
+
+        setIsUploading(false);
+        setUploadStatusText('');
+        setIsUploadModalOpen(false);
+        router.reload();
     };
 
     return (
@@ -600,39 +648,73 @@ export default function MediaIndex({ media }: Props) {
                                     <Upload size={16} className="text-rose-600" />
                                     <span>Upload Media to Local Storage</span>
                                 </h3>
-                                <button onClick={() => setIsUploadModalOpen(false)} className="text-gray-400 hover:text-gray-700 cursor-pointer">
+                                <button 
+                                    onClick={() => !isUploading && setIsUploadModalOpen(false)} 
+                                    disabled={isUploading}
+                                    className="text-gray-400 hover:text-gray-700 cursor-pointer disabled:opacity-50"
+                                >
                                     <X size={18} />
                                 </button>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                                        Select Image, Audio, or Video File
-                                    </label>
-                                    <label className="border-2 border-dashed border-gray-200 hover:border-rose-400 rounded-2xl p-8 flex flex-col items-center justify-center gap-2.5 text-center cursor-pointer transition-colors bg-gray-50/50 hover:bg-rose-50/20">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="block text-xs font-bold text-gray-700">
+                                            Select Images or Media Files
+                                        </label>
+                                        <span className="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
+                                            Multiple Allowed
+                                        </span>
+                                    </div>
+                                    <label 
+                                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                        onDragLeave={() => setIsDragging(false)}
+                                        onDrop={(e) => {
+                                            e.preventDefault();
+                                            setIsDragging(false);
+                                            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                                uploadFiles(Array.from(e.dataTransfer.files));
+                                            }
+                                        }}
+                                        className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-2.5 text-center cursor-pointer transition-all ${
+                                            isDragging 
+                                                ? 'border-rose-500 bg-rose-50/50 ring-2 ring-rose-200 scale-[1.01]' 
+                                                : 'border-gray-200 hover:border-rose-400 bg-gray-50/50 hover:bg-rose-50/20'
+                                        } ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}
+                                    >
                                         <div className="flex items-center gap-2 text-rose-600">
-                                            <ImageIcon size={22} />
+                                            <ImageIcon size={24} />
                                             <Video size={22} />
                                             <Music size={22} />
                                         </div>
                                         <span className="text-xs font-bold text-gray-800">
-                                            {isUploading ? 'Uploading to server...' : 'Click to browse files'}
+                                            {isUploading 
+                                                ? (uploadStatusText || 'Uploading to server...') 
+                                                : isDragging 
+                                                    ? 'Drop files here to upload' 
+                                                    : 'Click to browse or Drag & Drop multiple files'}
                                         </span>
                                         <span className="text-[11px] text-gray-400">
                                             Supports JPG, PNG, WEBP, MP4, WebM, MP3, WAV, PDF
                                         </span>
+                                        <span className="text-[10px] text-emerald-600 font-medium">
+                                            ✓ You can select multiple images at once
+                                        </span>
                                         <input
                                             type="file"
+                                            multiple
                                             accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
                                             disabled={isUploading}
-                                            onChange={handleFileUpload}
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files.length > 0) {
+                                                    uploadFiles(Array.from(e.target.files));
+                                                }
+                                            }}
                                             className="hidden"
                                         />
                                     </label>
                                 </div>
-
-
                             </div>
                         </div>
                     </div>
