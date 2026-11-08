@@ -610,10 +610,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </div>
           )}
 
-          {/* Book Appointment CTA Button (Mobile Only - Hidden on desktop as marked with X) */}
+          {/* Book Appointment CTA Button (Mobile & Desktop Web) */}
           <Link
             href="/book"
-            className="book-btn md:hidden h-9 sm:h-10 px-3.5 sm:px-4 text-sm font-sans font-medium"
+            className="book-btn h-9 sm:h-10 md:h-[42px] px-3.5 sm:px-4 md:px-5 text-sm md:text-[15px] font-sans font-medium shrink-0 flex items-center gap-2"
             aria-label="Book Appointment"
           >
             <i className="ti ti-calendar-plus" />

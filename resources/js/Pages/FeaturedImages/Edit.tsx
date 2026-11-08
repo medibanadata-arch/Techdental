@@ -79,35 +79,6 @@ export default function FeaturedImagesEdit({ image }: Props) {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1">Branch Badge</label>
-                                <select
-                                    value={data.branch}
-                                    onChange={(e) => {
-                                        setData('branch', e.target.value);
-                                        setData('badge', e.target.value);
-                                    }}
-                                    className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-rose-500 focus:outline-none bg-white"
-                                >
-                                    <option value="Mirpur">Mirpur</option>
-                                    <option value="Uttara">Uttara</option>
-                                    <option value="Badda">Badda</option>
-                                    <option value="Jatrabari">Jatrabari</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1">Alt Text</label>
-                                <input
-                                    type="text"
-                                    value={data.alt}
-                                    onChange={(e) => setData('alt', e.target.value)}
-                                    className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-rose-500 focus:outline-none"
-                                />
-                            </div>
-
-                            <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-1">Display Serial / Sort Order</label>
                                 <input
                                     type="number"
@@ -118,58 +89,14 @@ export default function FeaturedImagesEdit({ image }: Props) {
                             </div>
                         </div>
 
-                        {/* View Counters Section: Real Visitor Views & Manual Frontend Display View */}
-                        <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4.5 space-y-4">
-                            <h3 className="text-xs font-bold text-gray-900 flex items-center gap-2">
-                                <Eye size={15} className="text-rose-600" />
-                                <span>Image View Counters</span>
-                            </h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* 1. Real Visitor View (Read-Only) */}
-                                <div className="bg-white border border-emerald-200/90 rounded-xl p-3.5 flex flex-col justify-between shadow-2xs">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                            <span className="text-xs font-bold text-gray-800">Real Visitor Views</span>
-                                        </div>
-                                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                                            Real-time Tracked
-                                        </span>
-                                    </div>
-                                    <div className="mt-2.5 flex items-baseline gap-2">
-                                        <span className="text-2xl font-black text-emerald-700 font-mono">
-                                            {(image.real_views || 0).toLocaleString()}
-                                        </span>
-                                        <span className="text-xs text-gray-500 font-medium">real views</span>
-                                    </div>
-                                </div>
-
-                                {/* 2. Manual Frontend Display View (Editable) */}
-                                <div className="bg-white border border-amber-200/90 rounded-xl p-3.5 flex flex-col justify-between shadow-2xs">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <Eye size={13} className="text-amber-600" />
-                                            <label htmlFor="view_count_input" className="text-xs font-bold text-gray-800">
-                                                Frontend Display View
-                                            </label>
-                                        </div>
-                                        <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
-                                            Editable
-                                        </span>
-                                    </div>
-                                    <div className="mt-2">
-                                        <input
-                                            id="view_count_input"
-                                            type="number"
-                                            value={data.view_count}
-                                            onChange={(e) => setData('view_count', parseInt(e.target.value) || 0)}
-                                            placeholder="e.g. 1240"
-                                            className="w-full text-sm font-bold text-gray-900 border border-gray-200 rounded-lg px-3 py-2 focus:ring-1 focus:ring-amber-500 focus:outline-none font-mono"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Alt Text</label>
+                            <input
+                                type="text"
+                                value={data.alt}
+                                onChange={(e) => setData('alt', e.target.value)}
+                                className="w-full text-xs border border-gray-200 rounded-xl px-3 py-2.5 focus:ring-1 focus:ring-rose-500 focus:outline-none"
+                            />
                         </div>
 
                         {data.src && (

@@ -711,21 +711,6 @@ export default function HomeContentAdminIndex({
                                         <span className="absolute top-3 right-3 px-2 py-0.5 rounded-md text-[11px] font-black bg-black/75 text-white backdrop-blur-xs shadow-md">
                                             Rank #{idx + 1}
                                         </span>
-
-                                        {item.badge && (
-                                            <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#800038] text-white shadow-md">
-                                                {item.badge}
-                                            </span>
-                                        )}
-
-                                        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 flex-wrap justify-end">
-                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-black/75 text-white backdrop-blur-xs flex items-center gap-1 shadow-xs" title="Frontend Public Display View">
-                                                <Eye size={11} className="text-amber-300" /> {Number(item.view_count || 0).toLocaleString()} (Frontend)
-                                            </span>
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/85 text-emerald-300 border border-emerald-500/30 backdrop-blur-xs flex items-center gap-1 shadow-xs" title="Actual Real Visitor Views">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> {Number(item.real_views || 0).toLocaleString()} (Real)
-                                            </span>
-                                        </div>
                                     </div>
 
                                     <div className="p-4 space-y-1">
@@ -1159,48 +1144,6 @@ export default function HomeContentAdminIndex({
                                     className="w-full px-3 py-2 border border-gray-200 rounded-xl"
                                 />
                             </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block font-bold text-gray-700 mb-1">Badge Tag</label>
-                                    <input
-                                        type="text"
-                                        value={galleryForm.badge}
-                                        onChange={(e) => setGalleryForm({ ...galleryForm, badge: e.target.value })}
-                                        placeholder="Mirpur, Uttara, etc."
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-xl"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block font-bold text-gray-700 mb-1">
-                                        Frontend View Count
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={galleryForm.view_count}
-                                        onChange={(e) => setGalleryForm({ ...galleryForm, view_count: e.target.value })}
-                                        placeholder="1,240"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-xl"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Real View Count Info */}
-                            {editingGalleryId && (
-                                <div className="bg-emerald-50 border border-emerald-200/90 rounded-xl p-3 flex items-center justify-between text-xs">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
-                                            <Eye size={15} />
-                                        </div>
-                                        <div>
-                                            <span className="font-bold text-gray-800 block">Real Visitor Views</span>
-                                        </div>
-                                    </div>
-                                    <span className="font-mono font-black text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200 shadow-2xs">
-                                        {(galleryItems.find(it => it.id === editingGalleryId)?.real_views || 0).toLocaleString()} views
-                                    </span>
-                                </div>
-                            )}
 
                             <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
                                 <button
