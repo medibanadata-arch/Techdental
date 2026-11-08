@@ -128,6 +128,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDrawerMenuKey, setOpenDrawerMenuKey] = useState<string | number | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
   const { language, setLanguage, isBn } = useLanguage();
 
@@ -410,13 +411,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       )}
       <header className={`w-full flex items-center justify-between px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pt-4 pb-3 bg-white border-b border-slate-100 ${isSticky ? 'sticky top-0' : ''} z-40`}>
         
-        {/* Left Side: Hamburger Menu Icon + Brand Logo */}
+        {/* Left Side: Hamburger Menu Icon (Mobile Only) + Brand Logo */}
         <div className="flex items-center gap-4 sm:gap-6 md:gap-7">
-          {/* Hamburger Menu Icon Button on Left of Logo */}
+          {/* Hamburger Menu Icon Button on Left of Logo - Mobile Only */}
           <button
             type="button"
             onClick={() => setIsMenuOpen(true)}
-            className="p-2 text-slate-700 hover:text-sky-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer border border-slate-200 shadow-2xs flex items-center justify-center"
+            className="p-2 text-slate-700 hover:text-sky-600 hover:bg-slate-100 rounded-xl transition-all cursor-pointer border border-slate-200 shadow-2xs flex items-center justify-center md:hidden"
             title="Open Site Navigation Menu"
             aria-label="Open Navigation Menu"
           >
@@ -467,6 +468,94 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             )}
           </a>
         </div>
+
+        {/* Desktop Navigation Menu (Visible only on web / desktop) */}
+        <nav className="hidden md:flex items-center gap-5 lg:gap-7 xl:gap-8 mx-auto px-4">
+          {menuTree.map((item) => {
+            const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+            const isItemActive =
+              (item.url && item.url !== '#' && (item.url === '/' ? pathWithoutBn === '/' : pathWithoutBn === item.url || pathWithoutBn.startsWith(item.url + '/'))) ||
+              (hasChildren && item.children.some((child: any) => pathWithoutBn === child.url || pathWithoutBn.startsWith(child.url + '/')));
+
+            if (hasChildren) {
+              const isOpen = openDropdown === item.title;
+              return (
+                <div
+                  key={item.id || item.title}
+                  className="relative group py-2"
+                  onMouseEnter={() => setOpenDropdown(item.title)}
+                  onMouseLeave={() => setOpenDropdown(null)}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenDropdown(isOpen ? null : item.title)}
+                    className={`inline-flex items-center gap-1.5 text-[14.5px] lg:text-[15.5px] font-medium transition-colors cursor-pointer select-none py-1 relative ${
+                      isItemActive || isOpen
+                        ? "text-blue-600 font-semibold"
+                        : "text-slate-700 hover:text-blue-600"
+                    }`}
+                  >
+                    <span>{item.title}</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                        isOpen ? "rotate-180 text-blue-600" : "text-slate-500 group-hover:text-blue-600"
+                      }`}
+                    />
+                    {(isItemActive || isOpen) && (
+                      <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                    )}
+                  </button>
+
+                  {/* Dropdown Card matching demo image */}
+                  <div
+                    className={`absolute left-0 top-full pt-1.5 z-50 transition-all duration-200 ${
+                      isOpen
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-1.5 pointer-events-none"
+                    }`}
+                  >
+                    <div className="bg-white border border-slate-100 rounded-2xl shadow-xl p-2 min-w-[190px] ring-1 ring-black/5">
+                      {item.children.map((child: any) => {
+                        const isChildActive = pathWithoutBn === child.url || pathWithoutBn.startsWith(child.url + '/');
+                        return (
+                          <Link
+                            key={child.id || child.title}
+                            href={child.url}
+                            onClick={() => setOpenDropdown(null)}
+                            className={`block px-3.5 py-2.5 text-sm font-medium rounded-xl transition-colors no-underline ${
+                              isChildActive
+                                ? "text-blue-600 bg-blue-50/70 font-semibold"
+                                : "text-slate-700 hover:text-slate-950 hover:bg-slate-50"
+                            }`}
+                          >
+                            {child.title}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <Link
+                key={item.id || item.title}
+                href={item.url}
+                className={`inline-flex items-center text-[14.5px] lg:text-[15.5px] font-medium transition-colors no-underline py-1 relative ${
+                  isItemActive
+                    ? "text-blue-600 font-semibold"
+                    : "text-slate-700 hover:text-blue-600"
+                }`}
+              >
+                <span>{item.title}</span>
+                {isItemActive && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
         {/* Right Side: Language Switcher (EN | বাংলা) + Branch Dropdown Selector */}
         <div className="flex items-center gap-2">

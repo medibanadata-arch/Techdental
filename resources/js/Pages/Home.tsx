@@ -1042,7 +1042,7 @@ export default function Home({
         </header>
 
         {/* Quick Action CTA Buttons (Call, Directions, WhatsApp, Book) - Above Image Section */}
-        <div className="flex justify-between items-center max-w-[340px] mx-auto my-8 md:my-12 w-full px-2">
+        <div className="flex justify-between items-center max-w-[340px] mx-auto my-12 md:my-16 w-full px-2">
 
           {/* Call CTA */}
           <button
