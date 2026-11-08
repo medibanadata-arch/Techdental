@@ -347,16 +347,22 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       }
     }
     return [
-      { title: 'Home', url: '/', level: 0 },
-      { title: 'Dental Services', url: '/services', level: 0 },
-      { title: 'Treatment Price List', url: '/price-list', level: 0 },
-      { title: 'Specialist Doctors', url: '/doctors', level: 0 },
-      { title: 'Medicines & Care', url: '/medicines', level: 0 },
-      { title: 'Branches & Schedules', url: '/branches', level: 0 },
-      { title: 'About Tech Dental', url: '/about', level: 0 },
-      { title: 'Corporate Team', url: '/team', level: 0 },
-      { title: 'Blog & Dental Guides', url: '/blog', level: 0 },
-      { title: 'Book Appointment', url: '/appointment', level: 0 },
+      { title: 'Doctors', url: '/doctors', level: 0 },
+      { title: 'Branch', url: '#', level: 0 },
+      { title: 'Mirpur', url: '/branch/mirpur', level: 1 },
+      { title: 'Uttara', url: '/branch/uttara', level: 1 },
+      { title: 'Badda', url: '/branch/badda', level: 1 },
+      { title: 'Jatrabari', url: '/branch/jatrabari', level: 1 },
+      { title: 'Services', url: '/services', level: 0 },
+      { title: 'Price List', url: '/price-list', level: 0 },
+      { title: 'Blog', url: '#', level: 0 },
+      { title: 'Dental', url: '/blog', level: 1 },
+      { title: 'Medicine', url: '/medicines', level: 1 },
+      { title: 'About us', url: '#', level: 0 },
+      { title: 'About Tech Dental', url: '/about', level: 1 },
+      { title: 'Corporate Team', url: '/team', level: 1 },
+      { title: 'Privacy Policy', url: '/page/privacy-policy', level: 1 },
+      { title: 'Terms of Service', url: '/page/terms-of-service', level: 1 },
     ];
   }, [navMenu]);
 
@@ -381,6 +387,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         targetUrl = '/branch/badda';
       } else if (targetUrl === '/page/jatrabari') {
         targetUrl = '/branch/jatrabari';
+      } else if (targetUrl === '/page/about') {
+        targetUrl = '/about';
+      } else if (targetUrl === '/page/team') {
+        targetUrl = '/team';
+      } else if (targetUrl === '/page/medicines') {
+        targetUrl = '/medicines';
+      } else if (targetUrl === '/page/blog') {
+        targetUrl = '/blog';
       }
 
       const item = { ...rawItem, url: targetUrl, children: [] };
