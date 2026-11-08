@@ -179,6 +179,17 @@ Route::get('/howtopay', fn() => redirect('/how-to-pay', 301));
 // ---------- Appointment (public) ----------
 Route::get('/appointment', [AppointmentController::class, 'publicBook'])->name('appointment.public');
 
+// ---------- Gallery (public) ----------
+Route::get('/gallery', function () {
+    return Inertia::render('Gallery/PublicIndex', [
+        'locations' => \Illuminate\Support\Facades\DB::table('locations')->orderBy('sort_order')->orderBy('id')->get(),
+        'nav_menu' => \App\Models\NavMenu::first(),
+        'featured_images' => \Illuminate\Support\Facades\DB::table('featured_images')->where('is_active', 1)->orderBy('sort_order')->get(),
+    ]);
+})->name('gallery.public');
+Route::get('/photos', fn() => redirect('/gallery', 301));
+Route::get('/videos', fn() => redirect('/gallery#videos', 301));
+
 // ---------- Branches (public + admin) ----------
 Route::get('/branches', [BranchController::class, 'publicIndex'])->name('branches.public');
 Route::get('/branch/{slug}', [BranchController::class, 'publicShow'])->name('branch.public.show');

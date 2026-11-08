@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import { TopHeader } from "@/Components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import { BranchPickerModal } from "@/Components/BranchPickerModal";
@@ -158,8 +158,8 @@ export default function Home({
   // Gallery & Video Preview State
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
   const [previewVideo, setPreviewVideo] = useState<{ videoId: string; title?: string; branch?: string } | null>(null);
-  const [showAllImages, setShowAllImages] = useState(false);
-  const [showAllVideos, setShowAllVideos] = useState(false);
+  const [isImagesExpanded, setIsImagesExpanded] = useState(false);
+  const [isVideosExpanded, setIsVideosExpanded] = useState(false);
 
   // Modal State for external actions
   const [modal, setModal] = useState<ModalState>({
@@ -324,7 +324,7 @@ export default function Home({
     ];
   }, [featured_images]);
 
-  const displayedImages = showAllImages ? galleryItems : galleryItems.slice(0, 4);
+  const displayedImages = isImagesExpanded ? galleryItems.slice(0, 6) : galleryItems.slice(0, 4);
 
   // Video Gallery items matching screenshot style
   const videoGalleryItems = useMemo(() => [
@@ -386,7 +386,7 @@ export default function Home({
     },
   ], []);
 
-  const displayedVideos = showAllVideos ? videoGalleryItems : videoGalleryItems.slice(0, 4);
+  const displayedVideos = isVideosExpanded ? videoGalleryItems.slice(0, 6) : videoGalleryItems.slice(0, 4);
 
   // Keyboard navigation for image lightbox
   useEffect(() => {
@@ -976,12 +976,12 @@ export default function Home({
           <div className="w-full flex flex-col items-center">
             <div
               id="searchBarPill"
-              className={`search-pill-container w-full bg-white rounded-full pl-5 pr-2 py-1.5 sm:py-2 flex items-center justify-between transition-all duration-200 ${
+              className={`search-pill-container w-full bg-white rounded-full pl-6 sm:pl-7 pr-3 sm:pr-4 py-3.5 sm:py-5 min-h-[64px] sm:min-h-[74px] flex items-center justify-between transition-all duration-200 ${
                 isAiFocused ? "is-focused" : ""
               }`}
             >
-              <div className="flex items-center flex-1 mr-3">
-                <svg className="w-5 h-5 text-blue-500 mr-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="flex items-center flex-1 mr-3 sm:mr-4">
+                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500 mr-3.5 sm:mr-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
@@ -991,7 +991,7 @@ export default function Home({
                   value={aiInputValue}
                   onChange={(e) => setAiInputValue(e.target.value)}
                   placeholder="খরচ, ঠিকানা, ডাক্তার..."
-                  className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none"
+                  className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base sm:text-lg outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none"
                   onFocus={() => setIsAiFocused(true)}
                   onBlur={() => setIsAiFocused(false)}
                   onKeyDown={(e) => {
@@ -1009,13 +1009,13 @@ export default function Home({
                 onClick={handleAISubmit}
                 id="searchSubmitBtn"
                 disabled={isAiLoading}
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#1d63ed] hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center transition shadow-md shadow-blue-500/25 shrink-0 cursor-pointer"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#1d63ed] hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center transition shadow-md shadow-blue-500/25 shrink-0 cursor-pointer"
                 title="সার্চ করুন"
               >
                 {isAiLoading ? (
-                  <i className="fa-solid fa-circle-notch fa-spin text-sm" />
+                  <i className="fa-solid fa-circle-notch fa-spin text-base" />
                 ) : (
-                  <svg className="w-5 h-5 translate-x-0.5 -rotate-45" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-6 h-6 translate-x-0.5 -rotate-45" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                   </svg>
                 )}
@@ -1025,7 +1025,7 @@ export default function Home({
         </header>
 
         {/* Quick Action CTA Buttons (Call, Directions, WhatsApp, Book) - Above Image Section */}
-        <div className="flex justify-between items-center max-w-[340px] mx-auto mb-6 md:mb-8 w-full px-2">
+        <div className="flex justify-between items-center max-w-[340px] mx-auto my-8 md:my-12 w-full px-2">
 
           {/* Call CTA */}
           <button
@@ -1089,24 +1089,23 @@ export default function Home({
         </div>
 
         {/* ========================================== */}
-        {/* TECH DENTAL IMAGE GALLERY */}
-        {/* Desktop: 4 images, Mobile: 2 images. English More Images / See Less button */}
+        {/* IMAGE GALLERY */}
+        {/* Desktop: 4 images, Mobile: 2 images. Expand to 6, then See Less & See More (/gallery) */}
         {/* ========================================== */}
-        <section className="w-full mb-6 md:mb-8">
+        <section id="image-gallery-section" className="w-full mb-6 md:mb-8 scroll-mt-20">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-solid fa-images text-blue-600" />
-              <span>Tech Dental Image Gallery</span>
+              <span>Image Gallery</span>
             </h2>
           </div>
 
-          {/* 4 images in desktop, 2 in mobile — NO SLIDER */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {/* 4 images in desktop, 2 in mobile — Expand to 6 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {displayedImages.map((item: any, idx: number) => {
-              const branchName = item.branch || item.badge || "Uttara";
-              const titleBadge = item.badge || item.title || (idx === 0 ? "টেক ডেন্টাল হেড অফিস" : idx === 1 ? "আধুনিক মাইক্রোস্কোপিক ডেন্টাল কেয়ার" : "উন্নত চিকিৎসা পরিবেশ");
+              const titleBadge = item.badge || item.title || "Tech Dental";
               const imgSrc = item.src || item.image || item.url || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80";
-              const isHiddenOnMobile = idx >= 2 && !showAllImages;
+              const isHiddenOnMobile = !isImagesExpanded && idx >= 2;
 
               return (
                 <div
@@ -1115,7 +1114,6 @@ export default function Home({
                     setPreviewImage({
                       src: imgSrc,
                       title: titleBadge,
-                      branch: branchName,
                       index: idx,
                     });
                   }}
@@ -1136,37 +1134,60 @@ export default function Home({
             })}
           </div>
 
-          {/* More Images / See Less Button */}
-          {galleryItems.length > 2 && (
-            <div className={`mt-4 flex justify-center ${galleryItems.length <= 4 && !showAllImages ? "md:hidden" : ""}`}>
+          {/* Button(s) Area */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            {!isImagesExpanded ? (
               <button
                 type="button"
-                onClick={() => setShowAllImages(!showAllImages)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+                onClick={() => setIsImagesExpanded(true)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
               >
-                <span>{showAllImages ? "See Less" : "More Images"}</span>
-                <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-300 ${showAllImages ? "rotate-180" : ""}`} />
+                <span>See More</span>
+                <i className="fa-solid fa-chevron-down text-xs" />
               </button>
-            </div>
-          )}
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsImagesExpanded(false);
+                    setTimeout(() => {
+                      document.getElementById('image-gallery-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 40);
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+                >
+                  <i className="fa-solid fa-chevron-up text-xs" />
+                  <span>See Less</span>
+                </button>
+                <Link
+                  href="/gallery"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-md transition active:scale-95 cursor-pointer"
+                >
+                  <span>See More</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </>
+            )}
+          </div>
         </section>
 
         {/* ========================================== */}
-        {/* TECH DENTAL VIDEO GALLERY */}
-        {/* Desktop: 4 videos, Mobile: 2 videos. English More Videos / See Less button */}
+        {/* VIDEO GALLERY */}
+        {/* Desktop: 4 videos, Mobile: 2 videos. Expand to 6, then See Less & See More (/gallery#videos) */}
         {/* ========================================== */}
-        <section className="w-full mb-6 md:mb-8">
+        <section id="video-gallery-section" className="w-full mb-6 md:mb-8 scroll-mt-20">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-brands fa-youtube text-red-600" />
-              <span>Tech Dental Video Gallery</span>
+              <span>Video Gallery</span>
             </h2>
           </div>
 
-          {/* 4 videos in desktop, 2 in mobile — NO SLIDER */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {/* 4 videos in desktop, 2 in mobile — Expand to 6 */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {displayedVideos.map((item, idx) => {
-              const isHiddenOnMobile = idx >= 2 && !showAllVideos;
+              const isHiddenOnMobile = !isVideosExpanded && idx >= 2;
               return (
                 <div
                   key={item.id || idx}
@@ -1201,19 +1222,42 @@ export default function Home({
             })}
           </div>
 
-          {/* More Videos / See Less Button */}
-          {videoGalleryItems.length > 2 && (
-            <div className={`mt-4 flex justify-center ${videoGalleryItems.length <= 4 && !showAllVideos ? "md:hidden" : ""}`}>
+          {/* Button(s) Area */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            {!isVideosExpanded ? (
               <button
                 type="button"
-                onClick={() => setShowAllVideos(!showAllVideos)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+                onClick={() => setIsVideosExpanded(true)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
               >
-                <span>{showAllVideos ? "See Less" : "More Videos"}</span>
-                <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-300 ${showAllVideos ? "rotate-180" : ""}`} />
+                <span>See More</span>
+                <i className="fa-solid fa-chevron-down text-xs" />
               </button>
-            </div>
-          )}
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsVideosExpanded(false);
+                    setTimeout(() => {
+                      document.getElementById('video-gallery-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 40);
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+                >
+                  <i className="fa-solid fa-chevron-up text-xs" />
+                  <span>See Less</span>
+                </button>
+                <Link
+                  href="/gallery#videos"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-md transition active:scale-95 cursor-pointer"
+                >
+                  <span>See More</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </>
+            )}
+          </div>
         </section>
 
         {/* Bottom Section: Call to Action (CTA) & More Accordion */}
