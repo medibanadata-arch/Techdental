@@ -530,6 +530,17 @@ export default function Home({
     setIsAiLoading(true);
     scrollChatToQuestion(userMsgId);
 
+    const startTime = Date.now();
+    const TARGET_DELAY_MS = 3000; // Exact 3-second delivery guarantee
+
+    const ensureThreeSeconds = async () => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, TARGET_DELAY_MS - elapsed);
+      if (remaining > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remaining));
+      }
+    };
+
     try {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
@@ -541,6 +552,10 @@ export default function Home({
       });
 
       const data = await res.json();
+
+      // Guarantee 3 seconds elapsed before presenting answer
+      await ensureThreeSeconds();
+
       if (data && data.reply) {
         let cleanReplyText = data.reply;
         const isAskingWhatsapp = /whatsapp|হোয়াটসঅ্যাপ|হোয়াটসএপ|হোয়াটসঅ্যাপ|watsapp|what\'s app/i.test(cleanQuery);
@@ -574,9 +589,11 @@ export default function Home({
       }
     } catch (err) {
       console.error("AI Chat Error:", err);
+      await ensureThreeSeconds();
     }
 
     // Fallback if offline/network issue
+    await ensureThreeSeconds();
     const fallbackMsg: ChatMessage = {
       id: `ai-${Date.now()}`,
       role: "assistant",
