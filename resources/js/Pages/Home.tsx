@@ -1025,7 +1025,7 @@ export default function Home({
         </header>
 
         {/* Quick Action CTA Buttons (Call, Directions, WhatsApp, Book) - Above Image Section */}
-        <div className="flex justify-between items-center max-w-[340px] mx-auto my-6 md:my-8 w-full px-2">
+        <div className="flex justify-between items-center max-w-[340px] mx-auto mb-6 md:mb-8 w-full px-2">
 
           {/* Call CTA */}
           <button
@@ -1092,8 +1092,8 @@ export default function Home({
         {/* TECH DENTAL IMAGE GALLERY */}
         {/* Desktop: 4 images, Mobile: 2 images. English More Images / See Less button */}
         {/* ========================================== */}
-        <section className="w-full mb-10 md:mb-14 pt-6 border-t border-slate-200/50">
-          <div className="flex items-center justify-between mb-5 px-1">
+        <section className="w-full mb-6 md:mb-8">
+          <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-solid fa-images text-blue-600" />
               <span>Tech Dental Image Gallery</span>
@@ -1105,7 +1105,6 @@ export default function Home({
             {displayedImages.map((item: any, idx: number) => {
               const branchName = item.branch || item.badge || "Uttara";
               const titleBadge = item.badge || item.title || (idx === 0 ? "টেক ডেন্টাল হেড অফিস" : idx === 1 ? "আধুনিক মাইক্রোস্কোপিক ডেন্টাল কেয়ার" : "উন্নত চিকিৎসা পরিবেশ");
-              const views = item.view_count || item.real_views || (2000 + idx * 300);
               const imgSrc = item.src || item.image || item.url || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80";
               const isHiddenOnMobile = idx >= 2 && !showAllImages;
 
@@ -1131,19 +1130,7 @@ export default function Home({
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-
-                  {/* Bottom Info matching screenshot style */}
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none text-[11px] sm:text-xs">
-                    <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg font-medium">
-                      <i className="fa-solid fa-building text-blue-400 text-[10px]" />
-                      <span>{branchName}</span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2 py-1 rounded-lg font-medium">
-                      <i className="fa-solid fa-eye text-[10px]" />
-                      <span>{Number(views).toLocaleString()}</span>
-                    </div>
-                  </div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 </div>
               );
             })}
@@ -1151,7 +1138,7 @@ export default function Home({
 
           {/* More Images / See Less Button */}
           {galleryItems.length > 2 && (
-            <div className={`mt-5 flex justify-center ${galleryItems.length <= 4 && !showAllImages ? "md:hidden" : ""}`}>
+            <div className={`mt-4 flex justify-center ${galleryItems.length <= 4 && !showAllImages ? "md:hidden" : ""}`}>
               <button
                 type="button"
                 onClick={() => setShowAllImages(!showAllImages)}
@@ -1168,8 +1155,8 @@ export default function Home({
         {/* TECH DENTAL VIDEO GALLERY */}
         {/* Desktop: 4 videos, Mobile: 2 videos. English More Videos / See Less button */}
         {/* ========================================== */}
-        <section className="w-full mb-10 md:mb-14 pt-6 border-t border-slate-200/50">
-          <div className="flex items-center justify-between mb-5 px-1">
+        <section className="w-full mb-6 md:mb-8">
+          <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-brands fa-youtube text-red-600" />
               <span>Tech Dental Video Gallery</span>
@@ -1209,18 +1196,6 @@ export default function Home({
                       {item.title}
                     </div>
                   </div>
-
-                  {/* Bottom Info */}
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none text-[11px] sm:text-xs">
-                    <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg font-medium">
-                      <i className="fa-solid fa-building text-red-400 text-[10px]" />
-                      <span>{item.branch}</span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2 py-1 rounded-lg font-medium">
-                      <i className="fa-solid fa-eye text-[10px]" />
-                      <span>{Number(item.views).toLocaleString()}</span>
-                    </div>
-                  </div>
                 </div>
               );
             })}
@@ -1228,7 +1203,7 @@ export default function Home({
 
           {/* More Videos / See Less Button */}
           {videoGalleryItems.length > 2 && (
-            <div className={`mt-5 flex justify-center ${videoGalleryItems.length <= 4 && !showAllVideos ? "md:hidden" : ""}`}>
+            <div className={`mt-4 flex justify-center ${videoGalleryItems.length <= 4 && !showAllVideos ? "md:hidden" : ""}`}>
               <button
                 type="button"
                 onClick={() => setShowAllVideos(!showAllVideos)}
@@ -1242,7 +1217,7 @@ export default function Home({
         </section>
 
         {/* Bottom Section: Call to Action (CTA) & More Accordion */}
-        <section className="w-full py-4 mt-auto">
+        <section className="w-full mb-6 md:mb-8 mt-auto">
 
           {/* Very Bottom: More about Tech Dental Accordion Section */}
           <div className={`mx-auto w-full transition-all duration-300 ${isMoreOpen ? 'w-full' : 'max-w-xl'}`}>
