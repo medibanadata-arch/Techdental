@@ -196,6 +196,299 @@ class AiAssistantController extends Controller
     }
 
     /**
+     * Public AI Chat Streaming API Endpoint (POST /api/ai-chat/stream)
+     * Real-time streaming response using Google Gemini streamGenerateContent (SSE)
+     */
+    public function streamChatApi(Request $request)
+    {
+        $query = trim($request->input('query') ?: $request->input('message') ?: '');
+        if (empty($query)) {
+            return response()->json([
+                'error' => 'অনুগ্রহ করে প্রশ্ন লিখুন।',
+            ], 422);
+        }
+
+        $settings = DB::table('ai_chat_settings')->first();
+        $apiKey = trim($settings->gemini_api_key ?? env('GEMINI_API_KEY', ''));
+
+        return response()->stream(function () use ($request, $query, $settings, $apiKey) {
+            // Disable output buffering for instant flushing
+            while (ob_get_level() > 0) {
+                @ob_end_flush();
+            }
+
+            $sendEvent = function ($payload) {
+                echo "data: " . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n\n";
+                if (ob_get_level() > 0) {
+                    @ob_flush();
+                }
+                flush();
+            };
+
+            $isAskingWhatsapp = (bool)preg_match('/whatsapp|হোয়াটসঅ্যাপ|হোয়াটসএপ|হোয়াটসঅ্যাপ|watsapp|what\'s app/ui', $query);
+
+            // 1. Google Gemini AI Streaming
+            if ($settings && $settings->gemini_enabled && !empty($apiKey)) {
+                $systemPrompt = $settings->system_prompt ?: "You are Tech Dental's smart, warm, and helpful AI assistant for patients in Dhaka, Bangladesh. Answer patient inquiries politely and concisely in clear Bengali. Always prioritize Tech Dental's branches and pricing from the training data.";
+                $trainingData = !empty($settings->training_data) ? $settings->training_data : self::DEFAULT_TRAINING_DATA;
+
+                $instructionText = "ROLE & INSTRUCTIONS FOR TECH DENTAL AI ASSISTANT:\n{$systemPrompt}\n\n### TECH DENTAL OFFICIAL COMPANY TRAINING DATA & KNOWLEDGE BASE:\n{$trainingData}\n\nSTRICT GUIDELINES:
+1. Always answer the patient's questions using the above official company training data.
+2. For treatment costs (e.g. scaling, root canal, dental caps, implants), quote the exact prices from the training data.
+3. Mention our relevant branch locations (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী) and official hotline 09638-000505 when helpful.
+4. STRICT WHATSAPP RULE: NEVER provide the WhatsApp number (01400-786162) in normal replies. Only provide WhatsApp if the patient specifically asks for WhatsApp or mobile number.
+5. Keep the answer warm, concise (2-4 bullet points), and in polite Bengali text format only.
+6. YOUTUBE VIDEOS: If the training data contains a YouTube video link (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...) related to the treatment, procedure, or topic the patient is inquiring about, include the full YouTube link on its own line so the patient can watch the video directly in the chat box.
+7. CRITICAL: Output ONLY the final polite Bengali message to the patient. NEVER output internal thoughts, checklists, reasoning, or self-verifications (such as '(2-4 bullet points)? Yes' or 'Checked').";
+
+                $candidateModels = array_values(array_unique(array_merge(
+                    [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],
+                    $this->resolveGeminiModelCandidates($settings->gemini_model ?? 'gemini-3.1-flash-lite')
+                )));
+
+                foreach ($candidateModels as $model) {
+                    try {
+                        $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:streamGenerateContent?alt=sse&key={$apiKey}";
+                        $payload = [
+                            'system_instruction' => [
+                                'parts' => [
+                                    ['text' => $instructionText]
+                                ]
+                            ],
+                            'contents' => [
+                                [
+                                    'role' => 'user',
+                                    'parts' => [
+                                        ['text' => $query]
+                                    ]
+                                ]
+                            ],
+                            'generationConfig' => [
+                                'temperature' => 0.3,
+                                'maxOutputTokens' => 4096,
+                                'responseModalities' => ['TEXT'],
+                                'thinkingConfig' => [
+                                    'thinkingBudget' => 0,
+                                ],
+                            ]
+                        ];
+
+                        $lineBuffer = '';
+                        $fullAiText = '';
+
+                        $ch = curl_init($apiUrl);
+                        curl_setopt($ch, CURLOPT_POST, true);
+                        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                        curl_setopt($ch, CURLOPT_TIMEOUT, 35);
+                        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($chRef, $chunk) use (&$lineBuffer, &$fullAiText, $sendEvent) {
+                            $lineBuffer .= $chunk;
+                            while (($newlinePos = strpos($lineBuffer, "\n")) !== false) {
+                                $line = substr($lineBuffer, 0, $newlinePos);
+                                $lineBuffer = substr($lineBuffer, $newlinePos + 1);
+                                $line = trim($line);
+                                if (str_starts_with($line, 'data: ')) {
+                                    $jsonStr = substr($line, 6);
+                                    $data = json_decode($jsonStr, true);
+                                    if ($data && isset($data['candidates'][0]['content']['parts'])) {
+                                        $segment = '';
+                                        foreach ($data['candidates'][0]['content']['parts'] as $p) {
+                                            if (empty($p['thought']) && !empty($p['text'])) {
+                                                $segment .= $p['text'];
+                                            }
+                                        }
+                                        if ($segment !== '') {
+                                            $fullAiText .= $segment;
+                                            $sendEvent(['chunk' => $segment]);
+                                        }
+                                    }
+                                }
+                            }
+                            return strlen($chunk);
+                        });
+
+                        curl_exec($ch);
+                        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                        curl_close($ch);
+
+                        if ($httpCode === 200 && mb_strlen(trim($fullAiText)) >= 10) {
+                            $cleanFull = trim($fullAiText);
+                            $cleanFull = preg_replace('/^\s*\(?\d+[- ]?\d*\s*bullet points\)?\??.*$/umi', '', $cleanFull);
+                            $cleanFull = preg_replace('/^\s*\*?\s*No WhatsApp number mentioned\??.*$/umi', '', $cleanFull);
+                            $cleanFull = preg_replace('/^\s*\*?\s*No [৳Tk\/]+.*$/umi', '', $cleanFull);
+                            $cleanFull = preg_replace('/^\s*\*?\s*Checked\s*$/umi', '', $cleanFull);
+                            $cleanFull = trim(preg_replace('/\n{3,}/', "\n\n", $cleanFull));
+
+                            if (!$isAskingWhatsapp) {
+                                $cleanFull = preg_replace('/01400[- ]?786162\s*(?:\/|বা|,)\s*/u', '', $cleanFull);
+                                $cleanFull = preg_replace('/\s*(?:\/|বা|,)?\s*(?:WhatsApp:\s*)?01400[- ]?786162/ui', '', $cleanFull);
+                                $cleanFull = preg_replace('/কল করুন:\s*$/u', 'কল করুন: 09638-000505', $cleanFull);
+                                $cleanFull = trim($cleanFull);
+                            }
+
+                            // Log query to database
+                            DB::table('ai_chat_logs')->insert([
+                                'user_query' => $query,
+                                'reply' => $cleanFull,
+                                'matched_rule_id' => null,
+                                'source' => 'gemini',
+                                'ip_address' => $request->ip(),
+                                'created_at' => now(),
+                            ]);
+
+                            $sendEvent([
+                                'done' => true,
+                                'full_text' => $cleanFull,
+                                'source' => 'gemini',
+                                'title' => 'টেক ডেন্টাল',
+                                'icon' => 'fa-sparkles',
+                                'icon_color' => 'text-blue-600',
+                                'icon_bg' => 'bg-blue-100',
+                                'action_type' => 'appointment',
+                                'action_label' => 'অনলাইন সিরিয়াল নিন',
+                                'action_url' => '/appointment',
+                            ]);
+                            return;
+                        }
+
+                        if ($httpCode !== 404) {
+                            break;
+                        }
+                    } catch (\Throwable $e) {
+                        Log::error("Gemini Stream Exception for {$model}: " . $e->getMessage());
+                    }
+                }
+            }
+
+            // 2. Training Data Matcher Fallback (Stream smoothly)
+            $trainingData = !empty($settings->training_data) ? $settings->training_data : self::DEFAULT_TRAINING_DATA;
+            $kbReply = $this->matchTrainingDataAnswer($trainingData, $query);
+            if ($kbReply) {
+                $replyText = $kbReply['reply'];
+                if (!$isAskingWhatsapp) {
+                    $replyText = preg_replace('/01400[- ]?786162\s*(?:\/|বা|,)\s*/u', '', $replyText);
+                    $replyText = preg_replace('/\s*(?:\/|বা|,)?\s*(?:WhatsApp:\s*)?01400[- ]?786162/ui', '', $replyText);
+                    $replyText = preg_replace('/কল করুন:\s*$/u', 'কল করুন: 09638-000505', $replyText);
+                    $replyText = trim($replyText);
+                }
+
+                $segments = mb_str_split($replyText, 6);
+                foreach ($segments as $seg) {
+                    $sendEvent(['chunk' => $seg]);
+                    usleep(15000);
+                }
+
+                DB::table('ai_chat_logs')->insert([
+                    'user_query' => $query,
+                    'reply' => $replyText,
+                    'matched_rule_id' => null,
+                    'source' => 'gemini',
+                    'ip_address' => $request->ip(),
+                    'created_at' => now(),
+                ]);
+
+                $sendEvent([
+                    'done' => true,
+                    'full_text' => $replyText,
+                    'source' => 'gemini',
+                    'title' => $kbReply['title'],
+                    'icon' => 'fa-sparkles',
+                    'icon_color' => 'text-blue-600',
+                    'icon_bg' => 'bg-blue-100',
+                    'action_type' => 'appointment',
+                    'action_label' => 'অনলাইন সিরিয়াল নিন',
+                    'action_url' => '/appointment',
+                ]);
+                return;
+            }
+
+            // 3. Keyword-based rules fallback
+            $cleanQuery = mb_strtolower($query, 'UTF-8');
+            $rules = DB::table('ai_chat_replies')
+                ->where('is_active', 1)
+                ->orderBy('priority', 'desc')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            foreach ($rules as $rule) {
+                $keywords = explode(',', $rule->keywords);
+                foreach ($keywords as $kw) {
+                    $kw = trim(mb_strtolower($kw, 'UTF-8'));
+                    if (!empty($kw) && mb_strpos($cleanQuery, $kw) !== false) {
+                        DB::table('ai_chat_replies')->where('id', $rule->id)->increment('match_count');
+
+                        $segments = mb_str_split($rule->reply, 6);
+                        foreach ($segments as $seg) {
+                            $sendEvent(['chunk' => $seg]);
+                            usleep(15000);
+                        }
+
+                        DB::table('ai_chat_logs')->insert([
+                            'user_query' => $query,
+                            'reply' => $rule->reply,
+                            'matched_rule_id' => $rule->id,
+                            'source' => 'keyword',
+                            'ip_address' => $request->ip(),
+                            'created_at' => now(),
+                        ]);
+
+                        $sendEvent([
+                            'done' => true,
+                            'full_text' => $rule->reply,
+                            'source' => 'keyword',
+                            'title' => $rule->title,
+                            'icon' => $rule->icon ?: 'fa-tooth',
+                            'icon_color' => $rule->icon_color ?: 'text-blue-600',
+                            'icon_bg' => $rule->icon_bg ?: 'bg-blue-100',
+                            'action_type' => $rule->action_type ?: 'none',
+                            'action_label' => $rule->action_label,
+                            'action_url' => $rule->action_url,
+                        ]);
+                        return;
+                    }
+                }
+            }
+
+            // 4. Default Fallback
+            $fallback = $settings->fallback_reply ?? "টেক ডেন্টালের অভিজ্ঞ সার্জনগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিট সময় বা চিকিৎসকের সাথে কথা বলতে আমাদের হটলাইনে সরাসরি ডায়াল করুন অথবা অনলাইনে সিরিয়াল বুক করুন।";
+
+            $segments = mb_str_split($fallback, 6);
+            foreach ($segments as $seg) {
+                $sendEvent(['chunk' => $seg]);
+                usleep(15000);
+            }
+
+            DB::table('ai_chat_logs')->insert([
+                'user_query' => $query,
+                'reply' => $fallback,
+                'matched_rule_id' => null,
+                'source' => 'fallback',
+                'ip_address' => $request->ip(),
+                'created_at' => now(),
+            ]);
+
+            $sendEvent([
+                'done' => true,
+                'full_text' => $fallback,
+                'source' => 'fallback',
+                'title' => 'টেক ডেন্টাল',
+                'icon' => 'fa-circle-question',
+                'icon_color' => 'text-blue-600',
+                'icon_bg' => 'bg-blue-100',
+                'action_type' => 'appointment',
+                'action_label' => 'অনলাইন অ্যাপয়েন্টমেন্ট',
+                'action_url' => '/appointment',
+            ]);
+        }, 200, [
+            'Content-Type' => 'text/event-stream; charset=UTF-8',
+            'Cache-Control' => 'no-cache, no-transform',
+            'Connection' => 'keep-alive',
+            'X-Accel-Buffering' => 'no',
+        ]);
+    }
+
+    /**
      * Public AI Chat API Endpoint (POST /api/ai-chat)
      */
     public function chatApi(Request $request)

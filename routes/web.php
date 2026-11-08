@@ -68,6 +68,7 @@ Route::get('page/{slug}', [PageController::class, 'publicShow'])->name('pages.pu
 // Public endpoints used by the website (no login required)
 Route::post('api/featured-images/{id}/view', [FeaturedImageController::class, 'incrementRealView'])->name('featured-images.increment-view');
 Route::post('api/ai-chat', [AiAssistantController::class, 'chatApi'])->name('ai-chat.api');
+Route::post('api/ai-chat/stream', [AiAssistantController::class, 'streamChatApi'])->name('ai-chat.stream');
 Route::post('appointments', [AppointmentController::class, 'store'])
     ->middleware('throttle:20,1')
     ->name('appointments.store');

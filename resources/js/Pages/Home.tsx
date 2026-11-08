@@ -48,6 +48,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   text?: string;
   answer?: AiAnswer;
+  isStreaming?: boolean;
 }
 
 // Helper: Extract YouTube 11-char Video ID from any YouTube URL
@@ -440,7 +441,7 @@ export default function Home({
     }
   };
 
-  // Connected to Backend API: checks admin keywords first, then Gemini AI, then fallback
+  // Connected to Backend API: Real-time SSE Streaming via Gemini & Knowledge Base
   const processAIQuestion = async (query: string) => {
     if (!query.trim()) return;
     const cleanQuery = query.trim();
@@ -459,6 +460,165 @@ export default function Home({
     setIsAiLoading(true);
     scrollChatToQuestion(userMsgId);
 
+    const aiMsgId = `ai-${Date.now() + 1}`;
+    let messageAdded = false;
+    let streamText = "";
+
+    try {
+      const res = await fetch("/api/ai-chat/stream", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "text/event-stream",
+        },
+        body: JSON.stringify({ query: cleanQuery }),
+      });
+
+      if (!res.ok || !res.body) {
+        throw new Error("Stream connection failed");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data:")) continue;
+          const jsonStr = trimmed.slice(5).trim();
+          if (!jsonStr) continue;
+
+          try {
+            const data = JSON.parse(jsonStr);
+
+            if (data.chunk) {
+              streamText += data.chunk;
+
+              if (!messageAdded) {
+                messageAdded = true;
+                setIsAiLoading(false);
+                setChatMessages((prev) => [
+                  ...prev,
+                  {
+                    id: aiMsgId,
+                    role: "assistant",
+                    isStreaming: true,
+                    answer: {
+                      title: "টেক ডেন্টাল",
+                      reply: streamText,
+                      icon: "fa-sparkles",
+                      iconColor: "text-blue-600",
+                      iconBg: "bg-blue-100",
+                      source: "gemini",
+                    },
+                  },
+                ]);
+              } else {
+                setChatMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMsgId
+                      ? {
+                          ...msg,
+                          isStreaming: true,
+                          answer: {
+                            ...msg.answer!,
+                            reply: streamText,
+                          },
+                        }
+                      : msg
+                  )
+                );
+              }
+              scrollChatToQuestion(aiMsgId);
+            }
+
+            if (data.done) {
+              let finalText = data.full_text || streamText;
+              const isAskingWhatsapp = /whatsapp|হোয়াটসঅ্যাপ|হোয়াটসএপ|হোয়াটসঅ্যাপ|watsapp|what\'s app/i.test(cleanQuery);
+              if (!isAskingWhatsapp) {
+                finalText = finalText
+                  .replace(/01400[- ]?786162\s*(?:\/|বা|,)\s*/g, '')
+                  .replace(/\s*(?:\/|বা|,)?\s*(?:WhatsApp:\s*)?01400[- ]?786162/gi, '')
+                  .replace(/কল করুন:\s*$/g, 'কল করুন: 09638-000505')
+                  .trim();
+              }
+
+              if (!messageAdded) {
+                messageAdded = true;
+                setIsAiLoading(false);
+                setChatMessages((prev) => [
+                  ...prev,
+                  {
+                    id: aiMsgId,
+                    role: "assistant",
+                    isStreaming: false,
+                    answer: {
+                      title: data.title || "টেক ডেন্টাল",
+                      reply: finalText,
+                      icon: data.icon || "fa-sparkles",
+                      iconColor: data.icon_color || "text-blue-600",
+                      iconBg: data.icon_bg || "bg-blue-100",
+                      source: data.source || "gemini",
+                      actionType: data.action_type || "appointment",
+                      actionLabel: data.action_label || "অনলাইন সিরিয়াল নিন",
+                      actionUrl: data.action_url || "/appointment",
+                    },
+                  },
+                ]);
+              } else {
+                setChatMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMsgId
+                      ? {
+                          ...msg,
+                          isStreaming: false,
+                          answer: {
+                            title: data.title || "টেক ডেন্টাল",
+                            reply: finalText,
+                            icon: data.icon || "fa-sparkles",
+                            iconColor: data.icon_color || "text-blue-600",
+                            iconBg: data.icon_bg || "bg-blue-100",
+                            source: data.source || "gemini",
+                            actionType: data.action_type || "appointment",
+                            actionLabel: data.action_label || "অনলাইন সিরিয়াল নিন",
+                            actionUrl: data.action_url || "/appointment",
+                          },
+                        }
+                      : msg
+                  )
+                );
+              }
+              scrollChatToQuestion(aiMsgId);
+              return;
+            }
+          } catch (e) {
+            console.error("Error parsing stream event:", e);
+          }
+        }
+      }
+
+      if (messageAdded && streamText.trim().length > 0) {
+        setIsAiLoading(false);
+        setChatMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMsgId ? { ...msg, isStreaming: false } : msg
+          )
+        );
+        return;
+      }
+    } catch (err) {
+      console.error("AI Chat Streaming Error, trying static fallback:", err);
+    }
+
+    // Static fallback if streaming could not establish
     try {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
@@ -482,8 +642,9 @@ export default function Home({
         }
 
         const aiMsg: ChatMessage = {
-          id: `ai-${Date.now()}`,
+          id: aiMsgId,
           role: "assistant",
+          isStreaming: false,
           answer: {
             title: data.title || "টেক ডেন্টাল",
             reply: cleanReplyText,
@@ -507,8 +668,9 @@ export default function Home({
 
     // Fallback if offline/network issue
     const fallbackMsg: ChatMessage = {
-      id: `ai-${Date.now()}`,
+      id: aiMsgId,
       role: "assistant",
+      isStreaming: false,
       answer: {
         title: "টেক ডেন্টাল",
         reply: `টেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (${hotline}) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
@@ -697,13 +859,18 @@ export default function Home({
       );
     }
 
+    const isStreaming = Boolean(msg.isStreaming);
+
     return (
       <div key={msg.id} data-msg-id={msg.id} className="text-[14px] sm:text-[15px] leading-relaxed text-[#202124] space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
         <div className="text-slate-800 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide">
           {renderFormattedReply(msg.answer?.reply || "")}
+          {isStreaming && (
+            <span className="inline-block w-1.5 h-4 bg-blue-600 animate-pulse ml-1 align-middle rounded-xs" />
+          )}
         </div>
 
-        {msg.answer?.actionLabel && (
+        {!isStreaming && msg.answer?.actionLabel && (
           <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-100/80">
             <button
               type="button"
