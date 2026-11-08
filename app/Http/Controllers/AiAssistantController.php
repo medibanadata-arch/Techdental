@@ -251,7 +251,7 @@ class AiAssistantController extends Controller
                         ],
                         'generationConfig' => [
                             'temperature' => 0.3,
-                            'maxOutputTokens' => 700,
+                            'maxOutputTokens' => 4096,
                             'responseModalities' => ['TEXT'],
                             'thinkingConfig' => [
                                 'thinkingBudget' => 0,
@@ -670,7 +670,7 @@ class AiAssistantController extends Controller
                 ],
                 'generationConfig' => [
                     'temperature' => 0.4,
-                    'maxOutputTokens' => 500,
+                    'maxOutputTokens' => 4096,
                     'responseModalities' => ['TEXT'],
                 ]
             ];
