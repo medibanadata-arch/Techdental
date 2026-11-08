@@ -352,7 +352,8 @@ class AiAssistantController extends Controller
                             return;
                         }
 
-                        if ($httpCode !== 404) {
+                        // If 404, 429 (quota limit), or 503 (high demand), try next candidate model
+                        if (!in_array($httpCode, [404, 429, 503])) {
                             break;
                         }
                     } catch (\Throwable $e) {
@@ -609,7 +610,8 @@ class AiAssistantController extends Controller
                         }
                     }
 
-                    if ($response->status() !== 404) {
+                    // If 404, 429 (rate/day limit), or 503 (temporary busy), try next candidate model
+                    if (!in_array($response->status(), [404, 429, 503])) {
                         Log::error("Gemini API Error for {$model}: " . $response->body());
                         break;
                     }
@@ -830,18 +832,13 @@ class AiAssistantController extends Controller
                 $candidates[] = str_replace('-preview', '', $requested);
             }
         }
-        // Exact models supported by Google AI Studio
+        // Exact models supported by Google AI Studio (ordered by highest quota & availability)
+        $candidates[] = 'gemini-3.5-flash-lite';
         $candidates[] = 'gemini-3.1-flash-lite';
         $candidates[] = 'gemini-3.6-flash';
         $candidates[] = 'gemini-3.5-flash';
-        $candidates[] = 'gemini-3.5-flash-lite';
-        $candidates[] = 'gemini-3.1-pro-preview';
+        $candidates[] = 'gemini-3.8-flash';
         $candidates[] = 'gemini-3.1-pro';
-        $candidates[] = 'gemini-3-flash-preview';
-        $candidates[] = 'gemini-3-flash';
-        $candidates[] = 'gemini-2.5-flash';
-        $candidates[] = 'gemini-2.5-flash-lite';
-        $candidates[] = 'gemini-2.5-pro';
 
         return array_values(array_unique($candidates));
     }
@@ -1022,8 +1019,8 @@ class AiAssistantController extends Controller
                 $lastError = $errorData['error']['message'] ?? $response->body();
                 $lastErrorCode = $response->status();
 
-                // If 404 (model deprecated / NOT_FOUND), loop to next candidate model
-                if ($response->status() !== 404) {
+                // If 404, 429, or 503, loop to next candidate model
+                if (!in_array($response->status(), [404, 429, 503])) {
                     break;
                 }
             } catch (\Exception $e) {
