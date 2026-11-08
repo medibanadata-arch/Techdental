@@ -894,7 +894,7 @@ export default function Home({
       <div className="w-full max-w-5xl mx-auto px-4 py-6 md:py-10 flex-grow flex flex-col justify-between">
 
         {/* Top Section: AI Assistant Box */}
-        <header className="w-full max-w-2xl mx-auto text-center flex flex-col items-center mb-6 md:mb-8 pt-2 md:pt-4">
+        <header className="w-full max-w-2xl mx-auto text-center flex flex-col items-center pt-2 md:pt-4">
 
           {/* Title - One Line */}
           <h1 className={`text-xl sm:text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-normal whitespace-nowrap ${isChatActive ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}>
@@ -1109,7 +1109,7 @@ export default function Home({
         {/* IMAGE GALLERY */}
         {/* Initial: 4 on desktop, 2 on mobile. Expand: 8 images, then See Less & See More (/gallery) */}
         {/* ========================================== */}
-        <section id="image-gallery-section" className="w-full mb-6 md:mb-8 scroll-mt-20">
+        <section id="image-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-solid fa-images text-blue-600" />
@@ -1193,7 +1193,7 @@ export default function Home({
         {/* VIDEO GALLERY */}
         {/* Mobile: 1 column stacked (not side by side), Desktop: 3 columns. Expand: 6 videos, then See Less & See More (/gallery#videos) */}
         {/* ========================================== */}
-        <section id="video-gallery-section" className="w-full mb-6 md:mb-8 scroll-mt-20">
+        <section id="video-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-brands fa-youtube text-red-600" />
@@ -1204,7 +1204,7 @@ export default function Home({
           {/* 1 column on mobile (stacked), 2 on sm, 3 on md -> 6 videos when expanded */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4">
             {displayedVideos.map((item, idx) => {
-              const isHiddenOnMobile = !isVideosExpanded && idx >= 2;
+              const isHiddenOnMobile = !isVideosExpanded && idx >= 1;
 
               return (
                 <div
