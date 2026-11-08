@@ -159,9 +159,7 @@ export default function Home({
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
   const [previewVideo, setPreviewVideo] = useState<{ videoId: string; title?: string; branch?: string } | null>(null);
   const [showAllImages, setShowAllImages] = useState(false);
-  const [selectedGalleryBranch, setSelectedGalleryBranch] = useState("All");
   const [showAllVideos, setShowAllVideos] = useState(false);
-  const [selectedVideoBranch, setSelectedVideoBranch] = useState("All");
 
   // Modal State for external actions
   const [modal, setModal] = useState<ModalState>({
@@ -287,20 +285,46 @@ export default function Home({
         badgeColor: "bg-[#0284c7]",
         view_count: 3105,
       },
+      {
+        id: 5,
+        title: "অত্যাধুনিক ডেন্টাল ওটি সেটআপ",
+        src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
+        branch: "Mirpur",
+        badge: "ডেন্টাল ওটি",
+        badgeColor: "bg-[#7c3aed]",
+        view_count: 2780,
+      },
+      {
+        id: 6,
+        title: "৩ডি কোন বিম সিটি স্ক্যান (CBCT)",
+        src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
+        branch: "Badda",
+        badge: "CBCT ডায়াগনস্টিক",
+        badgeColor: "bg-[#ea580c]",
+        view_count: 2150,
+      },
+      {
+        id: 7,
+        title: "জীবাণুমুক্তকরণ ও স্টেরিলাইজেশন জোন",
+        src: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
+        branch: "Uttara",
+        badge: "স্টেরিলাইজেশন",
+        badgeColor: "bg-[#0891b2]",
+        view_count: 1940,
+      },
+      {
+        id: 8,
+        title: "শিশুদের স্পেশাল ডেন্টাল কর্নার",
+        src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
+        branch: "Mirpur",
+        badge: "পেডিয়াট্রিক ডেন্টিস্ট্রি",
+        badgeColor: "bg-[#db2777]",
+        view_count: 2490,
+      },
     ];
   }, [featured_images]);
 
-  const imageBranches = useMemo(() => {
-    const list = Array.from(new Set(galleryItems.map((item: any) => item.branch || item.badge || "Uttara").filter(Boolean)));
-    return ["All", ...list];
-  }, [galleryItems]);
-
-  const filteredImages = useMemo(() => {
-    if (selectedGalleryBranch === "All") return galleryItems;
-    return galleryItems.filter((item: any) => (item.branch || item.badge || "Uttara") === selectedGalleryBranch);
-  }, [galleryItems, selectedGalleryBranch]);
-
-  const displayedImages = showAllImages ? filteredImages : filteredImages.slice(0, 4);
+  const displayedImages = showAllImages ? galleryItems : galleryItems.slice(0, 4);
 
   // Video Gallery items matching screenshot style
   const videoGalleryItems = useMemo(() => [
@@ -362,17 +386,7 @@ export default function Home({
     },
   ], []);
 
-  const videoBranches = useMemo(() => {
-    const list = Array.from(new Set(videoGalleryItems.map(item => item.branch)));
-    return ["All", ...list];
-  }, [videoGalleryItems]);
-
-  const filteredVideos = useMemo(() => {
-    if (selectedVideoBranch === "All") return videoGalleryItems;
-    return videoGalleryItems.filter(item => item.branch === selectedVideoBranch);
-  }, [videoGalleryItems, selectedVideoBranch]);
-
-  const displayedVideos = showAllVideos ? filteredVideos : filteredVideos.slice(0, 4);
+  const displayedVideos = showAllVideos ? videoGalleryItems : videoGalleryItems.slice(0, 4);
 
   // Keyboard navigation for image lightbox
   useEffect(() => {
@@ -1076,41 +1090,24 @@ export default function Home({
 
         {/* ========================================== */}
         {/* TECH DENTAL IMAGE GALLERY */}
-        {/* Web: 4 images, no slide. Dropdown + More Images button */}
+        {/* Desktop: 4 images, Mobile: 2 images. English More Images / See Less button */}
         {/* ========================================== */}
         <section className="w-full mb-10 md:mb-14 pt-6 border-t border-slate-200/50">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 px-1">
+          <div className="flex items-center justify-between mb-5 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-solid fa-images text-blue-600" />
               <span>Tech Dental Image Gallery</span>
             </h2>
-
-            {/* Branch Filter Dropdown */}
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <label htmlFor="imageBranchFilter" className="text-xs font-semibold text-slate-500 whitespace-nowrap">
-                শাখা:
-              </label>
-              <select
-                id="imageBranchFilter"
-                value={selectedGalleryBranch}
-                onChange={(e) => setSelectedGalleryBranch(e.target.value)}
-                className="bg-white border border-slate-200 hover:border-blue-400 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none transition shadow-2xs cursor-pointer"
-              >
-                <option value="All">সকল শাখা (All)</option>
-                {imageBranches.filter(b => b !== "All").map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          {/* 4 images in web, 2 in mobile — NO SLIDER */}
+          {/* 4 images in desktop, 2 in mobile — NO SLIDER */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {displayedImages.map((item: any, idx: number) => {
               const branchName = item.branch || item.badge || "Uttara";
               const titleBadge = item.badge || item.title || (idx === 0 ? "টেক ডেন্টাল হেড অফিস" : idx === 1 ? "আধুনিক মাইক্রোস্কোপিক ডেন্টাল কেয়ার" : "উন্নত চিকিৎসা পরিবেশ");
               const views = item.view_count || item.real_views || (2000 + idx * 300);
               const imgSrc = item.src || item.image || item.url || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80";
+              const isHiddenOnMobile = idx >= 2 && !showAllImages;
 
               return (
                 <div
@@ -1123,7 +1120,9 @@ export default function Home({
                       index: idx,
                     });
                   }}
-                  className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+                  className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
+                    isHiddenOnMobile ? "hidden md:block" : ""
+                  }`}
                   title="ছবি দেখতে ক্লিক করুন"
                 >
                   <img
@@ -1150,15 +1149,15 @@ export default function Home({
             })}
           </div>
 
-          {/* More Images Button */}
-          {filteredImages.length > 4 && (
-            <div className="mt-5 flex justify-center">
+          {/* More Images / See Less Button */}
+          {galleryItems.length > 2 && (
+            <div className={`mt-5 flex justify-center ${galleryItems.length <= 4 && !showAllImages ? "md:hidden" : ""}`}>
               <button
                 type="button"
                 onClick={() => setShowAllImages(!showAllImages)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
               >
-                <span>{showAllImages ? "কম ছবি দেখুন" : "More Images"}</span>
+                <span>{showAllImages ? "See Less" : "More Images"}</span>
                 <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-300 ${showAllImages ? "rotate-180" : ""}`} />
               </button>
             </div>
@@ -1167,88 +1166,75 @@ export default function Home({
 
         {/* ========================================== */}
         {/* TECH DENTAL VIDEO GALLERY */}
-        {/* Same layout as Image Gallery with See More button */}
+        {/* Desktop: 4 videos, Mobile: 2 videos. English More Videos / See Less button */}
         {/* ========================================== */}
         <section className="w-full mb-10 md:mb-14 pt-6 border-t border-slate-200/50">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 px-1">
+          <div className="flex items-center justify-between mb-5 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-brands fa-youtube text-red-600" />
               <span>Tech Dental Video Gallery</span>
             </h2>
-
-            {/* Video Branch Filter Dropdown */}
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <label htmlFor="videoBranchFilter" className="text-xs font-semibold text-slate-500 whitespace-nowrap">
-                শাখা:
-              </label>
-              <select
-                id="videoBranchFilter"
-                value={selectedVideoBranch}
-                onChange={(e) => setSelectedVideoBranch(e.target.value)}
-                className="bg-white border border-slate-200 hover:border-red-400 text-slate-700 text-xs sm:text-sm rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-red-500 focus:outline-none transition shadow-2xs cursor-pointer"
-              >
-                <option value="All">সকল শাখা (All)</option>
-                {videoBranches.filter(b => b !== "All").map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          {/* 4 videos in web, 2 in mobile — NO SLIDER */}
+          {/* 4 videos in desktop, 2 in mobile — NO SLIDER */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {displayedVideos.map((item, idx) => (
-              <div
-                key={item.id || idx}
-                onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title, branch: item.branch })}
-                className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-                title="ভিডিও দেখতে ক্লিক করুন"
-              >
-                <img
-                  src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100 pointer-events-none"
-                  loading="lazy"
-                />
+            {displayedVideos.map((item, idx) => {
+              const isHiddenOnMobile = idx >= 2 && !showAllVideos;
+              return (
+                <div
+                  key={item.id || idx}
+                  onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title, branch: item.branch })}
+                  className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
+                    isHiddenOnMobile ? "hidden md:block" : ""
+                  }`}
+                  title="ভিডিও দেখতে ক্লিক করুন"
+                >
+                  <img
+                    src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
+                    alt={item.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100 pointer-events-none"
+                    loading="lazy"
+                  />
 
-                {/* Center Red Play Button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-600 transition-all">
-                    <i className="fa-solid fa-play text-xs sm:text-sm translate-x-0.5" />
+                  {/* Center Red Play Button */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-600/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-600 transition-all">
+                      <i className="fa-solid fa-play text-xs sm:text-sm translate-x-0.5" />
+                    </div>
+                  </div>
+
+                  {/* Top Video Title Badge */}
+                  <div className="absolute top-2.5 left-2.5 right-2.5 pointer-events-none">
+                    <div className="bg-black/65 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md line-clamp-1">
+                      {item.title}
+                    </div>
+                  </div>
+
+                  {/* Bottom Info */}
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none text-[11px] sm:text-xs">
+                    <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg font-medium">
+                      <i className="fa-solid fa-building text-red-400 text-[10px]" />
+                      <span>{item.branch}</span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2 py-1 rounded-lg font-medium">
+                      <i className="fa-solid fa-eye text-[10px]" />
+                      <span>{Number(item.views).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
-
-                {/* Top Video Title Badge */}
-                <div className="absolute top-2.5 left-2.5 right-2.5 pointer-events-none">
-                  <div className="bg-black/65 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md line-clamp-1">
-                    {item.title}
-                  </div>
-                </div>
-
-                {/* Bottom Info */}
-                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none text-[11px] sm:text-xs">
-                  <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg font-medium">
-                    <i className="fa-solid fa-building text-red-400 text-[10px]" />
-                    <span>{item.branch}</span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-[#202124]/80 backdrop-blur-sm text-white px-2 py-1 rounded-lg font-medium">
-                    <i className="fa-solid fa-eye text-[10px]" />
-                    <span>{Number(item.views).toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {/* See More Videos Button */}
-          {filteredVideos.length > 4 && (
-            <div className="mt-5 flex justify-center">
+          {/* More Videos / See Less Button */}
+          {videoGalleryItems.length > 2 && (
+            <div className={`mt-5 flex justify-center ${videoGalleryItems.length <= 4 && !showAllVideos ? "md:hidden" : ""}`}>
               <button
                 type="button"
                 onClick={() => setShowAllVideos(!showAllVideos)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
               >
-                <span>{showAllVideos ? "কম ভিডিও দেখুন" : "See More"}</span>
+                <span>{showAllVideos ? "See Less" : "More Videos"}</span>
                 <i className={`fa-solid fa-chevron-down text-xs transition-transform duration-300 ${showAllVideos ? "rotate-180" : ""}`} />
               </button>
             </div>
