@@ -411,8 +411,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       )}
       <header className={`w-full flex items-center justify-between px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pt-4 pb-3 bg-white border-b border-slate-100 ${isSticky ? 'sticky top-0' : ''} z-40`}>
         
-        {/* Left Side: Hamburger Menu Icon (Mobile Only) + Brand Logo */}
-        <div className="flex items-center gap-4 sm:gap-6 md:gap-7">
+        {/* Left Side: Hamburger Menu Icon (Mobile Only) + Brand Logo + Desktop Nav */}
+        <div className="flex items-center gap-4 sm:gap-6 md:gap-7 lg:gap-8">
           {/* Hamburger Menu Icon Button on Left of Logo - Mobile Only */}
           <button
             type="button"
@@ -425,7 +425,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </button>
 
           {/* Brand Logo */}
-          <a href="/" className="flex items-center gap-2 no-underline group" aria-label="Tech Dental Home">
+          <a href="/" className="flex items-center gap-2 no-underline group shrink-0" aria-label="Tech Dental Home">
             {activeLogo ? (
               <img
                 src={activeLogo}
@@ -467,95 +467,100 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               </>
             )}
           </a>
-        </div>
 
-        {/* Desktop Navigation Menu (Visible only on web / desktop) */}
-        <nav className="hidden md:flex items-center gap-5 lg:gap-7 xl:gap-8 mx-auto px-4">
-          {menuTree.map((item) => {
-            const hasChildren = Array.isArray(item.children) && item.children.length > 0;
-            const isItemActive =
-              (item.url && item.url !== '#' && (item.url === '/' ? pathWithoutBn === '/' : pathWithoutBn === item.url || pathWithoutBn.startsWith(item.url + '/'))) ||
-              (hasChildren && item.children.some((child: any) => pathWithoutBn === child.url || pathWithoutBn.startsWith(child.url + '/')));
+          {/* Desktop Navigation Menu: Starts right after logo, Appointment excluded */}
+          <nav className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-7 ml-2 lg:ml-4">
+            {menuTree
+              .filter((item) => {
+                const t = String(item.title || "").toLowerCase().trim();
+                return t !== "appointment" && item.url !== "/appointment";
+              })
+              .map((item) => {
+                const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+                const isItemActive =
+                  (item.url && item.url !== '#' && (item.url === '/' ? pathWithoutBn === '/' : pathWithoutBn === item.url || pathWithoutBn.startsWith(item.url + '/'))) ||
+                  (hasChildren && item.children.some((child: any) => pathWithoutBn === child.url || pathWithoutBn.startsWith(child.url + '/')));
 
-            if (hasChildren) {
-              const isOpen = openDropdown === item.title;
-              return (
-                <div
-                  key={item.id || item.title}
-                  className="relative group py-2"
-                  onMouseEnter={() => setOpenDropdown(item.title)}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setOpenDropdown(isOpen ? null : item.title)}
-                    className={`inline-flex items-center gap-1.5 text-[14.5px] lg:text-[15.5px] font-medium transition-colors cursor-pointer select-none py-1 relative ${
-                      isItemActive || isOpen
+                if (hasChildren) {
+                  const isOpen = openDropdown === item.title;
+                  return (
+                    <div
+                      key={item.id || item.title}
+                      className="relative group py-2"
+                      onMouseEnter={() => setOpenDropdown(item.title)}
+                      onMouseLeave={() => setOpenDropdown(null)}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setOpenDropdown(isOpen ? null : item.title)}
+                        className={`inline-flex items-center gap-1 text-[14px] lg:text-[15px] font-medium transition-colors cursor-pointer select-none py-1 relative ${
+                          isItemActive || isOpen
+                            ? "text-blue-600 font-semibold"
+                            : "text-slate-700 hover:text-blue-600"
+                        }`}
+                      >
+                        <span>{item.title}</span>
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            isOpen ? "rotate-180 text-blue-600" : "text-slate-500 group-hover:text-blue-600"
+                          }`}
+                        />
+                        {(isItemActive || isOpen) && (
+                          <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                        )}
+                      </button>
+
+                      {/* Dropdown Card matching demo image */}
+                      <div
+                        className={`absolute left-0 top-full pt-1.5 z-50 transition-all duration-200 ${
+                          isOpen
+                            ? "opacity-100 visible translate-y-0"
+                            : "opacity-0 invisible -translate-y-1.5 pointer-events-none"
+                        }`}
+                      >
+                        <div className="bg-white border border-slate-100 rounded-2xl shadow-xl p-2 min-w-[190px] ring-1 ring-black/5">
+                          {item.children.map((child: any) => {
+                            const isChildActive = pathWithoutBn === child.url || pathWithoutBn.startsWith(child.url + '/');
+                            return (
+                              <Link
+                                key={child.id || child.title}
+                                href={child.url}
+                                onClick={() => setOpenDropdown(null)}
+                                className={`block px-3.5 py-2.5 text-sm font-medium rounded-xl transition-colors no-underline ${
+                                  isChildActive
+                                    ? "text-blue-600 bg-blue-50/70 font-semibold"
+                                    : "text-slate-700 hover:text-slate-950 hover:bg-slate-50"
+                                }`}
+                              >
+                                {child.title}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={item.id || item.title}
+                    href={item.url}
+                    className={`inline-flex items-center text-[14px] lg:text-[15px] font-medium transition-colors no-underline py-1 relative ${
+                      isItemActive
                         ? "text-blue-600 font-semibold"
                         : "text-slate-700 hover:text-blue-600"
                     }`}
                   >
                     <span>{item.title}</span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                        isOpen ? "rotate-180 text-blue-600" : "text-slate-500 group-hover:text-blue-600"
-                      }`}
-                    />
-                    {(isItemActive || isOpen) && (
+                    {isItemActive && (
                       <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
                     )}
-                  </button>
-
-                  {/* Dropdown Card matching demo image */}
-                  <div
-                    className={`absolute left-0 top-full pt-1.5 z-50 transition-all duration-200 ${
-                      isOpen
-                        ? "opacity-100 visible translate-y-0"
-                        : "opacity-0 invisible -translate-y-1.5 pointer-events-none"
-                    }`}
-                  >
-                    <div className="bg-white border border-slate-100 rounded-2xl shadow-xl p-2 min-w-[190px] ring-1 ring-black/5">
-                      {item.children.map((child: any) => {
-                        const isChildActive = pathWithoutBn === child.url || pathWithoutBn.startsWith(child.url + '/');
-                        return (
-                          <Link
-                            key={child.id || child.title}
-                            href={child.url}
-                            onClick={() => setOpenDropdown(null)}
-                            className={`block px-3.5 py-2.5 text-sm font-medium rounded-xl transition-colors no-underline ${
-                              isChildActive
-                                ? "text-blue-600 bg-blue-50/70 font-semibold"
-                                : "text-slate-700 hover:text-slate-950 hover:bg-slate-50"
-                            }`}
-                          >
-                            {child.title}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-              <Link
-                key={item.id || item.title}
-                href={item.url}
-                className={`inline-flex items-center text-[14.5px] lg:text-[15.5px] font-medium transition-colors no-underline py-1 relative ${
-                  isItemActive
-                    ? "text-blue-600 font-semibold"
-                    : "text-slate-700 hover:text-blue-600"
-                }`}
-              >
-                <span>{item.title}</span>
-                {isItemActive && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+                  </Link>
+                );
+              })}
+          </nav>
+        </div>
 
         {/* Right Side: Language Switcher (EN | বাংলা) + Branch Dropdown Selector */}
         <div className="flex items-center gap-2">
@@ -591,10 +596,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </div>
           )}
 
-          {/* Book Appointment CTA Button (Replaces Select Branch) */}
+          {/* Book Appointment CTA Button (Mobile Only - Hidden on desktop as marked with X) */}
           <Link
             href="/book"
-            className="book-btn h-9 sm:h-10 md:h-[44px] px-3.5 sm:px-4 text-sm sm:text-[15px] font-sans font-medium"
+            className="book-btn md:hidden h-9 sm:h-10 px-3.5 sm:px-4 text-sm font-sans font-medium"
             aria-label="Book Appointment"
           >
             <i className="ti ti-calendar-plus" />
