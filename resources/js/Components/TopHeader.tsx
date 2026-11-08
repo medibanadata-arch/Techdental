@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { MapPin, Menu, X, ChevronDown, Globe, Calendar } from "lucide-react";
-import { usePage, router } from "@inertiajs/react";
+import { usePage, router, Link } from "@inertiajs/react";
 import { useLanguage } from "@/utils/useLanguage";
 
 interface TopHeaderProps {
@@ -502,86 +502,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </div>
           )}
 
-          {/* Branch Dropdown Selector with Clean Branch Names */}
-          {isBranchPickerVisible && (
-            <div className="relative">
-              <button
-                type="button"
-                id="headerBranchSelectBtn"
-                onClick={() => setIsBranchDropdownOpen((prev) => !prev)}
-                aria-expanded={isBranchDropdownOpen}
-                aria-label="Select Dental Branch"
-                className="bg-[#f8fafc] border border-[#dbeafe] py-1.5 px-3 rounded-full flex items-center gap-1.5 text-[0.82rem] font-bold text-accent-blue shadow-2xs hover:bg-blue-50/70 transition-all cursor-pointer select-none"
-              >
-                <MapPin className="w-3.5 h-3.5 text-accent-blue shrink-0" />
-                <span>{activeBranch ? activeBranch.name : "Select Branch"}</span>
-                <ChevronDown
-                  className={`w-3.5 h-3.5 text-accent-blue transition-transform duration-200 ${
-                    isBranchDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {/* Fallback hidden select for testing or accessibility */}
-              <select
-                id="headerBranchSelect"
-                value={activeBranch?.slug || ""}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val) {
-                    window.location.href = `/branch/${val}`;
-                  }
-                }}
-                aria-hidden="true"
-                tabIndex={-1}
-                className="sr-only"
-              >
-                <option value="">Select Branch</option>
-                {formattedBranches.map((loc) => (
-                  <option key={loc.id} value={loc.slug}>
-                    {loc.name}
-                  </option>
-                ))}
-              </select>
-
-              {/* Interactive Dropdown Menu: Opens on click, Closes on click, NO hover effect */}
-              {isBranchDropdownOpen && (
-                <>
-                  {/* Invisible backdrop to close on outside click */}
-                  <div
-                    className="fixed inset-0 z-40 cursor-default"
-                    onClick={() => setIsBranchDropdownOpen(false)}
-                  />
-
-                  <div className="absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                    {formattedBranches.map((loc) => {
-                      const isCurrent = activeBranch?.slug === loc.slug;
-                      return (
-                        <a
-                          key={loc.id}
-                          href={`/branch/${loc.slug}`}
-                          onClick={() => {
-                            setIsBranchDropdownOpen(false);
-                            onBranchChange(loc.slug);
-                          }}
-                          className={`flex items-center justify-between px-3.5 py-2 text-xs font-semibold no-underline transition-colors ${
-                            isCurrent
-                              ? "text-sky-600 bg-sky-50 font-bold"
-                              : "text-slate-700 hover:text-sky-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          <span>{loc.name}</span>
-                          {isCurrent && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-                          )}
-                        </a>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          {/* Book Appointment CTA Button (Replaces Select Branch) */}
+          <Link
+            href="/book"
+            className="book-btn h-9 sm:h-10 md:h-[44px] px-3.5 sm:px-4 text-sm sm:text-[15px] font-sans font-medium"
+            aria-label="Book Appointment"
+          >
+            <i className="ti ti-calendar-plus" />
+            <span>Book</span>
+          </Link>
 
           {/* Variant-specific CTA Actions */}
           {currentVariant === 'minimal' && (

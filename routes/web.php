@@ -178,6 +178,7 @@ Route::get('/howtopay', fn() => redirect('/how-to-pay', 301));
 
 // ---------- Appointment (public) ----------
 Route::get('/appointment', [AppointmentController::class, 'publicBook'])->name('appointment.public');
+Route::get('/book', [AppointmentController::class, 'publicBook'])->name('book.public');
 
 // ---------- Gallery (public) ----------
 Route::get('/gallery', function () {
