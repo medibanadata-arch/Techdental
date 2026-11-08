@@ -402,3 +402,4 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
     </div>
   );
 }
+
