@@ -173,11 +173,6 @@ export default function MedicinesPublicIndex({
                       <span className="text-slate-400 font-mono text-[10px]">
                         {displayPharma}
                       </span>
-                      {displayTag && (
-                        <span className="text-[10px] font-semibold tracking-wide uppercase text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded-md">
-                          {displayTag}
-                        </span>
-                      )}
                     </div>
 
                     <h3 className="text-base font-bold text-slate-800 tracking-tight leading-snug group-hover:text-cyan-700 transition">
@@ -217,9 +212,6 @@ export default function MedicinesPublicIndex({
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-100 flex items-start justify-between bg-slate-50/70">
               <div>
-                <span className="text-[11px] font-semibold tracking-wider uppercase text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded-md inline-block mb-1.5">
-                  {modalItem.tag}
-                </span>
                 <h3 className="text-lg font-bold text-slate-900">{modalItem.name}</h3>
                 <p className="text-xs text-slate-500 font-medium">{modalItem.generic}</p>
               </div>
