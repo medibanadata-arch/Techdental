@@ -166,6 +166,9 @@ export default function Edit({ post: postData, mediaList = [] }: Props) {
     const [imgWidthPx, setImgWidthPx] = useState<number>(300);
     const [isCopiedUrl, setIsCopiedUrl] = useState(false);
 
+    // Floating Link Toolbar Rect
+    const [selectedLinkRect, setSelectedLinkRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+
     // Interactive Table Selection, Resizing & Dragging State
     const [selectedTableWrapperNode, setSelectedTableWrapperNode] = useState<HTMLDivElement | null>(null);
     const [selectedTableNode, setSelectedTableNode] = useState<HTMLTableElement | null>(null);
@@ -275,10 +278,25 @@ export default function Edit({ post: postData, mediaList = [] }: Props) {
         }
     };
 
+    // Update Floating Rect for Selected Link
+    const updateSelectedLinkRect = () => {
+        if (selectedLinkNode) {
+            setSelectedLinkRect({
+                top: selectedLinkNode.offsetTop,
+                left: selectedLinkNode.offsetLeft,
+                width: selectedLinkNode.offsetWidth,
+                height: selectedLinkNode.offsetHeight
+            });
+        } else {
+            setSelectedLinkRect(null);
+        }
+    };
+
     // Combined Overlay Rect Updater on Scroll / Input
     const updateOverlaysRect = () => {
         updateSelectedImgRect();
         updateSelectedTableRect();
+        updateSelectedLinkRect();
     };
 
     useEffect(() => {
@@ -288,6 +306,10 @@ export default function Edit({ post: postData, mediaList = [] }: Props) {
     useEffect(() => {
         updateSelectedTableRect();
     }, [selectedTableWrapperNode]);
+
+    useEffect(() => {
+        updateSelectedLinkRect();
+    }, [selectedLinkNode]);
 
     // Click handler inside Editor for Link, Image & Table Selection
     const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -1324,6 +1346,47 @@ export default function Edit({ post: postData, mediaList = [] }: Props) {
                                     </>
                                 )}
 
+                                {/* Floating Link Toolbar & URL Inspector */}
+                                {selectedLinkNode && selectedLinkRect && (
+                                    <div 
+                                        className="link-toolbar-overlay absolute z-30 bg-slate-900 text-white px-3 py-1.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in fade-in duration-150 border border-slate-700"
+                                        style={{
+                                            top: selectedLinkRect.top > 42 ? selectedLinkRect.top - 38 : selectedLinkRect.top + selectedLinkRect.height + 8,
+                                            left: Math.max(10, selectedLinkRect.left)
+                                        }}
+                                    >
+                                        <span className="text-sky-400 font-bold flex items-center gap-1 text-[11px] border-r border-slate-700 pr-2">
+                                            <LinkIcon size={12} />
+                                        </span>
+                                        <a 
+                                            href={selectedLinkNode.getAttribute('href') || '#'} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-white hover:text-sky-300 underline underline-offset-2 truncate max-w-[200px] text-[11px] font-mono"
+                                            title={selectedLinkNode.getAttribute('href') || ''}
+                                        >
+                                            {selectedLinkNode.getAttribute('href') || 'No URL'}
+                                        </a>
+                                        <div className="h-3 w-px bg-slate-700" />
+                                        <button 
+                                            type="button" 
+                                            onClick={handleOpenLinkToolbar} 
+                                            className="px-2 py-0.5 bg-sky-600 hover:bg-sky-500 text-white rounded text-[10px] font-bold cursor-pointer transition-colors"
+                                            title="Edit URL"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            onClick={removeLink} 
+                                            className="px-2 py-0.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded text-[10px] font-bold cursor-pointer transition-colors"
+                                            title="Remove Link"
+                                        >
+                                            Unlink
+                                        </button>
+                                    </div>
+                                )}
+
                                 {/* Live Dual Editor (Visual vs Code View) */}
                                 {editorMode === 'visual' ? (
                                     <div
@@ -1333,7 +1396,7 @@ export default function Edit({ post: postData, mediaList = [] }: Props) {
                                         onKeyUp={handleEditorKeyUp}
                                         onMouseUp={handleEditorClick}
                                         onFocus={saveSelection}
-                                        className="w-full min-h-[420px] p-6 text-sm text-slate-800 leading-relaxed focus:outline-none prose max-w-none [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:my-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:my-2 [&_h4]:text-lg [&_h4]:font-bold [&_h5]:text-base [&_h5]:font-bold [&_h6]:text-sm [&_h6]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-4 [&_blockquote]:border-sky-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_img]:cursor-pointer [&_img]:transition-shadow [&_img]:hover:outline-2 [&_img]:hover:outline-sky-500"
+                                        className="w-full min-h-[420px] p-6 text-sm text-slate-800 leading-relaxed focus:outline-none prose max-w-none [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:my-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:my-2 [&_h4]:text-lg [&_h4]:font-bold [&_h5]:text-base [&_h5]:font-bold [&_h6]:text-sm [&_h6]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-4 [&_blockquote]:border-sky-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_img]:cursor-pointer [&_img]:transition-shadow [&_img]:hover:outline-2 [&_img]:hover:outline-sky-500 [&_a]:text-blue-600 [&_a]:underline [&_a]:underline-offset-2 [&_a]:font-semibold [&_a]:decoration-blue-500 [&_a:hover]:text-rose-700"
                                     />
                                 ) : (
                                     <textarea

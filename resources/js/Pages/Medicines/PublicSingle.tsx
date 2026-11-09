@@ -214,7 +214,9 @@ export default function MedicinesPublicSingle({
     .replace(/(?:\s+Tablet|\s+Capsule|\s+Ointment|\s+Suspension|\s+ট্যাবলেট|\s+ক্যাপসুল|\s+মলম)+$/i, '')
     .trim() || displayName;
 
-  const displaySeoTitle = `More about ${cleanMedicineName}`;
+  const displaySeoTitle = isBn
+    ? `${displayName || cleanMedicineName} সম্পর্কে আরো`
+    : `More about ${cleanMedicineName}`;
 
   const displaySeoContent = isBn
     ? (item.seo_content_bn || item.seo_content)
@@ -236,7 +238,7 @@ export default function MedicinesPublicSingle({
         { href: '#side-effects', label: `৩. ${titleSideEffects}` },
         { href: '#warnings', label: `৪. ${titleWarnings}` },
         { href: '#price', label: `৫. ${titlePrice}` },
-        { href: '#more-about', label: `৬. More about ${cleanMedicineName}` },
+        { href: '#more-about', label: `৬. ${displayName || cleanMedicineName} সম্পর্কে আরো` },
       ]
     : [
         { href: '#overview', label: `1. ${titleUses}` },
