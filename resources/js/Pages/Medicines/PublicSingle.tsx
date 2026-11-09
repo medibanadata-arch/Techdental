@@ -616,16 +616,12 @@ export default function MedicinesPublicSingle({
               {infoOpen && (
                 <div className="border-t border-slate-100 px-5 py-5 bg-white space-y-6">
                   {/* SEO Content / Rich Content View */}
-                  {displaySeoContent ? (
+                  {displaySeoContent && (
                     <div
                       className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed text-xs sm:text-sm"
                       dangerouslySetInnerHTML={{ __html: displaySeoContent }}
                     />
-                  ) : displayIntro ? (
-                    <div className="text-slate-600 text-xs sm:text-sm leading-relaxed space-y-3">
-                      <p>{displayIntro}</p>
-                    </div>
-                  ) : null}
+                  )}
 
                   {/* Frequently Asked Questions (FAQs) */}
                   {Array.isArray(item.faqs) && item.faqs.length > 0 && (

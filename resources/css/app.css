@@ -360,22 +360,26 @@ body {
 
 .wp-editor-content blockquote,
 .blog-content-view blockquote,
+.blog-content-body blockquote,
 .prose blockquote,
 .rich-content-view blockquote,
 .seo-content-view blockquote {
-  border-left: 4px solid #0284c7 !important;
-  background-color: #f8fafc !important;
-  padding: 10px 16px !important;
+  border-left: 4px solid #881337 !important;
+  background-color: #fdf2f4 !important;
+  border-color: #fce7ea !important;
+  border-left-color: #881337 !important;
+  padding: 14px 20px !important;
   font-style: italic !important;
-  color: #334155 !important;
-  margin: 14px 0 !important;
-  border-radius: 0 8px 8px 0 !important;
+  color: #4c0519 !important;
+  margin: 18px 0 !important;
+  border-radius: 0 12px 12px 0 !important;
   font-size: 15px !important;
-  line-height: 1.65 !important;
+  line-height: 1.7 !important;
 }
 
 .wp-editor-content pre,
 .blog-content-view pre,
+.blog-content-body pre,
 .prose pre,
 .rich-content-view pre,
 .seo-content-view pre {
@@ -391,49 +395,120 @@ body {
 
 .wp-editor-content table,
 .blog-content-view table,
+.blog-content-body table,
 .prose table,
 .rich-content-view table,
 .seo-content-view table {
   width: 100% !important;
-  border-collapse: collapse !important;
-  margin: 16px 0 !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  margin: 20px 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+.wp-editor-content thead tr,
+.blog-content-body thead tr,
+.prose thead tr {
+  background: #fdf2f4 !important;
 }
 
 .wp-editor-content th,
 .blog-content-view th,
+.blog-content-body th,
+.wp-editor-content thead td,
+.blog-content-view thead td,
+.blog-content-body thead td,
 .prose th,
 .rich-content-view th,
 .seo-content-view th {
-  border: 1px solid #cbd5e1 !important;
-  padding: 10px 12px !important;
-  background: #f8fafc !important;
+  border-bottom: 2px solid #fce7ea !important;
+  border-right: 1px solid #e2e8f0 !important;
+  padding: 12px 14px !important;
+  background: #fdf2f4 !important;
   font-weight: 700 !important;
-  font-size: 14px !important;
-  color: #0f172a !important;
+  font-size: 13.5px !important;
+  color: #881337 !important;
   text-align: left !important;
+}
+
+.wp-editor-content th:last-child,
+.blog-content-body th:last-child,
+.wp-editor-content thead td:last-child,
+.blog-content-body thead td:last-child {
+  border-right: none !important;
 }
 
 .wp-editor-content td,
 .blog-content-view td,
+.blog-content-body td,
 .prose td,
 .rich-content-view td,
 .seo-content-view td {
-  border: 1px solid #cbd5e1 !important;
-  padding: 10px 12px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  border-right: 1px solid #f1f5f9 !important;
+  padding: 12px 14px !important;
   font-size: 14px !important;
   color: #334155 !important;
+  line-height: 1.55 !important;
+}
+
+.wp-editor-content td:last-child,
+.blog-content-body td:last-child {
+  border-right: none !important;
+}
+
+.wp-editor-content tbody tr:last-child td,
+.blog-content-body tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+.wp-editor-content tbody tr:hover,
+.blog-content-body tbody tr:hover {
+  background-color: #fdfbfb !important;
+}
+
+figure.wp-caption,
+.wp-editor-content figure,
+.blog-content-body figure {
+  margin: 24px auto !important;
+  text-align: center !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+figure.wp-caption img,
+.wp-editor-content figure img,
+.blog-content-body figure img {
+  border-radius: 12px !important;
+  margin: 0 auto !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+  display: block !important;
+}
+
+figure.wp-caption figcaption,
+.wp-caption-text {
+  font-size: 13px !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+  margin-top: 8px !important;
+  text-align: center !important;
+  display: block !important;
 }
 
 .wp-editor-content img,
 .blog-content-view img,
+.blog-content-body img,
 .prose img,
 .rich-content-view img,
 .seo-content-view img {
   max-width: 100% !important;
   height: auto !important;
-  border-radius: 10px !important;
-  margin: 12px 0 !important;
-  display: inline-block !important;
+  border-radius: 12px !important;
+  margin: 16px auto !important;
+  display: block !important;
 }
 
 /* ---- Tech Dental Search Box (from search-box.html & screenshot) ---- */

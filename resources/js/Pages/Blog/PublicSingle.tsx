@@ -56,7 +56,7 @@ const formatDate = (d?: string, isBn = false) => {
 };
 
 /** Extract h2 headings from content HTML to build the table of contents */
-const extractToc = (html: string) => {
+const extractToc = (html: string, hasFaqs: boolean = false) => {
   const matches: { text: string; id: string }[] = [];
   const re = /<h2[^>]*>([\s\S]*?)<\/h2>/gi;
   let m: RegExpExecArray | null;
@@ -64,6 +64,9 @@ const extractToc = (html: string) => {
   while ((m = re.exec(html)) && i < 20) {
     const text = m[1].replace(/<[^>]+>/g, '').trim();
     if (text) {
+      if (hasFaqs && /(?:faq|frequently asked|সাধারণ জিজ্ঞাসা|প্রশ্নোত্তর)/i.test(text)) {
+        continue;
+      }
       matches.push({ text, id: `toc-${i + 1}` });
       i++;
     }
@@ -151,8 +154,9 @@ export default function BlogPublicSingle({
   const ctaWebsite = cta.website || "www.techdentalcare.com";
   const ctaPhone = isBn ? "০৯৬৩৮-০০০৫০৫" : (cta.phone || "09638-000505");
 
+  const hasFaqs = Array.isArray(post.faqs) && post.faqs.length > 0;
   const preparedHtml = useMemo(() => injectTocIds(contentHtml), [contentHtml]);
-  const tocItems = useMemo(() => extractToc(contentHtml), [contentHtml]);
+  const tocItems = useMemo(() => extractToc(contentHtml, hasFaqs), [contentHtml, hasFaqs]);
 
   if (!post) return null;
 
@@ -303,36 +307,51 @@ export default function BlogPublicSingle({
           </div>
 
           {/* FAQ Accordion Section (if post has faqs) */}
-          {Array.isArray(post.faqs) && post.faqs.length > 0 && (
-            <div id="faq" className="mt-8 mb-6 sm:mb-8 bg-white p-5 sm:p-8 rounded-xl shadow-sm border border-gray-200">
+          {hasFaqs && (
+            <div id="faq" className="mt-8 mb-6 sm:mb-8 bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-gray-200 scroll-mt-6">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2 border-b border-gray-100 pb-3">
-                <HelpCircle className="text-[#881337]" size={22} />
+                <span className="w-2 h-6 bg-[#881337] rounded-full inline-block" />
                 <span>{titleFaq}</span>
               </h2>
 
               <div className="space-y-3">
-                {post.faqs.map((f, i) => {
+                {post.faqs!.map((f, i) => {
                   const qText = (isBn && f.q_bn) ? f.q_bn : f.q;
                   const aText = (isBn && f.a_bn) ? f.a_bn : f.a;
                   const isOpen = openFaq === i;
 
                   return (
-                    <div key={i} className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                    <div
+                      key={i}
+                      className={`border rounded-xl overflow-hidden transition-all duration-200 ${
+                        isOpen
+                          ? 'border-[#881337]/50 shadow-xs bg-[#fdf2f4]/15'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
                       <button
                         type="button"
                         onClick={() => setOpenFaq(isOpen ? null : i)}
-                        className="w-full p-4 text-left font-semibold text-gray-900 text-sm flex items-center justify-between hover:bg-gray-50 transition gap-3"
+                        className="w-full p-4 text-left font-semibold text-gray-900 text-sm sm:text-[15px] flex items-center justify-between transition gap-3 cursor-pointer"
                       >
                         <span className="flex items-center gap-3">
-                          <span className="w-6 h-6 rounded-full bg-rose-50 text-[#881337] text-xs font-bold flex items-center justify-center shrink-0">
+                          <span
+                            className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 transition ${
+                              isOpen ? 'bg-[#881337] text-white' : 'bg-rose-50 text-[#881337]'
+                            }`}
+                          >
                             {isBn ? toBnDigit(i + 1) : i + 1}
                           </span>
-                          <span>{qText}</span>
+                          <span className={isOpen ? 'text-[#881337]' : 'text-gray-900'}>{qText}</span>
                         </span>
-                        {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
+                        {isOpen ? (
+                          <ChevronUp className="w-4 h-4 text-[#881337] shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-gray-400 shrink-0" />
+                        )}
                       </button>
                       {isOpen && (
-                        <div className="px-5 pb-4 pt-1 text-sm text-gray-600 border-t border-gray-100 leading-relaxed bg-gray-50/40">
+                        <div className="px-5 pb-4 pt-1 text-sm text-gray-700 border-t border-rose-100/70 leading-relaxed bg-white/80">
                           {aText}
                         </div>
                       )}
