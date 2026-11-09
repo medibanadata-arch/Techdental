@@ -164,6 +164,32 @@ Route::get('/bn/blog/dental/{slug?}', function ($slug = null) {
     return $slug ? redirect("/bn/blog/{$slug}", 301) : redirect('/blog', 301);
 });
 
+// ---------- 301 Redirects for Old WordPress Medicine & Medical URLs ----------
+Route::get('/medicine/{slug}', function ($slug) {
+    return redirect("/medicines/{$slug}", 301);
+});
+Route::get('/blog-en/medical/{slug?}', function ($slug = null) {
+    return $slug ? redirect("/medicines/{$slug}", 301) : redirect('/medicines', 301);
+});
+Route::get('/physician/{slug}', function ($slug) {
+    return redirect("/blog/{$slug}", 301);
+});
+Route::get('/update/case-study/{slug}', function ($slug) {
+    return redirect("/blog/{$slug}", 301);
+});
+Route::get('/update/centres/{slug}', function ($slug) {
+    return redirect("/blog/{$slug}", 301);
+});
+Route::get('/update/{slug}', function ($slug) {
+    return redirect("/blog/{$slug}", 301);
+});
+Route::get('/uncategorized-en/{slug}', function ($slug) {
+    return redirect("/blog/{$slug}", 301);
+});
+Route::get('/tech-physio/{slug}', function ($slug) {
+    return redirect("/blog/{$slug}", 301);
+});
+
 // ---------- About ----------
 Route::get('/about', [AboutContentController::class, 'publicShow'])->name('about.public');
 
