@@ -30,6 +30,20 @@ class BlogController extends Controller
     /** Public single article — /blog/{slug} & /bn/blog/{slug} */
     public function publicShow(Request $request, $slug)
     {
+        // 301 redirects for previous long slugs to clean original canonical slugs
+        $slugRedirects = [
+            'best-dental-clinic-in-chennai-best-dentist-in-chennai' => 'best-dental-clinic-in-chennai',
+            'bad-breath-halitosis-causes-home-remedies-prevention' => 'bad-breath-causes',
+            'gum-cancer-symptoms-causes-and-prevention-strategies' => 'gum-cancer-symptoms-causes',
+            'wisdom-tooth-pain-relief-medication-and-5-effective-home-remedies' => 'wisdom-tooth-pain-relief-tips',
+            'medicines-and-4-home-remedies-to-reduce-tooth-pain' => 'toothache-relief',
+        ];
+
+        if (isset($slugRedirects[$slug])) {
+            $prefix = $request->is('bn/*') ? '/bn/blog/' : '/blog/';
+            return redirect($prefix . $slugRedirects[$slug], 301);
+        }
+
         $post = Post::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
         $related = Post::where('id', '!=', $post->id)->orderBy('published_at', 'desc')->take(2)->get();
 

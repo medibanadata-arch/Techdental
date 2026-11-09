@@ -153,6 +153,17 @@ Route::get('/blog', [BlogController::class, 'publicIndex'])->name('blog.public')
 Route::get('/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.public.show');
 Route::get('/bn/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.public.show.bn');
 
+// ---------- 301 Redirects for Old WordPress Dental Blog URLs ----------
+Route::get('/dental/{slug}', function ($slug) {
+    return redirect("/blog/{$slug}", 301);
+});
+Route::get('/blog-en/dental/{slug?}', function ($slug = null) {
+    return $slug ? redirect("/blog/{$slug}", 301) : redirect('/blog', 301);
+});
+Route::get('/bn/blog/dental/{slug?}', function ($slug = null) {
+    return $slug ? redirect("/bn/blog/{$slug}", 301) : redirect('/blog', 301);
+});
+
 // ---------- About ----------
 Route::get('/about', [AboutContentController::class, 'publicShow'])->name('about.public');
 
