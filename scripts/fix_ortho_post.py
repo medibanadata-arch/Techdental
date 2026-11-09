@@ -30,3 +30,4 @@ if row:
     c.execute("UPDATE posts SET content = ? WHERE id = ?", (new_content, post_id))
     conn.commit()
     print("Successfully updated post best-orthodontist-doctor-in-dhaka with side-by-side images!")
+

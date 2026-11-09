@@ -16,3 +16,4 @@ for url in [
         print(f"{url} -> {og.get('content') if og else 'No og'}")
     except Exception as e:
         print(f"Error {url}: {e}")
+

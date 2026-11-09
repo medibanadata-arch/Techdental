@@ -17,3 +17,4 @@ print(f"Remaining placeholders: {len(remaining)}")
 
 total = c.execute("SELECT COUNT(*) FROM medicines").fetchone()[0]
 print(f"Total active medicines in database: {total}")
+

@@ -11,3 +11,4 @@ for url in [
     soup = BeautifulSoup(html, 'html.parser')
     for img in soup.find_all('img'):
         print(url, "img:", img.get('src') or img.get('data-src') or img.get('data-lazy-src'))
+

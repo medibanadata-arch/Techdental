@@ -237,56 +237,58 @@ export default function Home({
   }
   const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent("হ্যালো টেক ডেন্টাল, আমি চিকিৎসার বিষয়ে জানতে চাচ্ছি।")}`;
 
-  // Sequential Starter Questions (4 questions appearing 1-by-1 with 1 sec interval before chat starts)
-  const starterQuestions = useMemo(() => {
-    if (Array.isArray(ai_settings?.starter_questions) && ai_settings.starter_questions.length > 0) {
-      return ai_settings.starter_questions;
-    }
-    if (Array.isArray(ai_chips) && ai_chips.length > 0) {
-      return ai_chips;
-    }
-    return [
-      "ফিলিং চিকিৎসার খরচ কত?",
-      "দাঁতে গর্ত হলে কি করা উচিৎ?",
-      "রুট ক্যানেল করতে কত খরচ হয়?",
-      "দাঁত সোজা করার উপায় কি?",
-    ];
-  }, [ai_settings?.starter_questions, ai_chips]);
+  // Top Chips above the search bar: 3 original static chips
+  const topChips = useMemo(() => [
+    "শাখার ঠিকানা কোথায়?",
+    "ফাঁকা দাঁতের চিকিৎসা",
+    "দাঁত ব্যথার চিকিৎসা",
+  ], []);
 
-  const [visibleQuestionsCount, setVisibleQuestionsCount] = useState(1);
+  // Search box placeholder questions with timed slide-in sequence:
+  // 0s: ফিলিং চিকিৎসার খরচ কত?
+  // +1s: দাঁতে গর্ত হলে কি করা উচিৎ?
+  // +2s: রুট ক্যানেল করতে কত খরচ হয়?
+  // +3s: দাঁত সোজা করার উপায় কি?
+  const searchQuestions = useMemo(() => [
+    "ফিলিং চিকিৎসার খরচ কত?",
+    "দাঁতে গর্ত হলে কি করা উচিৎ?",
+    "রুট ক্যানেল করতে কত খরচ হয়?",
+    "দাঁত সোজা করার উপায় কি?",
+  ], []);
+
   const [animatedPlaceholderIdx, setAnimatedPlaceholderIdx] = useState(0);
 
-  // Suggested Chips from backend or fallback (excluding crossed out items)
+  // Suggested Chips from backend or fallback
   const suggestedChips = useMemo(() => {
-    return starterQuestions;
-  }, [starterQuestions]);
+    return topChips;
+  }, [topChips]);
 
   const isChatActive = isWidgetOpen && (chatMessages.length > 0 || isAiLoading);
 
-  // Sequentially reveal 4 questions: 1st immediately, 2nd after 1s, 3rd after 2s, 4th after 3s
-  useEffect(() => {
-    if (isChatActive) return;
-    setVisibleQuestionsCount(1);
-    const interval = setInterval(() => {
-      setVisibleQuestionsCount((prev) => {
-        if (prev < starterQuestions.length) {
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isChatActive, starterQuestions]);
-
-  // Smooth typing/cycling placeholder inside the search box when idle
+  // Timed slide-in sequence for search box placeholder:
+  // 0s (idx 0), +1s (idx 1), +2s (idx 2), +3s (idx 3), then cycles every 2.5s
   useEffect(() => {
     if (aiInputValue || isAiFocused) return;
-    const placeholderTimer = setInterval(() => {
-      setAnimatedPlaceholderIdx((prev) => (prev + 1) % starterQuestions.length);
-    }, 3200);
-    return () => clearInterval(placeholderTimer);
-  }, [aiInputValue, isAiFocused, starterQuestions]);
+
+    const t1 = setTimeout(() => setAnimatedPlaceholderIdx(1), 1000);
+    const t2 = setTimeout(() => setAnimatedPlaceholderIdx(2), 2000);
+    const t3 = setTimeout(() => setAnimatedPlaceholderIdx(3), 3000);
+
+    let interval: any = null;
+    const loopTimer = setTimeout(() => {
+      interval = setInterval(() => {
+        setAnimatedPlaceholderIdx((prev) => (prev + 1) % searchQuestions.length);
+      }, 2500);
+    }, 3000);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(loopTimer);
+      if (interval) clearInterval(interval);
+    };
+  }, [aiInputValue, isAiFocused, searchQuestions]);
 
   // Gallery items matching screenshot style
   const galleryItems = useMemo(() => {
@@ -506,12 +508,13 @@ export default function Home({
 
   const handleAISubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!aiInputValue.trim()) {
+    const query = aiInputValue.trim() || searchQuestions[animatedPlaceholderIdx];
+    if (!query) {
       const el = document.getElementById("primarySearchInput");
       el?.focus();
       return;
     }
-    processAIQuestion(aiInputValue.trim());
+    processAIQuestion(query);
   };
 
   const handleModalSubmit = (e?: React.FormEvent) => {
@@ -879,35 +882,25 @@ export default function Home({
 
   const getChipIcon = (chip: string, idx: number) => {
     const text = (chip || "").toLowerCase();
+    if (text.includes("ঠিকানা") || text.includes("শাখা") || idx === 0) {
+      return <i className="fa-solid fa-location-dot text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("ফাঁকা") || text.includes("gap")) {
+      return <i className="fa-solid fa-tooth text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("ব্যথা") || text.includes("pain") || text.includes("চিকিৎসা")) {
+      return <i className="fa-solid fa-notes-medical text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
     if (text.includes("ফিলিং") || text.includes("filling")) {
       return <i className="fa-solid fa-tooth text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
     }
     if (text.includes("গর্ত") || text.includes("cavity")) {
       return <i className="fa-solid fa-circle-exclamation text-amber-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
     }
-    if (text.includes("রুট ক্যানেল") || text.includes("ব্যথা") || text.includes("pain")) {
-      return <i className="fa-solid fa-notes-medical text-rose-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
-    }
     if (text.includes("সোজা") || text.includes("ব্রেসেস") || text.includes("braces")) {
       return <i className="fa-solid fa-teeth text-indigo-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
     }
-    if (text.includes("ইমপ্ল্যান্ট") || text.includes("implant")) {
-      return (
-        <span className="w-4 h-4 flex items-center justify-center text-slate-500 md:text-blue-500 shrink-0" title="ডেন্টাল ইমপ্ল্যান্ট">
-          <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4">
-            <path d="M7 2C5.3 2 4 3.3 4 5c0 2 1.2 3.7 2.8 4.5.2.1.2.3.2.5v1h10v-1c0-.2.1-.4.2-.5C18.8 8.7 20 7 20 5c0-1.7-1.3-3-3-3-1.8 0-3.2 1-5 1S8.8 2 7 2z" />
-            <rect x="8" y="12" width="8" height="1.5" rx="0.5" />
-            <rect x="8.5" y="14.5" width="7" height="1.5" rx="0.5" />
-            <rect x="9.5" y="17" width="5" height="1.5" rx="0.5" />
-            <path d="M10.5 19.5h3L12 22.5z" />
-          </svg>
-        </span>
-      );
-    }
-    if (text.includes("ঠিকানা") || text.includes("শাখা") || idx === 0) {
-      return <i className="fa-solid fa-location-dot text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />;
-    }
-    return <i className="fa-solid fa-tooth text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />;
+    return <i className="fa-solid fa-tooth text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
   };
 
   // Action Buttons Modals
@@ -964,15 +957,15 @@ export default function Home({
             কিভাবে সাহায্য করতে পারি?
           </h1>
 
-          {/* Sequential Starter Questions (4 questions appearing 1 by 1 with 1s delay) */}
+          {/* Top Chips above the search bar - Original 3 static chips */}
           {!isChatActive && (
             <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-2.5 mb-6 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
-              {starterQuestions.slice(0, visibleQuestionsCount).map((chip, idx) => (
+              {topChips.map((chip, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => handleSelectSuggestion(chip)}
-                  className="animate-in fade-in slide-in-from-bottom-2 duration-300 flex items-center justify-start gap-2.5 px-3.5 md:px-4 py-2 md:py-2.5 bg-white/90 hover:bg-white border border-slate-200/90 hover:border-blue-400 rounded-full text-xs md:text-sm font-medium text-slate-700 shadow-xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+                  className="flex items-center justify-start gap-2.5 px-3.5 md:px-4 py-2 md:py-2.5 bg-white/90 hover:bg-white border border-slate-200/90 hover:border-blue-400 rounded-full text-xs md:text-sm font-medium text-slate-700 shadow-xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
                 >
                   {getChipIcon(chip, idx)}
                   <span>{chip}</span>
@@ -1052,7 +1045,7 @@ export default function Home({
               {/* Widget Related Suggested Chips */}
               <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/40 shrink-0 flex items-center gap-1.5 overflow-x-auto hide-scrollbar text-[11px]">
                 <span className="text-slate-400 whitespace-nowrap">সম্পর্কিত:</span>
-                {starterQuestions.map((chip, idx) => (
+                {topChips.map((chip, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -1081,26 +1074,35 @@ export default function Home({
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input
-                  type="text"
-                  id="primarySearchInput"
-                  value={aiInputValue}
-                  onChange={(e) => setAiInputValue(e.target.value)}
-                  placeholder={
-                    isAiFocused
-                      ? "খরচ, ঠিকানা, ডাক্তার..."
-                      : (starterQuestions[animatedPlaceholderIdx] || "খরচ, ঠিকানা, ডাক্তার...")
-                  }
-                  className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base sm:text-lg outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none transition-all"
-                  onFocus={() => setIsAiFocused(true)}
-                  onBlur={() => setIsAiFocused(false)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAISubmit();
-                    }
-                  }}
-                />
+
+                <div className="relative w-full flex items-center h-full">
+                  {!aiInputValue && !isAiFocused && (
+                    <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none overflow-hidden w-full select-none">
+                      <span
+                        key={animatedPlaceholderIdx}
+                        className="text-slate-400 text-base sm:text-lg animate-in slide-in-from-bottom-2 fade-in duration-300 truncate font-normal"
+                      >
+                        {searchQuestions[animatedPlaceholderIdx]}
+                      </span>
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    id="primarySearchInput"
+                    value={aiInputValue}
+                    onChange={(e) => setAiInputValue(e.target.value)}
+                    placeholder={isAiFocused ? "খরচ, ঠিকানা, ডাক্তার..." : ""}
+                    className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base sm:text-lg outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none transition-all relative z-10"
+                    onFocus={() => setIsAiFocused(true)}
+                    onBlur={() => setIsAiFocused(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAISubmit();
+                      }
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Send / Search Button (Matches Image 1 & 2) */}

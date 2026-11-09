@@ -15,3 +15,4 @@ if bad_public > 0:
     c.execute("UPDATE medicines SET image = REPLACE(image, '/public/', '/') WHERE image LIKE '%/public/%'")
     conn.commit()
     print("Cleaned up bad /public/ paths in medicines.")
+

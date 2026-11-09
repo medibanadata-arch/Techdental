@@ -195,3 +195,4 @@ def extract_faqs(soup, entry):
     return faqs
 
 print("Master migration script ready to process all 82 URLs into medicines table...")
+

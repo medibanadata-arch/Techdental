@@ -7,3 +7,4 @@ cols = c.fetchall()
 print("Medicines columns:")
 for col in cols:
     print(f"  {col[1]} ({col[2]})")
+

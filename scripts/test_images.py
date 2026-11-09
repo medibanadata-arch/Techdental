@@ -25,3 +25,4 @@ for url in urls:
     print(f"URL: {url}")
     print(f"  og:image: {og_val}")
     print(f"  found {len(imgs)} imgs. First 3: {imgs[:3]}")
+

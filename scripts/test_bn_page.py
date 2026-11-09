@@ -15,3 +15,4 @@ if entry:
     print("First para:", paras[0] if paras else 'None')
     h2s = [h.get_text(strip=True) for h in entry.find_all(['h2', 'h3'])]
     print("Headings:", h2s[:5])
+

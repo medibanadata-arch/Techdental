@@ -11,3 +11,4 @@ print("excerpt_bn in cols?", 'excerpt_bn' in cols)
 for col in cols:
     if '_bn' in col:
         print("  bn col:", col)
+

@@ -49,3 +49,4 @@ with open('scripts/all_82_images_check.json', 'w', encoding='utf-8') as f:
     json.dump(results, f, indent=2)
 
 print("\nDone checking all 82 URLs.")
+

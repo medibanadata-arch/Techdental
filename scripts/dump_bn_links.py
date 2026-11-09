@@ -45,3 +45,4 @@ for l in med_links:
 print(f"Dental BN links: {len(dent_links)}")
 for l in dent_links:
     print(" ", l)
+

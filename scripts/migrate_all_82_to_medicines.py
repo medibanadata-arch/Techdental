@@ -344,3 +344,4 @@ for idx, url in enumerate(URLS):
     success_count += 1
 
 print(f"\nCompleted! Total processed and saved to medicines: {success_count}/{len(URLS)}")
+

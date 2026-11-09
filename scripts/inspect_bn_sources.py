@@ -49,3 +49,4 @@ def crawl_category(base_url):
 
 crawl_category('https://techdentalcare.com/bn/blog/medical/')
 crawl_category('https://techdentalcare.com/bn/blog/dental/')
+

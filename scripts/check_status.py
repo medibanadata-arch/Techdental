@@ -10,3 +10,4 @@ for r in c.execute("SELECT id, title, slug FROM posts WHERE slug LIKE '%ortho%'"
 print("\nMedicines with ortho:")
 for r in c.execute("SELECT id, name, slug FROM medicines WHERE slug LIKE '%ortho%'"):
     print(r)
+
