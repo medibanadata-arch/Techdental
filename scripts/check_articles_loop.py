@@ -18,3 +18,4 @@ for art in articles:
 pagination = soup.find(class_=re.compile(r'pagination|nav-links'))
 if pagination:
     print("Pagination links:", [a['href'] for a in pagination.find_all('a', href=True)])
+

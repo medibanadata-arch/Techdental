@@ -22,3 +22,4 @@ for url in test_urls:
         print(f"H2s: {h2s}\n")
     except Exception as e:
         print(f"Error {url}: {e}\n")
+

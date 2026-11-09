@@ -159,11 +159,11 @@ export default function MedicinesPublicIndex({
                   {/* Image Box */}
                   <div className="w-full h-36 bg-slate-100 overflow-hidden relative border-b border-slate-100">
                     <img
-                      src={item.image}
+                      src={item.image?.replace(/^\/public\//, '/')}
                       alt={displayName}
                       loading="lazy"
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/64748b?text=Medicine+Image'; }}
+                      onError={(e: any) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/64748b?text=' + encodeURIComponent(displayName); }}
                     />
                   </div>
 

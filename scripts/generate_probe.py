@@ -109,3 +109,4 @@ with open('scripts/probe_manifest.json', 'w', encoding='utf-8') as f:
 print(f"Created probe_manifest.json with {len(results)} items.")
 print(f"Medicine URLs: {sum(1 for r in results if r['is_medicine'])}")
 print(f"Other URLs: {sum(1 for r in results if not r['is_medicine'])}")
+

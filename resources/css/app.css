@@ -741,3 +741,36 @@ figure.wp-caption figcaption,
   border-color: #2563eb !important;
   box-shadow: 0 0 0 1px #2563eb, 0 14px 34px -4px rgba(37, 99, 235, 0.16) !important;
 }
+
+/* Clear, visible link styling for article bodies, rich content, and blog single views */
+.rich-content-view a,
+.blog-content-body a,
+.prose a {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1.5px !important;
+  text-underline-offset: 3px !important;
+  font-weight: 600 !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.rich-content-view a:hover,
+.blog-content-body a:hover,
+.prose a:hover {
+  color: #881337 !important;
+  text-decoration-color: #881337 !important;
+}
+
+/* Ensure headings with links keep proper heading size but have link visual cues */
+.rich-content-view h1 a,
+.rich-content-view h2 a,
+.rich-content-view h3 a,
+.blog-content-body h1 a,
+.blog-content-body h2 a,
+.blog-content-body h3 a,
+.prose h1 a,
+.prose h2 a,
+.prose h3 a {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+}

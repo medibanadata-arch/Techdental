@@ -135,6 +135,7 @@ export default function Home({
   nav_menu,
   home_content,
   ai_chips = [],
+  ai_settings,
 }: HomeProps) {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [aiInputValue, setAiInputValue] = useState("");

@@ -209,9 +209,12 @@ export default function MedicinesPublicSingle({
     ? (sec.toc_bn || 'সূচিপত্র')
     : (sec.toc || 'Table of Contents');
 
-  const displaySeoTitle = isBn
-    ? (item.seo_title_bn || item.seo_title || `${displayName} সম্পর্কিত বিস্তারিত তথ্য`)
-    : (item.seo_title || `More about ${displayName}`);
+  // Format clean name for "More about {Name}" (e.g. "Xyril 25 Tablet" -> "Xyril 25")
+  const cleanMedicineName = (displayName || item.name || '')
+    .replace(/(?:\s+Tablet|\s+Capsule|\s+Ointment|\s+Suspension|\s+ট্যাবলেট|\s+ক্যাপসুল|\s+মলম)+$/i, '')
+    .trim() || displayName;
+
+  const displaySeoTitle = `More about ${cleanMedicineName}`;
 
   const displaySeoContent = isBn
     ? (item.seo_content_bn || item.seo_content)
@@ -233,7 +236,7 @@ export default function MedicinesPublicSingle({
         { href: '#side-effects', label: `৩. ${titleSideEffects}` },
         { href: '#warnings', label: `৪. ${titleWarnings}` },
         { href: '#price', label: `৫. ${titlePrice}` },
-        { href: '#more-about', label: `৬. ${displaySeoTitle}` },
+        { href: '#more-about', label: `৬. More about ${cleanMedicineName}` },
       ]
     : [
         { href: '#overview', label: `1. ${titleUses}` },
@@ -241,7 +244,7 @@ export default function MedicinesPublicSingle({
         { href: '#side-effects', label: `3. ${titleSideEffects}` },
         { href: '#warnings', label: `4. ${titleWarnings}` },
         { href: '#price', label: `5. ${titlePrice}` },
-        { href: '#more-about', label: `6. ${displaySeoTitle}` },
+        { href: '#more-about', label: `6. More about ${cleanMedicineName}` },
       ];
 
   // Author details
@@ -384,7 +387,15 @@ export default function MedicinesPublicSingle({
               <div className="md:col-span-5 flex flex-col items-center justify-center space-y-3 w-full mx-auto">
                 <div className="aspect-square w-48 sm:w-56 lg:w-64 bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-center justify-center overflow-hidden relative group">
                   <div className="absolute inset-0 bg-gradient-to-tr from-[#fdf2f4] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <img src={item.image} alt={`${displayName} Packaging`} className="max-h-full max-w-full object-contain relative z-10 hover:scale-105 transition-transform duration-300" />
+                  <img
+                    src={item.image?.replace(/^\/public\//, '/')}
+                    alt={`${displayName} Packaging`}
+                    className="max-h-full max-w-full object-contain relative z-10 hover:scale-105 transition-transform duration-300"
+                    onError={(e: any) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/64748b?text=' + encodeURIComponent(displayName);
+                    }}
+                  />
                 </div>
                 <p className="text-[11px] text-slate-500 font-medium text-center">
                   {item.gallery?.[0]?.caption || `${displayName} ${isBn ? 'প্যাকেজিং রেফারেন্স।' : 'packaging.'}`}
@@ -637,7 +648,7 @@ export default function MedicinesPublicSingle({
                           return (
                             <div key={i} id={`faq-${i + 1}`} className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 scroll-mt-6">
                               <p className="font-bold text-xs sm:text-sm text-slate-900 flex items-start gap-2">
-                                <span className="text-[#8b1d41] font-extrabold">Q{i + 1}:</span>
+                                <span className="text-[#8b1d41] font-extrabold">{isBn ? `প্রশ্ন ${toBnDigit(i + 1)}:` : `Q${i + 1}:`}</span>
                                 <span>{qText}</span>
                               </p>
                               {aText && (

@@ -50,3 +50,4 @@ def test_fetch(url):
 test_fetch('https://techdentalcare.com/medicine/naproxen-500/')
 test_fetch('https://techdentalcare.com/update/case-study/case-study-root-canal/')
 test_fetch('https://techdentalcare.com/physician/best-dentist-chittagong/')
+

@@ -202,3 +202,4 @@ def extract_faqs_from_entry(soup, entry):
     return faqs
 
 print("Migrator module ready!")
+

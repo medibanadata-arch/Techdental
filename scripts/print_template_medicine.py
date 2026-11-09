@@ -17,3 +17,4 @@ for k, v in row.items():
             print(f"{k}: {str(v)[:100]}")
     else:
         print(f"{k}: {str(v)[:100] if v is not None else 'None'}")
+

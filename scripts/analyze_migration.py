@@ -98,3 +98,4 @@ for u in urls:
 
 for k, v in by_prefix.items():
     print(f"Prefix '{k}': {len(v)} URLs")
+

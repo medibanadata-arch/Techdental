@@ -611,7 +611,7 @@ class AiAssistantController extends Controller
                         'generationConfig' => $genConfig
                     ];
 
-                    $response = Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
+                    $response = Http::withoutVerifying()->timeout(18)->post($apiUrl, $payload);
 
                     if ($response->successful()) {
                         $resData = $response->json();
@@ -643,7 +643,7 @@ class AiAssistantController extends Controller
                             $aiText = trim($aiText);
                         }
 
-                        if (!empty($aiText) && mb_strlen($aiText) >= 15) {
+                        if (!empty($aiText) && mb_strlen($aiText) >= 3) {
                             DB::table('ai_chat_logs')->insert([
                                 'user_query' => $query,
                                 'reply' => $aiText,
@@ -872,12 +872,12 @@ class AiAssistantController extends Controller
     {
         $requested = trim($model ?: '');
 
-        // Auto-migrate deprecated 1.5 or 2.0 models to 3.x / 2.5
-        if (in_array($requested, ['gemini-2.0-flash', 'gemini-2.0', 'gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro'])) {
-            $requested = 'gemini-3-flash';
+        // Auto-migrate deprecated 1.5, 2.0 or invalid non-preview 3 models
+        if (in_array($requested, ['gemini-2.0-flash', 'gemini-2.0', 'gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-3-flash'])) {
+            $requested = 'gemini-3.5-flash-lite';
         }
-        if (in_array($requested, ['gemini-2.0-pro', 'gemini-2.0-pro-exp'])) {
-            $requested = 'gemini-3.1-pro';
+        if (in_array($requested, ['gemini-2.0-pro', 'gemini-2.0-pro-exp', 'gemini-3-pro'])) {
+            $requested = 'gemini-2.5-pro';
         }
 
         $candidates = [];
@@ -887,13 +887,13 @@ class AiAssistantController extends Controller
                 $candidates[] = str_replace('-preview', '', $requested);
             }
         }
-        // Exact models supported by Google AI Studio (ordered by highest quota & availability)
+        // Verified high-quota & active models supported by Google AI Studio
         $candidates[] = 'gemini-3.5-flash-lite';
         $candidates[] = 'gemini-3.1-flash-lite';
+        $candidates[] = 'gemini-2.5-flash';
+        $candidates[] = 'gemini-flash-latest';
+        $candidates[] = 'gemini-flash-lite-latest';
         $candidates[] = 'gemini-3.6-flash';
-        $candidates[] = 'gemini-3.5-flash';
-        $candidates[] = 'gemini-3.8-flash';
-        $candidates[] = 'gemini-3.1-pro';
 
         return array_values(array_unique($candidates));
     }

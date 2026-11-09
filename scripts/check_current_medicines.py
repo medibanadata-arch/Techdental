@@ -7,3 +7,4 @@ rows = c.fetchall()
 print(f"Total medicines in DB: {len(rows)}")
 for r in rows:
     print(r)
+
