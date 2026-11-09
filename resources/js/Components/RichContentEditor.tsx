@@ -297,10 +297,17 @@ export default function RichContentEditor({
                     container = container.parentNode;
                 }
 
-                if (container && container !== editorRef.current && (container as HTMLElement).tagName.toLowerCase() !== targetTag && (container as HTMLElement).tagName !== 'LI') {
-                    const blockElem = container as HTMLElement;
+                if (container && container !== editorRef.current && (container as HTMLElement).tagName !== 'LI') {
+                    let blockElem = container as HTMLElement;
+                    while (
+                        blockElem.parentElement &&
+                        ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(blockElem.parentElement.tagName) &&
+                        editorRef.current.contains(blockElem.parentElement)
+                    ) {
+                        blockElem = blockElem.parentElement;
+                    }
                     const newElem = document.createElement(targetTag);
-                    newElem.innerHTML = blockElem.innerHTML;
+                    newElem.innerHTML = blockElem.innerHTML.replace(/<\/?h[1-6][^>]*>/gi, '');
                     blockElem.parentNode?.replaceChild(newElem, blockElem);
 
                     const newRange = document.createRange();

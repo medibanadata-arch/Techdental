@@ -498,17 +498,105 @@ figure.wp-caption figcaption,
   display: block !important;
 }
 
-.wp-editor-content img,
-.blog-content-view img,
-.blog-content-body img,
-.prose img,
-.rich-content-view img,
-.seo-content-view img {
+.wp-editor-content img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.blog-content-view img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.blog-content-body img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.prose img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.rich-content-view img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.seo-content-view img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img) {
   max-width: 100% !important;
   height: auto !important;
   border-radius: 12px !important;
   margin: 16px auto !important;
   display: block !important;
+}
+
+/* Multi-image side-by-side grid / flex support */
+.wp-editor-content .grid,
+.blog-content-body .grid,
+.blog-content-view .grid,
+.rich-content-view .grid {
+  display: grid !important;
+}
+
+.wp-editor-content .grid img,
+.blog-content-body .grid img,
+.blog-content-view .grid img,
+.rich-content-view .grid img {
+  display: block !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+}
+
+/* Paragraph containing 2 or more images: display side-by-side (pashapashi) */
+.wp-editor-content p:has(> img:nth-child(2)),
+.blog-content-body p:has(> img:nth-child(2)),
+.blog-content-view p:has(> img:nth-child(2)),
+.rich-content-view p:has(> img:nth-child(2)) {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin: 20px 0 !important;
+}
+
+.wp-editor-content p:has(> img:nth-child(2)) > img,
+.blog-content-body p:has(> img:nth-child(2)) > img,
+.blog-content-view p:has(> img:nth-child(2)) > img,
+.rich-content-view p:has(> img:nth-child(2)) > img {
+  display: block !important;
+  margin: 0 !important;
+  flex: 1 1 180px !important;
+  max-width: calc(33.333% - 12px) !important;
+  min-width: 140px !important;
+  height: auto !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+}
+
+/* Headings containing links: inherit typography with attractive link styling */
+.wp-editor-content h1 a,
+.wp-editor-content h2 a,
+.wp-editor-content h3 a,
+.wp-editor-content h4 a,
+.blog-content-body h1 a,
+.blog-content-body h2 a,
+.blog-content-body h3 a,
+.blog-content-body h4 a,
+.blog-content-view h1 a,
+.blog-content-view h2 a,
+.blog-content-view h3 a,
+.blog-content-view h4 a {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+  text-decoration-color: #93c5fd !important;
+  text-underline-offset: 4px !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  transition: all 0.2s ease !important;
+}
+
+.wp-editor-content h1 a:hover,
+.wp-editor-content h2 a:hover,
+.wp-editor-content h3 a:hover,
+.wp-editor-content h4 a:hover,
+.blog-content-body h1 a:hover,
+.blog-content-body h2 a:hover,
+.blog-content-body h3 a:hover,
+.blog-content-body h4 a:hover,
+.blog-content-view h1 a:hover,
+.blog-content-view h2 a:hover,
+.blog-content-view h3 a:hover,
+.blog-content-view h4 a:hover {
+  color: #881337 !important;
+  text-decoration-color: #881337 !important;
 }
 
 /* ---- Tech Dental Search Box (from search-box.html & screenshot) ---- */

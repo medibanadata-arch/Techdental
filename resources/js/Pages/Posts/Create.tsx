@@ -111,6 +111,7 @@ export default function Create({ mediaList = [] }: Props) {
     
     // Floating WordPress-style Link Popup
     const [isLinkPopupOpen, setIsLinkPopupOpen] = useState(false);
+    const [selectedLinkNode, setSelectedLinkNode] = useState<HTMLAnchorElement | null>(null);
     const [linkUrl, setLinkUrl] = useState('');
     const [linkOpenNewTab, setLinkOpenNewTab] = useState(false);
 
@@ -245,10 +246,27 @@ export default function Create({ mediaList = [] }: Props) {
         updateSelectedTableRect();
     }, [selectedTableWrapperNode]);
 
-    // Click handler inside Editor for Image & Table Selection
+    // Click handler inside Editor for Link, Image & Table Selection
     const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
         saveSelection();
         const target = e.target as HTMLElement;
+
+        // Check Link selection first
+        const linkNode = target.closest('a') as HTMLAnchorElement | null;
+        if (linkNode && visualRef.current?.contains(linkNode)) {
+            setSelectedLinkNode(linkNode);
+            setLinkUrl(linkNode.getAttribute('href') || '');
+            setLinkOpenNewTab(linkNode.target === '_blank');
+            setIsLinkPopupOpen(true);
+            setSelectedImgNode(null);
+            setSelectedTableWrapperNode(null);
+            setSelectedTableNode(null);
+            return;
+        } else {
+            if (!target.closest('.link-toolbar-overlay') && !target.closest('.link-popup-box')) {
+                setSelectedLinkNode(null);
+            }
+        }
 
         // Check Table selection first
         let tableNode = target.closest('table') as HTMLTableElement | null;
@@ -286,6 +304,21 @@ export default function Create({ mediaList = [] }: Props) {
                 setSelectedImgNode(null);
                 setSelectedTableWrapperNode(null);
                 setSelectedTableNode(null);
+            }
+        }
+    };
+
+    const handleEditorKeyUp = () => {
+        saveSelection();
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            let node: Node | null = sel.getRangeAt(0).commonAncestorContainer;
+            if (node.nodeType === 3) node = node.parentNode;
+            const linkNode = (node as HTMLElement)?.closest('a') as HTMLAnchorElement | null;
+            if (linkNode && visualRef.current?.contains(linkNode)) {
+                setSelectedLinkNode(linkNode);
+                setLinkUrl(linkNode.getAttribute('href') || '');
+                setLinkOpenNewTab(linkNode.target === '_blank');
             }
         }
     };
@@ -332,9 +365,44 @@ export default function Create({ mediaList = [] }: Props) {
         }
     };
 
-    // Apply Heading with standard pixel sizes
+    // Apply Heading with clean block flattening (no corrupted nested headings)
     const applyHeading = (headingTag: string) => {
-        if (editorMode === 'visual') {
+        if (editorMode === 'visual' && visualRef.current) {
+            visualRef.current.focus();
+            restoreSelection();
+
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                let node: Node | null = range.commonAncestorContainer;
+                if (node.nodeType === 3) node = node.parentNode;
+
+                let block = (node as HTMLElement)?.closest('h1, h2, h3, h4, h5, h6, p, div') as HTMLElement | null;
+
+                if (block && visualRef.current.contains(block)) {
+                    // Ascend to the topmost heading parent if nested
+                    while (
+                        block.parentElement &&
+                        ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(block.parentElement.tagName) &&
+                        visualRef.current.contains(block.parentElement)
+                    ) {
+                        block = block.parentElement;
+                    }
+
+                    const targetTag = headingTag.toLowerCase();
+                    const newBlock = document.createElement(targetTag);
+
+                    // Strip any nested h1-h6 tags from the inside to keep DOM clean
+                    const cleanHtml = block.innerHTML.replace(/<\/?h[1-6][^>]*>/gi, '');
+                    newBlock.innerHTML = cleanHtml;
+
+                    block.parentNode?.replaceChild(newBlock, block);
+                    handleVisualInput();
+                    saveSelection();
+                    return;
+                }
+            }
+
             execCommand('formatBlock', `<${headingTag}>`);
         }
     };
@@ -345,25 +413,89 @@ export default function Create({ mediaList = [] }: Props) {
         setIsColorPickerOpen(false);
     };
 
-    // Apply WordPress-style Link
+    // Open Link Toolbar with active link detection
+    const handleOpenLinkToolbar = () => {
+        saveSelection();
+        const sel = window.getSelection();
+        let anchor: HTMLAnchorElement | null = null;
+        if (sel && sel.rangeCount > 0) {
+            let node: Node | null = sel.getRangeAt(0).commonAncestorContainer;
+            if (node.nodeType === 3) node = node.parentNode;
+            anchor = (node as HTMLElement)?.closest('a') as HTMLAnchorElement | null;
+        }
+
+        if (anchor && visualRef.current?.contains(anchor)) {
+            setSelectedLinkNode(anchor);
+            setLinkUrl(anchor.getAttribute('href') || '');
+            setLinkOpenNewTab(anchor.target === '_blank');
+        } else if (!selectedLinkNode) {
+            setLinkUrl('');
+            setLinkOpenNewTab(false);
+        }
+        setIsLinkPopupOpen(!isLinkPopupOpen);
+    };
+
+    // Apply or update WordPress-style Link
     const applyLink = () => {
-        if (!linkUrl) return;
+        if (!linkUrl.trim()) {
+            if (selectedLinkNode && visualRef.current?.contains(selectedLinkNode)) {
+                const parent = selectedLinkNode.parentNode;
+                while (selectedLinkNode.firstChild) {
+                    parent?.insertBefore(selectedLinkNode.firstChild, selectedLinkNode);
+                }
+                parent?.removeChild(selectedLinkNode);
+                handleVisualInput();
+                setSelectedLinkNode(null);
+            }
+            setIsLinkPopupOpen(false);
+            return;
+        }
+
+        // If updating an existing selected link
+        if (selectedLinkNode && visualRef.current?.contains(selectedLinkNode)) {
+            selectedLinkNode.setAttribute('href', linkUrl.trim());
+            if (linkOpenNewTab) {
+                selectedLinkNode.setAttribute('target', '_blank');
+                selectedLinkNode.setAttribute('rel', 'noopener noreferrer');
+            } else {
+                selectedLinkNode.removeAttribute('target');
+                selectedLinkNode.removeAttribute('rel');
+            }
+            handleVisualInput();
+            setIsLinkPopupOpen(false);
+            return;
+        }
+
         if (editorMode === 'visual' && visualRef.current) {
             visualRef.current.focus();
             restoreSelection();
             const selection = window.getSelection();
-            if (selection && selection.toString()) {
-                const targetAttr = linkOpenNewTab ? ' target="_blank" rel="noopener noreferrer"' : '';
-                const aHtml = `<a href="${linkUrl}"${targetAttr} class="text-sky-600 hover:underline">${selection.toString()}</a>`;
-                execCommand('insertHTML', aHtml);
-            } else {
-                const targetAttr = linkOpenNewTab ? ' target="_blank" rel="noopener noreferrer"' : '';
-                const aHtml = `<a href="${linkUrl}"${targetAttr} class="text-sky-600 hover:underline">${linkUrl}</a>`;
-                execCommand('insertHTML', aHtml);
-            }
+            const targetAttr = linkOpenNewTab ? ' target="_blank" rel="noopener noreferrer"' : '';
+            const displayText = (selection && selection.toString().trim()) ? selection.toString() : linkUrl.trim();
+            const aHtml = `<a href="${linkUrl.trim()}"${targetAttr} class="text-sky-600 hover:underline">${displayText}</a>`;
+            execCommand('insertHTML', aHtml);
         }
         setIsLinkPopupOpen(false);
         setLinkUrl('');
+    };
+
+    // Remove / Unlink
+    const removeLink = () => {
+        if (selectedLinkNode && visualRef.current?.contains(selectedLinkNode)) {
+            const parent = selectedLinkNode.parentNode;
+            while (selectedLinkNode.firstChild) {
+                parent?.insertBefore(selectedLinkNode.firstChild, selectedLinkNode);
+            }
+            parent?.removeChild(selectedLinkNode);
+            handleVisualInput();
+            setSelectedLinkNode(null);
+            setIsLinkPopupOpen(false);
+            setLinkUrl('');
+        } else {
+            execCommand('unlink');
+            setIsLinkPopupOpen(false);
+            setLinkUrl('');
+        }
     };
 
     // Open Media Library Modal & Save Cursor Position
@@ -929,17 +1061,14 @@ export default function Create({ mediaList = [] }: Props) {
                                     {/* Link Trigger */}
                                     <button 
                                         type="button" 
-                                        onClick={() => {
-                                            saveSelection();
-                                            setIsLinkPopupOpen(!isLinkPopupOpen);
-                                        }} 
-                                        className={`p-1.5 rounded cursor-pointer transition-colors ${isLinkPopupOpen ? 'bg-sky-100 text-sky-700' : 'hover:bg-slate-100 text-slate-700'}`} 
-                                        title="Insert Link"
+                                        onClick={handleOpenLinkToolbar} 
+                                        className={`link-trigger-btn p-1.5 rounded cursor-pointer transition-colors ${isLinkPopupOpen ? 'bg-sky-100 text-sky-700' : 'hover:bg-slate-100 text-slate-700'}`} 
+                                        title={selectedLinkNode ? "Edit Active Link" : "Insert Link"}
                                     >
                                         <LinkIcon size={14} />
                                     </button>
                                     
-                                    <button type="button" onClick={() => execCommand('unlink')} className="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer" title="Remove Link"><Unlink size={14} /></button>
+                                    <button type="button" onClick={removeLink} className="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer" title="Remove Link"><Unlink size={14} /></button>
 
                                     {/* Text Color Picker Trigger */}
                                     <div className="relative">
@@ -974,39 +1103,93 @@ export default function Create({ mediaList = [] }: Props) {
                                     <button type="button" onClick={() => execCommand('undo')} className="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer" title="Undo"><RotateCcw size={14} /></button>
                                     <button type="button" onClick={() => execCommand('redo')} className="p-1.5 hover:bg-slate-100 rounded text-slate-700 cursor-pointer" title="Redo"><RotateCw size={14} /></button>
 
-                                    {/* Floating WordPress-style Link Popup */}
+                                    {/* Floating WordPress-style Link Popup & URL Inspector */}
                                     {isLinkPopupOpen && (
-                                        <div className="absolute top-full left-12 mt-2 z-40 bg-white border border-slate-200 rounded-2xl p-2 shadow-xl flex items-center gap-2 w-80 animate-in fade-in duration-150">
-                                            <input
-                                                type="url"
-                                                value={linkUrl}
-                                                onChange={e => setLinkUrl(e.target.value)}
-                                                placeholder="Paste URL or type to search"
-                                                className="w-full text-xs px-3 py-2 border border-sky-400 rounded-xl focus:outline-none bg-white text-slate-800"
-                                                autoFocus
-                                                onKeyDown={e => {
-                                                    if (e.key === 'Enter') {
-                                                        e.preventDefault();
-                                                        applyLink();
-                                                    }
-                                                }}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={applyLink}
-                                                className="p-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl cursor-pointer shrink-0"
-                                            >
-                                                <CornerDownLeft size={14} />
-                                            </button>
-                                            <label className="flex items-center gap-1 text-[10px] text-slate-500 shrink-0 cursor-pointer" title="Open in new tab">
+                                        <div className="link-popup-box absolute top-full left-4 sm:left-12 mt-2 z-40 bg-white border border-slate-200 rounded-2xl p-3 shadow-2xl flex flex-col gap-2.5 w-80 sm:w-96 animate-in fade-in duration-150">
+                                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                                                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                                    <LinkIcon size={13} className="text-sky-600" />
+                                                    <span>{selectedLinkNode ? 'Edit Link' : 'Insert Link'}</span>
+                                                </span>
+                                                {selectedLinkNode && (
+                                                    <span className="text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-100 px-2 py-0.5 rounded-full">
+                                                        Active Link Selected
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5">
                                                 <input
-                                                    type="checkbox"
-                                                    checked={linkOpenNewTab}
-                                                    onChange={e => setLinkOpenNewTab(e.target.checked)}
-                                                    className="rounded text-sky-600"
+                                                    type="url"
+                                                    value={linkUrl}
+                                                    onChange={e => setLinkUrl(e.target.value)}
+                                                    placeholder="Paste URL or type (e.g. https://...)"
+                                                    className="w-full text-xs px-3 py-2 border border-sky-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/20 bg-slate-50 focus:bg-white text-slate-800"
+                                                    autoFocus
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            applyLink();
+                                                        }
+                                                    }}
                                                 />
-                                                <ExternalLink size={12} />
-                                            </label>
+                                                <button
+                                                    type="button"
+                                                    onClick={applyLink}
+                                                    className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-xl cursor-pointer shrink-0 transition flex items-center gap-1 shadow-xs"
+                                                    title="Save Link"
+                                                >
+                                                    <CornerDownLeft size={13} />
+                                                    <span>Save</span>
+                                                </button>
+                                            </div>
+
+                                            {/* Link options & preview */}
+                                            <div className="flex items-center justify-between pt-0.5 text-xs">
+                                                <label className="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer select-none" title="Open link in a new browser tab">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={linkOpenNewTab}
+                                                        onChange={e => setLinkOpenNewTab(e.target.checked)}
+                                                        className="rounded text-sky-600 focus:ring-sky-500"
+                                                    />
+                                                    <span>Open in new tab</span>
+                                                </label>
+
+                                                <div className="flex items-center gap-2">
+                                                    {linkUrl && (
+                                                        <a
+                                                            href={linkUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-600 hover:text-sky-800 hover:underline"
+                                                            title="Test link in new window"
+                                                        >
+                                                            <span>Visit</span>
+                                                            <ExternalLink size={11} />
+                                                        </a>
+                                                    )}
+                                                    {(selectedLinkNode || linkUrl) && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={removeLink}
+                                                            className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-600 hover:text-rose-700 hover:underline cursor-pointer"
+                                                            title="Remove link from text"
+                                                        >
+                                                            <Unlink size={11} />
+                                                            <span>Unlink</span>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Visible URL Box */}
+                                            {linkUrl && (
+                                                <div className="bg-slate-50 rounded-lg p-2 border border-slate-200/80 text-[10px] text-slate-600 break-all select-all flex items-start gap-1.5">
+                                                    <span className="font-bold text-slate-400 shrink-0 uppercase tracking-wider text-[9px] mt-0.5">URL:</span>
+                                                    <span className="font-mono text-slate-700">{linkUrl}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -1141,7 +1324,7 @@ export default function Create({ mediaList = [] }: Props) {
                                         ref={visualRef}
                                         contentEditable
                                         onInput={handleVisualInput}
-                                        onKeyUp={saveSelection}
+                                        onKeyUp={handleEditorKeyUp}
                                         onMouseUp={handleEditorClick}
                                         onFocus={saveSelection}
                                         className="w-full min-h-[420px] p-6 text-sm text-slate-800 leading-relaxed focus:outline-none prose max-w-none [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:my-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:my-3 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:my-2 [&_h4]:text-lg [&_h4]:font-bold [&_h5]:text-base [&_h5]:font-bold [&_h6]:text-sm [&_h6]:font-bold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-4 [&_blockquote]:border-sky-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_img]:cursor-pointer [&_img]:transition-shadow [&_img]:hover:outline-2 [&_img]:hover:outline-sky-500"
