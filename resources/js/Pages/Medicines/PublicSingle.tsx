@@ -238,7 +238,7 @@ export default function MedicinesPublicSingle({
     : (item.author?.disclaimer || 'Disclaimer: Educational information only. Not a substitute for professional medical advice.');
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Head>
         <title>{`${displayName || 'Medicine'} - Dental Medicine & Usage | Tech Dental`}</title>
         {displaySubtitle && <meta name="description" content={displaySubtitle} />}

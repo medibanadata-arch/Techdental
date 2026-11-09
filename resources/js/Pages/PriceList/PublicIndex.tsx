@@ -72,7 +72,7 @@ export default function PriceListPublicIndex({ categories = [], settings, locati
   return (
     <div
       className="min-h-screen bg-slate-50 text-slate-800 antialiased flex flex-col justify-between w-full"
-      style={{ fontFamily: "'Inter', sans-serif" }}
+      style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}
     >
       <Head>
         <title>{settings?.seo_title || settings?.page_title || 'Tech Dental Treatment Price List in Bangladesh – 2026'}</title>

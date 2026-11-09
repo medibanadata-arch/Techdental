@@ -182,7 +182,7 @@ export default function BlogPublicSingle({
   );
 
   return (
-    <div className="min-h-screen text-gray-800 antialiased overflow-x-hidden bg-[#f3f4f6]" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen text-gray-800 antialiased overflow-x-hidden bg-[#f3f4f6]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Head>
         <title>{`${activeTitle || 'Blog'} | Tech Dental`}</title>
         {activeExcerpt && <meta name="description" content={activeExcerpt} />}

@@ -1,5 +1,46 @@
 @import '@fortawesome/fontawesome-free/css/all.min.css';
 
+/* SolaimanLipi (সোলায়মান লিপি) font definitions - Self-hosted with Unicode Range strictly for Bengali */
+@font-face {
+  font-family: 'SolaimanLipi';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/solaiman-lipi/solaimanlipi-normal.woff2') format('woff2'),
+       url('/fonts/solaiman-lipi/solaimanlipi-normal.ttf') format('truetype');
+  unicode-range: U+0980-09FF, U+200C-U+200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/solaiman-lipi/solaimanlipi-normal.woff2') format('woff2'),
+       url('/fonts/solaiman-lipi/solaimanlipi-normal.ttf') format('truetype');
+  unicode-range: U+0980-09FF, U+200C-U+200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/solaiman-lipi/solaimanlipi-bold.woff2') format('woff2'),
+       url('/fonts/solaiman-lipi/solaimanlipi-bold.ttf') format('truetype');
+  unicode-range: U+0980-09FF, U+200C-U+200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/solaiman-lipi/solaimanlipi-bold.woff2') format('woff2'),
+       url('/fonts/solaiman-lipi/solaimanlipi-bold.ttf') format('truetype');
+  unicode-range: U+0980-09FF, U+200C-U+200D, U+25CC;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,10 +56,12 @@
   --text-main: #1f2937;
   --text-muted: #64748b;
   --success-green: #16a34a;
-  /* Font variables set from Google Fonts loaded in blade */
+  /* Font variables */
   --font-plus-jakarta: 'Plus Jakarta Sans', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-solaiman: 'SolaimanLipi', sans-serif;
   --font-hind-siliguri: 'Hind Siliguri', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -29,10 +72,16 @@
 body {
   background-color: #f8fafc;
   color: var(--text-main);
-  font-family: 'Plus Jakarta Sans', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   overflow-y: scroll;
   /* Always show scrollbar to prevent layout shift on page load */
+}
+
+/* Explicit SolaimanLipi helper for Bangla text elements */
+.font-solaiman,
+.font-bangla {
+  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif !important;
 }
 
 /* Hide scrollbar for Chrome, Safari, Edge, Opera, Firefox */
@@ -107,7 +156,17 @@ body {
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* WordPress Classic Visual Editor, Blog Post, Services & All SEO Content Typography (H1-H6 Pixel Sizes & Links) */
+/* WordPress Classic Visual Editor, Blog Post, Medicines, Services & All Content Typography */
+.wp-editor-content,
+.blog-content-view,
+.blog-content-body,
+.medicine-content-view,
+.prose,
+.rich-content-view,
+.seo-content-view {
+  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', sans-serif !important;
+}
+
 .wp-editor-content h1,
 .wp-editor-content h1 *,
 .blog-content-view h1,
@@ -445,7 +504,7 @@ body {
   --tw-shadow: none !important;
   --tw-ring-color: transparent !important;
   background: transparent !important;
-  font: 500 18px 'Hind Siliguri', sans-serif;
+  font: 500 18px 'Plus Jakarta Sans', 'SolaimanLipi', 'Hind Siliguri', sans-serif;
   color: #0f172a;
   padding: 12px 0;
   caret-color: #2563eb;

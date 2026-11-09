@@ -39,7 +39,7 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu }
   const { language, isBn } = useLanguage();
 
   return (
-    <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <TopHeader
         locations={locations}
         selectedBranch={selectedBranch}

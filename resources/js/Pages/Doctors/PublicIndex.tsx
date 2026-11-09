@@ -112,7 +112,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
   return (
     <div
       className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased flex flex-col"
-      style={{ fontFamily: "'Inter', 'Hind Siliguri', sans-serif" }}
+      style={{ fontFamily: "'Inter', 'SolaimanLipi', 'Hind Siliguri', sans-serif" }}
     >
       <Head>
         <title>{settings?.page_title || 'Specialist Dentists & Dental Surgeons – Tech Dental'}</title>

@@ -25,7 +25,7 @@ export default function BranchPublicIndex({ branches = [], nav_menu, locations =
   const [selectedBranch, setSelectedBranch] = useState("");
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 antialiased pb-5 sm:pb-6" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 antialiased pb-5 sm:pb-6" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <TopHeader locations={locations.length ? locations : branches} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 
       <main className="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 mt-8">

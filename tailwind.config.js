@@ -42,10 +42,11 @@ export default {
                 },
             },
             fontFamily: {
-                sans: ['Plus Jakarta Sans', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', ...defaultTheme.fontFamily.sans],
-                inter: ['Inter', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', ...defaultTheme.fontFamily.sans],
+                sans: ['Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', ...defaultTheme.fontFamily.sans],
+                inter: ['Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', ...defaultTheme.fontFamily.sans],
                 serif: ['Playfair Display', 'Georgia', 'serif'],
-                bengali: ['Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', ...defaultTheme.fontFamily.sans],
+                bengali: ['SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', ...defaultTheme.fontFamily.sans],
+                solaiman: ['SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', ...defaultTheme.fontFamily.sans],
             },
             spacing: {
                 '4.5': '1.125rem',

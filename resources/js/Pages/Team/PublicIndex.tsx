@@ -34,7 +34,7 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
   const slugFor = (name: string) => (name || '').toLowerCase().replace(/[.']/g, '').replace(/\s+/g, '-');
 
   return (
-    <div className="min-h-screen font-sans text-gray-800 antialiased pb-5 sm:pb-6 w-full bg-slate-50" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen font-sans text-gray-800 antialiased pb-5 sm:pb-6 w-full bg-slate-50" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 
       {/* 1. Management Team Section */}

@@ -312,7 +312,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
   return (
     <div
       className="min-h-screen antialiased w-full"
-      style={{ backgroundColor: '#F8F9FA', color: '#1E293B', fontFamily: "'Inter', sans-serif" }}
+      style={{ backgroundColor: '#F8F9FA', color: '#1E293B', fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}
     >
       <Head>
         <title>{metaTitle}</title>

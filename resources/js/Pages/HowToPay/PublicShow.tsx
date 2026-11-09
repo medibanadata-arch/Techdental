@@ -265,7 +265,7 @@ export default function HowToPayPublicShow({
     'Choose your branch to see accepted payment methods at Tech Dental Care: Cash, POS Debit/Credit Card, Bangla QR, bKash, Nagad, and Rocket.';
 
   return (
-    <div className="bg-white flex flex-col min-h-screen text-[#0a0a0a] font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="bg-white flex flex-col min-h-screen text-[#0a0a0a] font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={metaDesc} />

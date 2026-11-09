@@ -163,7 +163,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
   }, [previewImage, imageItems]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-['Inter',sans-serif]">
+    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-['Inter','Plus_Jakarta_Sans','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
       <Head title="Tech Dental Gallery — Photos & Videos" />
 
       {/* Top Header Navigation */}

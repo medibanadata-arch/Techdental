@@ -49,7 +49,7 @@ export default function TeamPublicSingle({ member, locations = [], nav_menu }: P
   return (
     <div
       className="antialiased text-[#2C2A29] min-h-screen flex flex-col w-full"
-      style={{ fontFamily: "'Inter', sans-serif", backgroundColor: PAGES_BG }}
+      style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif", backgroundColor: PAGES_BG }}
     >
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 

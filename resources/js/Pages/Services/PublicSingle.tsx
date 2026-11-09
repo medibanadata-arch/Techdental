@@ -164,7 +164,7 @@ export default function ServicesPublicSingle({ item, doctors = [], locations = [
   }, [item, pageCanonical, pageDesc, faqs]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 antialiased font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-white text-gray-800 antialiased font-sans" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDesc} />

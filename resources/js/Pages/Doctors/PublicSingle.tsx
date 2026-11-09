@@ -164,7 +164,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
   return (
     <div
       className="min-h-screen bg-white text-slate-600 antialiased flex flex-col justify-start"
-      style={{ fontFamily: "'Inter', 'Hind Siliguri', sans-serif" }}
+      style={{ fontFamily: "'Inter', 'SolaimanLipi', 'Hind Siliguri', sans-serif" }}
     >
       <Head>
         <title>{item.seo_title ? `${item.name} – ${item.seo_title}` : `${item.name} - Senior Dental Specialist Profile | Tech Dental`}</title>
