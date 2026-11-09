@@ -53,6 +53,16 @@ interface MedicineItem {
   side_effects_bn?: string;
   subtitle: string;
   subtitle_bn?: string;
+  seo_title?: string;
+  seo_title_bn?: string;
+  seo_content?: string;
+  seo_content_bn?: string;
+  meta_desc?: string;
+  canonical_url?: string;
+  robots_index?: boolean;
+  robots_follow?: boolean;
+  schema_type?: string;
+  schema_json?: string;
   verified_badge: string;
   verified_badge_bn?: string;
   published_date: string;
@@ -124,6 +134,7 @@ export default function MedicinesPublicSingle({
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const [tocOpen, setTocOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
   const { isBn, setLanguage } = useLanguage();
 
   useEffect(() => {
@@ -131,6 +142,15 @@ export default function MedicinesPublicSingle({
       setLanguage(is_bn ? 'bn' : 'en');
     }
   }, [is_bn]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const h = window.location.hash;
+      if (h === '#more-about' || h === '#faq' || h.startsWith('#faq-')) {
+        setInfoOpen(true);
+      }
+    }
+  }, []);
 
   // Strict Language Separation: English mode shows ONLY English; Bangla mode shows ONLY Bangla
   const displayName = isBn ? (item.name_bn || item.name) : item.name;
@@ -185,13 +205,17 @@ export default function MedicinesPublicSingle({
     ? (sec.author_bn || 'মেডিকেল রিভিউয়ার ও বিশেষজ্ঞ পরিচিতি')
     : (sec.author || 'Medical Reviewer & Specialist');
 
-  const titleRelated = isBn
-    ? (sec.related_bn || 'সম্পর্কিত অন্যান্য ঔষধ')
-    : (sec.related || 'Related Medicines');
-
   const titleToc = isBn
     ? (sec.toc_bn || 'সূচিপত্র')
     : (sec.toc || 'Table of Contents');
+
+  const displaySeoTitle = isBn
+    ? (item.seo_title_bn || item.seo_title || `${displayName} সম্পর্কিত বিস্তারিত তথ্য`)
+    : (item.seo_title || `More about ${displayName}`);
+
+  const displaySeoContent = isBn
+    ? (item.seo_content_bn || item.seo_content)
+    : (item.seo_content || item.seo_content_bn);
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -209,7 +233,7 @@ export default function MedicinesPublicSingle({
         { href: '#side-effects', label: `৩. ${titleSideEffects}` },
         { href: '#warnings', label: `৪. ${titleWarnings}` },
         { href: '#price', label: `৫. ${titlePrice}` },
-        { href: '#faq', label: `৬. ${titleFaq}` },
+        { href: '#more-about', label: `৬. ${displaySeoTitle}` },
       ]
     : [
         { href: '#overview', label: `1. ${titleUses}` },
@@ -217,7 +241,7 @@ export default function MedicinesPublicSingle({
         { href: '#side-effects', label: `3. ${titleSideEffects}` },
         { href: '#warnings', label: `4. ${titleWarnings}` },
         { href: '#price', label: `5. ${titlePrice}` },
-        { href: '#faq', label: `6. ${titleFaq}` },
+        { href: '#more-about', label: `6. ${displaySeoTitle}` },
       ];
 
   // Author details
@@ -240,8 +264,8 @@ export default function MedicinesPublicSingle({
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Head>
-        <title>{`${displayName || 'Medicine'} - Dental Medicine & Usage | Tech Dental`}</title>
-        {displaySubtitle && <meta name="description" content={displaySubtitle} />}
+        <title>{item.seo_title ? `${displayName} – ${item.seo_title}` : `${displayName || 'Medicine'} - Dental Medicine & Usage | Tech Dental`}</title>
+        <meta name="description" content={item.meta_desc || displaySubtitle || displayIntro} />
         {canonical_url && <link rel="canonical" href={canonical_url} />}
         {hreflang?.en && <link rel="alternate" hrefLang="en" href={hreflang.en} />}
         {hreflang?.bn && <link rel="alternate" hrefLang="bn" href={hreflang.bn} />}
@@ -318,7 +342,15 @@ export default function MedicinesPublicSingle({
               <div className="p-4 bg-white text-xs sm:text-sm font-medium text-slate-700 space-y-2.5">
                 {tocTopItems.map((t) => (
                   <p key={t.href}>
-                    <a href={t.href} className="hover:text-[#8b1d41] transition block py-0.5">{t.label}</a>
+                    <a
+                      href={t.href}
+                      onClick={() => {
+                        if (t.href === '#more-about') setInfoOpen(true);
+                      }}
+                      className="hover:text-[#8b1d41] transition block py-0.5"
+                    >
+                      {t.label}
+                    </a>
                   </p>
                 ))}
 
@@ -329,7 +361,11 @@ export default function MedicinesPublicSingle({
                       const prefix = isBn ? `৬.${toBnDigit(i + 1)}.` : `6.${i + 1}.`;
                       return (
                         <p key={i}>
-                          <a href={`#faq-${i + 1}`} className="hover:text-[#8b1d41] transition block truncate">
+                          <a
+                            href={`#faq-${i + 1}`}
+                            onClick={() => setInfoOpen(true)}
+                            className="hover:text-[#8b1d41] transition block truncate"
+                          >
                             {prefix} {qText}
                           </a>
                         </p>
@@ -356,9 +392,6 @@ export default function MedicinesPublicSingle({
               </div>
 
               <div className="md:col-span-7 space-y-3">
-                <div className="inline-block px-2.5 py-0.5 bg-rose-50 text-[#8b1d41] border border-rose-100 rounded-lg text-xs font-bold uppercase tracking-wider">
-                  {displayTag}
-                </div>
                 <h2 className="text-[#721533] font-bold text-xl">{displayName}</h2>
                 <div className="text-xs text-slate-500 font-medium">
                   <strong>{isBn ? 'জেনেরিক:' : 'Generic:'}</strong> {displayGeneric} | <strong>{isBn ? 'কোম্পানি:' : 'Pharma:'}</strong> {displayPharma}
@@ -389,13 +422,6 @@ export default function MedicinesPublicSingle({
                       </div>
                     );
                   })}
-                </div>
-              )}
-
-              {displayDentalUsage && (
-                <div className="p-3.5 bg-rose-50/40 border border-rose-100/70 rounded-xl text-xs sm:text-sm text-slate-700 mt-2">
-                  <strong className="text-[#8b1d41] block mb-1">{isBn ? 'ডেন্টাল চিকিৎসার তাৎপর্য:' : 'Dental Significance:'}</strong>
-                  {displayDentalUsage}
                 </div>
               )}
             </section>
@@ -529,54 +555,6 @@ export default function MedicinesPublicSingle({
               </div>
             )}
 
-            {/* FAQ Section */}
-            {Array.isArray(item.faqs) && item.faqs.length > 0 && (
-            <section id="faq" className="scroll-mt-6 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <i className="fa-solid fa-circle-question text-[#8b1d41]" />
-                  <span>{titleFaq}</span>
-                </h2>
-              </div>
-
-              <div className="space-y-2.5">
-                {item.faqs?.map((f, i) => {
-                  const qText = isBn ? (f.q_bn || f.q) : f.q;
-                  const aText = isBn ? (f.a_bn || f.a) : f.a;
-                  const numDisplay = isBn ? toBnDigit(i + 1) : i + 1;
-                  return (
-                    <div key={i} id={`faq-${i + 1}`} className="scroll-mt-6 border border-slate-200/80 rounded-xl overflow-hidden transition-all bg-white">
-                      <button
-                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                        aria-expanded={openFaq === i}
-                        className="w-full p-3.5 text-left font-semibold text-slate-900 text-xs sm:text-sm flex items-center justify-between hover:bg-slate-50 transition gap-2"
-                      >
-                        <span className="flex items-center gap-2.5">
-                          <span className="w-6 h-6 rounded-full bg-[#fdf2f4] text-[#721533] text-xs font-bold flex items-center justify-center shrink-0">
-                            {numDisplay}
-                          </span>
-                          <span>{qText}</span>
-                        </span>
-                        {openFaq === i ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
-                      </button>
-                      {openFaq === i && (
-                        <div className="px-5 pb-4 pt-1 text-xs sm:text-sm text-slate-600 border-t border-slate-100 leading-relaxed bg-slate-50/50 whitespace-pre-line">
-                          {aText}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {authorDisclaimer && (
-                <p className="text-[11px] text-slate-400 italic pt-1 text-center">
-                  {authorDisclaimer}
-                </p>
-              )}
-            </section>
-            )}
-
             {/* Medical Reviewer Profile */}
             {item.author && (
               <section id="author" className="scroll-mt-6 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
@@ -621,47 +599,71 @@ export default function MedicinesPublicSingle({
               </section>
             )}
 
-            {/* Related Medicines */}
-            {related.length > 0 && (
-              <section className="space-y-4 pt-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <i className="fa-solid fa-pills text-[#8b1d41]" />
-                    <span>{titleRelated}</span>
-                  </h3>
-                  <Link href="/medicines" className="text-xs text-[#8b1d41] font-semibold hover:underline flex items-center gap-1">
-                    <span>{isBn ? 'সকল ঔষধ দেখুন' : 'View More'}</span>
-                    <i className="fa-solid fa-arrow-right text-[10px]" />
-                  </Link>
-                </div>
+            {/* Additional Information Accordion (Bottom SEO Box) */}
+            <div id="more-about" className="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden scroll-mt-6 mb-6">
+              <button
+                type="button"
+                onClick={() => setInfoOpen(!infoOpen)}
+                aria-expanded={infoOpen}
+                className="w-full px-5 py-4 flex items-center justify-between text-left focus:outline-none cursor-pointer hover:bg-slate-50/70 transition-colors"
+              >
+                <span className="text-sm sm:text-[15px] text-slate-800 font-bold leading-none">
+                  {displaySeoTitle}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 flex-shrink-0 ${infoOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-                <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
-                  {related.slice(0, 4).map((r) => {
-                    const rName = (isBn && r.name_bn) ? r.name_bn : r.name;
-                    const rGeneric = (isBn && r.generic_bn) ? r.generic_bn : r.generic;
-                    const rPharma = (isBn && r.pharma_bn) ? r.pharma_bn : r.pharma;
-                    const rQuick = (isBn && r.quick_use_bn) ? r.quick_use_bn : r.quick_use;
-                    return (
-                      <Link
-                        key={r.id}
-                        href={`/medicines/${r.slug}`}
-                        className="bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:border-[#f8d0d8] transition group"
-                      >
-                        <div className="w-full h-20 bg-slate-50 flex items-center justify-center text-slate-700 font-bold text-sm p-2 text-center border-b border-slate-100 group-hover:bg-[#fdf2f4]/50 transition">
-                          {rName}
-                        </div>
-                        <div className="p-3 space-y-1">
-                          <span className="text-[10px] text-slate-400 font-mono block">{rPharma}</span>
-                          <h4 className="text-xs font-bold text-slate-900 leading-tight">{rName}</h4>
-                          <p className="text-[11px] text-[#8b1d41] font-semibold">{rGeneric}</p>
-                          <p className="text-[10px] text-slate-500 leading-snug line-clamp-2 pt-0.5">{rQuick}</p>
-                        </div>
-                      </Link>
-                    );
-                  })}
+              {infoOpen && (
+                <div className="border-t border-slate-100 px-5 py-5 bg-white space-y-6">
+                  {/* SEO Content / Rich Content View */}
+                  {displaySeoContent ? (
+                    <div
+                      className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed text-xs sm:text-sm"
+                      dangerouslySetInnerHTML={{ __html: displaySeoContent }}
+                    />
+                  ) : displayIntro ? (
+                    <div className="text-slate-600 text-xs sm:text-sm leading-relaxed space-y-3">
+                      <p>{displayIntro}</p>
+                    </div>
+                  ) : null}
+
+                  {/* Frequently Asked Questions (FAQs) */}
+                  {Array.isArray(item.faqs) && item.faqs.length > 0 && (
+                    <div id="faq" className="pt-5 border-t border-slate-100 scroll-mt-6">
+                      <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                        <span className="w-1.5 h-3.5 bg-[#8b1d41] rounded-full" />
+                        {titleFaq}
+                      </h4>
+                      <div className="space-y-2.5">
+                        {item.faqs.map((f, i) => {
+                          const qText = isBn ? (f.q_bn || f.q) : f.q;
+                          const aText = isBn ? (f.a_bn || f.a) : f.a;
+                          return (
+                            <div key={i} id={`faq-${i + 1}`} className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 scroll-mt-6">
+                              <p className="font-bold text-xs sm:text-sm text-slate-900 flex items-start gap-2">
+                                <span className="text-[#8b1d41] font-extrabold">Q{i + 1}:</span>
+                                <span>{qText}</span>
+                              </p>
+                              {aText && (
+                                <p className="text-xs sm:text-sm text-slate-600 mt-1 pl-6 leading-relaxed whitespace-pre-line">
+                                  {aText}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {authorDisclaimer && (
+                    <p className="text-[11px] text-slate-400 italic pt-2 text-center">
+                      {authorDisclaimer}
+                    </p>
+                  )}
                 </div>
-              </section>
-            )}
+              )}
+            </div>
           </main>
         </div>
       </div>

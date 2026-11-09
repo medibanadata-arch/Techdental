@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
 import MediaImagePicker from '@/components/ImagePicker/MediaImagePicker';
+import SeoMetaBox from '@/Components/SeoMetaBox';
+import RichContentEditor from '@/Components/RichContentEditor';
 
 interface UseItem {
     label: string;
@@ -72,6 +74,16 @@ interface MedicineItem {
     side_effects_bn?: string;
     subtitle?: string;
     subtitle_bn?: string;
+    seo_title?: string;
+    seo_title_bn?: string;
+    seo_content?: string;
+    seo_content_bn?: string;
+    meta_desc?: string;
+    canonical_url?: string;
+    robots_index?: boolean;
+    robots_follow?: boolean;
+    schema_type?: string;
+    schema_json?: string;
     verified_badge?: string;
     verified_badge_bn?: string;
     published_date?: string;
@@ -145,6 +157,16 @@ export default function MedicinesAdminEdit({ item }: Props) {
         side_effects_bn: item?.side_effects_bn || '',
         subtitle: item?.subtitle || '',
         subtitle_bn: item?.subtitle_bn || '',
+        seo_title: item?.seo_title || '',
+        seo_title_bn: item?.seo_title_bn || '',
+        seo_content: item?.seo_content || '',
+        seo_content_bn: item?.seo_content_bn || '',
+        meta_desc: item?.meta_desc || '',
+        canonical_url: item?.canonical_url || '',
+        robots_index: item?.robots_index !== undefined ? item.robots_index : true,
+        robots_follow: item?.robots_follow !== undefined ? item.robots_follow : true,
+        schema_type: item?.schema_type || 'MedicalWebPage',
+        schema_json: item?.schema_json || '',
         verified_badge: item?.verified_badge || 'Medically Verified',
         verified_badge_bn: item?.verified_badge_bn || 'মেডিকেলি ভেরিফাইড',
         published_date: item?.published_date || 'Updated 2026',
@@ -1599,6 +1621,118 @@ export default function MedicinesAdminEdit({ item }: Props) {
                                 className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl bg-rose-50/20"
                             />
                         </div>
+                    </div>
+                </div>
+
+                {/* Section 9: More About Drawer & Google SEO Box */}
+                <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6">
+                    <div className="pb-2 border-b border-gray-100 flex items-center justify-between">
+                        <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <FileText size={16} className="text-[#800038]" />
+                            <span>9. More About Drawer &amp; Google SEO Meta Box</span>
+                        </h2>
+                        {isEdit && (
+                            <a
+                                href={`/medicines/${form.slug || item?.id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs text-[#800038] hover:underline font-bold"
+                            >
+                                <ExternalLink size={13} /> View Live Medicine Page
+                            </a>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">
+                                More About Drawer Heading / Title (English)
+                            </label>
+                            <input
+                                type="text"
+                                value={form.seo_title}
+                                onChange={(e) => setForm({ ...form, seo_title: e.target.value })}
+                                placeholder={`More about ${form.name || 'Medicine'}`}
+                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl font-bold bg-white"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">
+                                Renames the expandable accordion button at the bottom of the medicine page.
+                            </p>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-[#800038] mb-1">
+                                বিস্তারিত সেকশন শিরোনাম / ড্রয়ার বাটন (বাংলা)
+                            </label>
+                            <input
+                                type="text"
+                                value={form.seo_title_bn}
+                                onChange={(e) => setForm({ ...form, seo_title_bn: e.target.value })}
+                                placeholder={`${form.name_bn || form.name || 'ঔষধ'} সম্পর্কিত বিস্তারিত তথ্য`}
+                                className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl font-bold bg-rose-50/20"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">
+                                বাংলায় নিচের বিস্তারিত ড্রয়ার বাটনের টেক্সট নির্ধারণ করুন।
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-2">
+                                Write More About Content (English - Rich HTML)
+                            </label>
+                            <RichContentEditor
+                                label={`WRITE MORE ABOUT ${form.name ? form.name.toUpperCase() : 'MEDICINE'} CONTENT (ENGLISH)`}
+                                value={form.seo_content}
+                                onChange={(val) => setForm({ ...form, seo_content: val })}
+                                placeholder="Write detailed clinical indications, pharmacology, precautions, drug interactions, clinical dental notes..."
+                                minHeight="260px"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-[#800038] mb-2">
+                                বিস্তারিত ড্রয়ার কন্টেন্ট লিখুন (বাংলা - Rich HTML)
+                            </label>
+                            <RichContentEditor
+                                label={`${form.name_bn || form.name || 'ঔষধ'} এর বিস্তারিত ড্রয়ার তথ্য (বাংলা)`}
+                                value={form.seo_content_bn}
+                                onChange={(val) => setForm({ ...form, seo_content_bn: val })}
+                                placeholder="ঔষধটির বিস্তারিত কার্যপদ্ধতি, ক্লিনিক্যাল নোট, বিশেষ সতর্কতা ইত্যাদি বাংলায় লিখুন..."
+                                minHeight="260px"
+                            />
+                        </div>
+                    </div>
+
+                    {/* SEO Meta Box for Google Schema, Directives, Preview */}
+                    <div className="pt-2">
+                        <SeoMetaBox
+                            data={{
+                                seo_title: form.seo_title || form.name,
+                                meta_desc: form.meta_desc || form.intro,
+                                canonical_url: form.canonical_url,
+                                robots_index: form.robots_index,
+                                robots_follow: form.robots_follow,
+                                schema_type: form.schema_type || 'MedicalWebPage',
+                                schema_json: form.schema_json,
+                                faqs: form.faqs?.map((f) => ({ q: f.q, a: f.a })) || [],
+                            }}
+                            onChange={(updated) => {
+                                setForm({
+                                    ...form,
+                                    seo_title: updated.seo_title !== undefined ? updated.seo_title : form.seo_title,
+                                    meta_desc: updated.meta_desc !== undefined ? updated.meta_desc : form.meta_desc,
+                                    canonical_url: updated.canonical_url !== undefined ? updated.canonical_url : form.canonical_url,
+                                    robots_index: updated.robots_index !== undefined ? updated.robots_index : form.robots_index,
+                                    robots_follow: updated.robots_follow !== undefined ? updated.robots_follow : form.robots_follow,
+                                    schema_type: updated.schema_type !== undefined ? updated.schema_type : form.schema_type,
+                                    schema_json: updated.schema_json !== undefined ? updated.schema_json : form.schema_json,
+                                });
+                            }}
+                            pageType="page"
+                            defaultSlug={form.slug ? `medicines/${form.slug}` : (item?.id ? `medicines/${item.id}` : 'medicines')}
+                            previewUrl={`https://techdentalcare.com/medicines/${form.slug || item?.id || ''}`}
+                        />
                     </div>
                 </div>
 

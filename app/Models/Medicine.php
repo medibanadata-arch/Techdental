@@ -20,6 +20,8 @@ class Medicine extends Model
         'author' => 'array',
         'related' => 'array',
         'section_titles' => 'array',
+        'robots_index' => 'boolean',
+        'robots_follow' => 'boolean',
         'is_active' => 'boolean',
     ];
 
