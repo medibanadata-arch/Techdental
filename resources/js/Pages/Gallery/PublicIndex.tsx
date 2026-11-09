@@ -145,7 +145,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
         const prevItem = imageItems[newIdx];
         setPreviewImage({
           src: prevItem.src || (prevItem as any).image || (prevItem as any).url,
-          title: (prevItem as any).badge || prevItem.title,
+          title: prevItem.title && prevItem.title !== "Homepage" ? prevItem.title : "",
           index: newIdx,
         });
       } else if (e.key === "ArrowRight") {
@@ -153,7 +153,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
         const nextItem = imageItems[newIdx];
         setPreviewImage({
           src: nextItem.src || (nextItem as any).image || (nextItem as any).url,
-          title: (nextItem as any).badge || nextItem.title,
+          title: nextItem.title && nextItem.title !== "Homepage" ? nextItem.title : "",
           index: newIdx,
         });
       }
@@ -240,7 +240,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
               {imageItems.map((item: any, idx: number) => {
-                const title = item.badge || item.title || "Tech Dental";
+                const title = item.title && item.title !== "Homepage" ? item.title : "";
                 const imgSrc = item.src || item.image || item.url || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80";
 
                 return (
@@ -252,16 +252,18 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                   >
                     <img
                       src={imgSrc}
-                      alt={title}
+                      alt={title || "Gallery"}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors" />
-                    <div className="absolute bottom-2 left-2 right-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="bg-black/70 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-1 rounded-lg line-clamp-1">
-                        {title}
+                    {title && (
+                      <div className="absolute bottom-2 left-2 right-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="bg-black/70 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-1 rounded-lg line-clamp-1">
+                          {title}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}

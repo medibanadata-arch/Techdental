@@ -399,8 +399,7 @@ export default function Home({
         const prevItem = galleryItems[newIdx];
         setPreviewImage({
           src: prevItem.src || prevItem.image || prevItem.url,
-          title: prevItem.badge || prevItem.title,
-          branch: prevItem.branch || prevItem.badge || "Uttara",
+          title: prevItem.title || "",
           index: newIdx,
         });
       } else if (e.key === "ArrowRight") {
@@ -408,8 +407,7 @@ export default function Home({
         const nextItem = galleryItems[newIdx];
         setPreviewImage({
           src: nextItem.src || nextItem.image || nextItem.url,
-          title: nextItem.badge || nextItem.title,
-          branch: nextItem.branch || nextItem.badge || "Uttara",
+          title: nextItem.title || "",
           index: newIdx,
         });
       }
@@ -1130,7 +1128,7 @@ export default function Home({
                   onClick={() => {
                     setPreviewImage({
                       src: imgSrc,
-                      title: titleBadge,
+                      title: item.title || "",
                       index: idx,
                     });
                   }}
@@ -1455,8 +1453,7 @@ export default function Home({
                 const prevItem = galleryItems[newIdx];
                 setPreviewImage({
                   src: prevItem.src || prevItem.image || prevItem.url,
-                  title: prevItem.badge || prevItem.title,
-                  branch: prevItem.branch || prevItem.badge || "Uttara",
+                  title: prevItem.title || "",
                   index: newIdx,
                 });
               }}
@@ -1477,8 +1474,7 @@ export default function Home({
                 const nextItem = galleryItems[newIdx];
                 setPreviewImage({
                   src: nextItem.src || nextItem.image || nextItem.url,
-                  title: nextItem.badge || nextItem.title,
-                  branch: nextItem.branch || nextItem.badge || "Uttara",
+                  title: nextItem.title || "",
                   index: newIdx,
                 });
               }}
@@ -1499,8 +1495,7 @@ export default function Home({
               alt={previewImage.title || "Tech Dental Image"}
               className="max-w-full max-h-[78vh] object-contain rounded-2xl shadow-2xl select-none"
             />
-            <div className="mt-3.5 flex items-center justify-between w-full px-2 text-white/90 text-sm">
-              <span className="font-semibold text-base">{previewImage.title || previewImage.branch}</span>
+            <div className="mt-3.5 flex items-center justify-end w-full px-2 text-white/90 text-sm">
               <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full text-white/80">
                 {previewImage.index + 1} / {galleryItems.length}
               </span>
