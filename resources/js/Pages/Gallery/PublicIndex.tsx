@@ -30,62 +30,62 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
     return [
       {
         id: 1,
-        title: "টেক ডেন্টাল হেড অফিস",
+        title: "Tech Dental Head Office",
         src: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 2,
-        title: "আধুনিক মাইক্রোস্কোপিক ডেন্টাল কেয়ার",
+        title: "Advanced Microscopic Dental Care",
         src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 3,
-        title: "উন্নত ও আরামদায়ক চিকিৎসা পরিবেশ",
+        title: "Modern & Comfortable Environment",
         src: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 4,
-        title: "ডিজিটাল ইন্ট্রাওরাল স্ক্যানিং রুম",
+        title: "Digital Intraoral Scanning Suite",
         src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 5,
-        title: "অত্যাধুনিক ডেন্টাল ওটি সেটআপ",
+        title: "Advanced Dental Operation Theater",
         src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 6,
-        title: "৩ডি কোন বিম সিটি স্ক্যান (CBCT)",
+        title: "3D Cone Beam CT Scan (CBCT)",
         src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 7,
-        title: "জীবাণুমুক্তকরণ ও স্টেরিলাইজেশন জোন",
+        title: "Sterilization & Hygiene Zone",
         src: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 8,
-        title: "শিশুদের স্পেশাল ডেন্টাল কর্নার",
+        title: "Kids Specialized Dental Corner",
         src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 9,
-        title: "ডিজিটাল স্মাইল ডিজাইন পরামর্শ রুম",
+        title: "Digital Smile Design Consultation",
         src: "https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 10,
-        title: "ব্যথামুক্ত ডেন্টাল ইমপ্ল্যান্ট সেন্টার",
+        title: "Painless Dental Implant Center",
         src: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 11,
-        title: "লেজার ডেন্টাল ট্রিটমেন্ট ইউনিট",
+        title: "Laser Dental Treatment Unit",
         src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
       },
       {
         id: 12,
-        title: "রোগী ওয়েটিং ও রিলাক্সেশন লাউঞ্জ",
+        title: "Patient Waiting & Relaxation Lounge",
         src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
       },
     ];
@@ -95,42 +95,42 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
     {
       id: 1,
       videoId: "szdRKLSLzOE",
-      title: "আল্ট্রাসনিক স্কেলিং ও আধুনিক পলিশিং",
+      title: "Ultrasonic Scaling & Advanced Polishing",
     },
     {
       id: 2,
       videoId: "szdRKLSLzOE",
-      title: "কম্পিউটারাইজড পেইনলেস রুট ক্যানেল",
+      title: "Computerized Painless Root Canal",
     },
     {
       id: 3,
       videoId: "szdRKLSLzOE",
-      title: "জার্মান প্রযুক্তির ডেন্টাল ইমপ্ল্যান্ট সার্জারি",
+      title: "German Dental Implant Surgery",
     },
     {
       id: 4,
       videoId: "szdRKLSLzOE",
-      title: "দাঁত ফাঁকা ও আঁকাবাঁকা চিকিৎসা (ব্রেসেস)",
+      title: "Dental Braces & Teeth Alignment",
     },
     {
       id: 5,
       videoId: "szdRKLSLzOE",
-      title: "ডিজিটাল স্মাইল ডিজাইন ও ভিনিয়ার্স",
+      title: "Digital Smile Design & Veneers",
     },
     {
       id: 6,
       videoId: "szdRKLSLzOE",
-      title: "বাচ্চাদের দাঁতের যত্ন ও ক্যাভিটি ফিলিং",
+      title: "Pediatric Dental Care & Cavity Filling",
     },
     {
       id: 7,
       videoId: "szdRKLSLzOE",
-      title: "আধুনিক ডিজিটাল ৩ডি ওপিজি এক্স-রে রুম",
+      title: "Digital 3D OPG X-Ray Unit",
     },
     {
       id: 8,
       videoId: "szdRKLSLzOE",
-      title: "ক্লাস-বি অটোক্লেভ ১০০% জীবাণুমুক্তকরণ ব্যবস্থা",
+      title: "Class-B Autoclave 100% Sterilization",
     },
   ], []);
 
@@ -163,8 +163,8 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
   }, [previewImage, imageItems]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-['Noto_Sans_Bengali','Inter',sans-serif]">
-      <Head title="গ্যালারি (ছবি ও ভিডিও) — Tech Dental Gallery" />
+    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-['Inter',sans-serif]">
+      <Head title="Tech Dental Gallery — Photos & Videos" />
 
       {/* Top Header Navigation */}
       <TopHeader
@@ -175,18 +175,11 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
       />
 
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white py-10 md:py-14 text-center px-4">
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white py-12 md:py-16 text-center px-4">
         <div className="max-w-4xl mx-auto">
-          <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-blue-200 text-xs font-semibold uppercase tracking-wider mb-3 backdrop-blur-xs">
-            <i className="fa-solid fa-photo-film" />
-            <span>Tech Dental Media</span>
-          </span>
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight mb-3">
-            টেক ডেন্টাল গ্যালারি
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
+            Tech Dental Gallery
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl mx-auto">
-            আমাদের সকল শাখার সর্বাধুনিক চিকিৎসা যন্ত্রপাতি, অপারেশন থিয়েটার ও স্বাস্থ্য সচেতনতামূলক ভিডিও সমূহ।
-          </p>
         </div>
       </div>
 
@@ -204,7 +197,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                 : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            সব দেখুন (All)
+            All
           </button>
           <button
             type="button"
@@ -216,7 +209,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             }`}
           >
             <i className="fa-solid fa-images text-xs" />
-            <span>ছবিসমূহ (Images)</span>
+            <span>Images</span>
           </button>
           <button
             type="button"
@@ -228,7 +221,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             }`}
           >
             <i className="fa-brands fa-youtube text-xs" />
-            <span>ভিডিওসমূহ (Videos)</span>
+            <span>Videos</span>
           </button>
         </div>
 
@@ -241,7 +234,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                 <span>Image Gallery</span>
               </h2>
               <span className="text-xs text-slate-500 font-medium">
-                মোট {imageItems.length} টি ছবি
+                {imageItems.length} Photos
               </span>
             </div>
 
@@ -255,7 +248,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                     key={item.id || idx}
                     onClick={() => setPreviewImage({ src: imgSrc, title, index: idx })}
                     className="relative rounded-2xl overflow-hidden shadow-xs border border-slate-200/90 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                    title="বড় করে দেখতে ক্লিক করুন"
+                    title="Click to view image"
                   >
                     <img
                       src={imgSrc}
@@ -285,7 +278,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                 <span>Video Gallery</span>
               </h2>
               <span className="text-xs text-slate-500 font-medium">
-                মোট {videoItems.length} টি ভিডিও
+                {videoItems.length} Videos
               </span>
             </div>
 
@@ -295,7 +288,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                   key={item.id || idx}
                   onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title })}
                   className="relative rounded-2xl overflow-hidden shadow-xs border border-slate-200/90 bg-slate-900 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                  title="ভিডিও প্লে করতে ক্লিক করুন"
+                  title="Click to play video"
                 >
                   <img
                     src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
@@ -402,4 +395,3 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
     </div>
   );
 }
-
