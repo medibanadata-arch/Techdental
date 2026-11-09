@@ -10,6 +10,7 @@ interface TopHeaderProps {
   navMenu?: any;
   showBranchPicker?: boolean;
   showLanguageSwitcher?: boolean;
+  showBookButton?: boolean;
   headerLogo?: string;
   brandNameLine1?: string;
   brandNameLine2?: string;
@@ -122,6 +123,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   navMenu,
   showBranchPicker,
   showLanguageSwitcher,
+  showBookButton,
   headerLogo: propLogo,
   brandNameLine1: propLine1,
   brandNameLine2: propLine2,
@@ -250,6 +252,31 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
     return true;
   }, [showBranchPicker, pathWithoutBn, activePageConfig, currentVariant]);
+
+  // Book Appointment CTA Button: Hidden on Blog, Medicines, and related Single views or when showBookButton === false
+  const isBookButtonVisible = useMemo(() => {
+    if (showBookButton === false) return false;
+
+    const isEditorialOrMedicine =
+      pathWithoutBn === '/blog' ||
+      pathWithoutBn.startsWith('/blog/') ||
+      pathWithoutBn === '/medicines' ||
+      pathWithoutBn.startsWith('/medicines/') ||
+      pathWithoutBn === '/medicine' ||
+      pathWithoutBn.startsWith('/medicine/') ||
+      pathWithoutBn === '/dental-guides' ||
+      pathWithoutBn.startsWith('/dental-guides/') ||
+      pathWithoutBn.startsWith('/guides') ||
+      pathWithoutBn.startsWith('/posts') ||
+      pathWithoutBn.startsWith('/post');
+
+    if (isEditorialOrMedicine) {
+      return false;
+    }
+
+    if (showBookButton === true) return true;
+    return true;
+  }, [showBookButton, pathWithoutBn]);
 
   // Language switch handler: toggles language, and dynamically updates URL with /bn/ on single blog & medicine
   const handleLanguageSwitch = (targetLang: 'en' | 'bn') => {
@@ -610,15 +637,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </div>
           )}
 
-          {/* Book Appointment CTA Button (Mobile & Desktop Web) */}
-          <Link
-            href="/book"
-            className="book-btn h-9 sm:h-10 md:h-[42px] px-3.5 sm:px-4 md:px-5 text-sm md:text-[15px] font-sans font-medium shrink-0 flex items-center gap-2"
-            aria-label="Book Appointment"
-          >
-            <i className="ti ti-calendar-plus" />
-            <span>Book</span>
-          </Link>
+          {/* Book Appointment CTA Button (Mobile & Desktop Web) - Hidden on Blog & Medicine */}
+          {isBookButtonVisible && (
+            <Link
+              href="/book"
+              className="book-btn h-9 sm:h-10 md:h-[42px] px-3.5 sm:px-4 md:px-5 text-sm md:text-[15px] font-sans font-medium shrink-0 flex items-center gap-2"
+              aria-label="Book Appointment"
+            >
+              <i className="ti ti-calendar-plus" />
+              <span>Book</span>
+            </Link>
+          )}
 
           {/* Variant-specific CTA Actions */}
           {currentVariant === 'minimal' && (
@@ -656,40 +685,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {/* Language Switcher inside Drawer - Only on Medicine & Blog */}
-                  {isLanguageSwitcherVisible && (
-                    <div className="flex items-center bg-slate-100 p-0.5 rounded-full border border-slate-200 text-xs">
-                      <button
-                        type="button"
-                        onClick={() => handleLanguageSwitch('en')}
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer ${
-                          language === 'en' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500'
-                        }`}
-                      >
-                        EN
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleLanguageSwitch('bn')}
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer ${
-                          language === 'bn' ? 'bg-[#800038] text-white shadow-xs font-black' : 'text-slate-500'
-                        }`}
-                      >
-                        বাংলা
-                      </button>
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                    aria-label="Close navigation menu"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  aria-label="Close navigation menu"
+                >
+                  <X size={18} />
+                </button>
               </div>
 
               {/* Menu Items List */}

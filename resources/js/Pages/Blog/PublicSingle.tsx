@@ -199,6 +199,7 @@ export default function BlogPublicSingle({
         navMenu={nav_menu}
         showBranchPicker={false}
         showLanguageSwitcher={true}
+        showBookButton={false}
       />
 
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex flex-col lg:flex-row gap-6 sm:gap-8 max-w-full">

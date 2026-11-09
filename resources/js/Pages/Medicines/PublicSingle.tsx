@@ -255,6 +255,7 @@ export default function MedicinesPublicSingle({
         navMenu={nav_menu}
         showBranchPicker={false}
         showLanguageSwitcher={true}
+        showBookButton={false}
       />
 
       <div className="w-full px-4 sm:px-8 py-6 space-y-6">

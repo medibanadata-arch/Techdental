@@ -47,6 +47,7 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu }
         navMenu={nav_menu}
         showBranchPicker={false}
         showLanguageSwitcher={true}
+        showBookButton={false}
       />
 
       {/* Page Header */}

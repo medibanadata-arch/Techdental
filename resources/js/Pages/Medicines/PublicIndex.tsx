@@ -108,6 +108,7 @@ export default function MedicinesPublicIndex({
         navMenu={nav_menu}
         showBranchPicker={false}
         showLanguageSwitcher={true}
+        showBookButton={false}
       />
 
       {/* Page Header (Exact same design as Dental Blog) */}

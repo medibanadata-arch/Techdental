@@ -149,7 +149,7 @@ export default function PostLayoutTemplate({ post, loading, error }: PostLayoutT
         style={{ width: `${scrollProgress}%` }}
       />
 
-      <TopHeader onBranchChange={() => { }} selectedBranch="mirpur" showBranchPicker={false} />
+      <TopHeader onBranchChange={() => { }} selectedBranch="mirpur" showBranchPicker={false} showBookButton={false} />
 
       <main className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-12 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start relative z-10">
 
