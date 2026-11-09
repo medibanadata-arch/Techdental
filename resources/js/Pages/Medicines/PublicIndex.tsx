@@ -143,11 +143,11 @@ export default function MedicinesPublicIndex({
         {/* Medicine Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-5">
           {medicines.map((item) => {
-            const displayName = (isBn && item.name_bn) ? item.name_bn : item.name;
-            const displayGeneric = (isBn && item.generic_bn) ? item.generic_bn : item.generic;
-            const displayTag = (isBn && item.tag_bn) ? item.tag_bn : item.tag;
-            const displayQuickUse = (isBn && item.quick_use_bn) ? item.quick_use_bn : item.quick_use;
-            const displayPharma = (isBn && item.pharma_bn) ? item.pharma_bn : (item.pharma || '').split(' ')[0];
+            const displayName = isBn ? (item.name_bn || '') : item.name;
+            const displayGeneric = isBn ? (item.generic_bn || '') : item.generic;
+            const displayTag = isBn ? (item.tag_bn || '') : item.tag;
+            const displayQuickUse = isBn ? (item.quick_use_bn || '') : item.quick_use;
+            const displayPharma = isBn ? (item.pharma_bn || '') : (item.pharma || '').split(' ')[0];
 
             return (
               <Link

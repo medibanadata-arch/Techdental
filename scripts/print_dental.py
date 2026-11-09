@@ -10,3 +10,4 @@ for u in data['dental_en']:
 print("\ndental_bn:")
 for u in data['dental_bn']:
     print(" ", u)
+

@@ -16,3 +16,4 @@ try:
     print("Database updated!")
 except Exception as e:
     print("Error:", e)
+

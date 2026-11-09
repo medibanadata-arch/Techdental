@@ -82,8 +82,8 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu }
       <main className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 pb-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8">
           {posts.map((p) => {
-            const activeTitle = isBn && p.title_bn ? p.title_bn : p.title;
-            const activeExcerpt = isBn && p.excerpt_bn ? p.excerpt_bn : p.excerpt;
+            const activeTitle = isBn ? (p.title_bn || '') : p.title;
+            const activeExcerpt = isBn ? (p.excerpt_bn || '') : p.excerpt;
 
             return (
               <article

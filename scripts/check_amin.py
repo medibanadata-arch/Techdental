@@ -13,3 +13,4 @@ dummy = cursor.fetchall()
 print(f"Medicines with empty/null/placeholder image: {len(dummy)}")
 for d in dummy[:10]:
     print(d)
+

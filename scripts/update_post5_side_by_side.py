@@ -51,3 +51,4 @@ if content_bn:
 cursor.execute("UPDATE posts SET content = ?, content_bn = ? WHERE id = 5", (content, content_bn))
 conn.commit()
 print("Post 5 updated with side-by-side images!")
+

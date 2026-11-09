@@ -18,3 +18,4 @@ print(f"Total medicines: {len(rows)}")
 print(f"Missing image files on disk: {len(missing_files)}")
 for m in missing_files[:20]:
     print(m)
+

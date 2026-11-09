@@ -152,19 +152,19 @@ export default function MedicinesPublicSingle({
     }
   }, []);
 
-  // Strict Language Separation: English mode shows ONLY English; Bangla mode shows ONLY Bangla
-  const displayName = isBn ? (item.name_bn || item.name) : item.name;
-  const displayGeneric = isBn ? (item.generic_bn || item.generic) : item.generic;
-  const displayPharma = isBn ? (item.pharma_bn || item.pharma) : item.pharma;
-  const displaySubtitle = isBn ? (item.subtitle_bn || 'ব্যবহারবিধি, সেবনমাত্রা, পার্শ্বপ্রতিক্রিয়া ও মূল্যতালিকা') : item.subtitle;
-  const displayIntro = isBn ? (item.intro_bn || item.intro) : item.intro;
-  const displayTag = isBn ? (item.tag_bn || 'প্রেসক্রিপশন ঔষধ') : item.tag;
-  const displayUsesText = isBn ? (item.uses_text_bn || `${displayName} এর প্রধান নির্দেশনাসমূহ:`) : item.uses_text;
-  const displayDosage = isBn ? (item.dosage_bn || 'দৈনিক ১টি ট্যাবলেট চিকিৎসকের পরামর্শ অনুযায়ী সেব্য।') : item.dosage;
-  const displayDosageAdmin = isBn ? (item.dosage_admin_bn || 'এক গ্লাস পানির সাথে সম্পূর্ণ ট্যাবলেট গিলে ফেলুন। খালি পেটে সেবন করবেন না।') : item.dosage_admin;
-  const displayDosageTiming = isBn ? (item.dosage_timing_bn || 'প্রতিদিন নির্দিষ্ট সময়ে ভরা পেটে বা খাবারের পর সেবন করুন।') : item.dosage_timing;
-  const displayDentalUsage = isBn ? (item.dental_usage_bn || 'ডেন্টাল চিকিৎসা বা দাঁতের অস্ত্রোপচারের পর ইনফেকশন ও ব্যথা নিয়ন্ত্রণে সহায়ক।') : item.dental_usage;
-  const displaySideEffects = isBn ? (item.side_effects_bn || 'সাধারণত সহনশীল, তবে কিছু রোগীর ক্ষেত্রে মৃদু পার্শ্বপ্রতিক্রিয়া দেখা দিতে পারে:') : item.side_effects;
+  // Strict Language Separation: If backend field is not filled in Bangla, it stays blank
+  const displayName = isBn ? (item.name_bn || '') : item.name;
+  const displayGeneric = isBn ? (item.generic_bn || '') : item.generic;
+  const displayPharma = isBn ? (item.pharma_bn || '') : item.pharma;
+  const displaySubtitle = isBn ? (item.subtitle_bn || '') : item.subtitle;
+  const displayIntro = isBn ? (item.intro_bn || '') : item.intro;
+  const displayTag = isBn ? (item.tag_bn || '') : item.tag;
+  const displayUsesText = isBn ? (item.uses_text_bn || '') : item.uses_text;
+  const displayDosage = isBn ? (item.dosage_bn || '') : item.dosage;
+  const displayDosageAdmin = isBn ? (item.dosage_admin_bn || '') : item.dosage_admin;
+  const displayDosageTiming = isBn ? (item.dosage_timing_bn || '') : item.dosage_timing;
+  const displayDentalUsage = isBn ? (item.dental_usage_bn || '') : item.dental_usage;
+  const displaySideEffects = isBn ? (item.side_effects_bn || '') : item.side_effects;
   const displayVerifiedBadge = isBn ? (item.verified_badge_bn || 'মেডিকেলি ভেরিফাইড') : (item.verified_badge || 'Medically Verified');
   const displayPublishedDate = isBn ? 'হালনাগাদ ২০২৬' : (item.published_date || 'Updated 2026');
 
@@ -174,8 +174,8 @@ export default function MedicinesPublicSingle({
   // Section Headings: Strict separation by language
   const sec = item.section_titles || {};
   const titleUses = isBn
-    ? (sec.uses_bn || `${displayName} এর ব্যবহার ও ক্লিনিক্যাল প্রয়োগ`)
-    : (sec.uses || `What is ${displayName} Used For?`);
+    ? (sec.uses_bn || `${displayName || 'ঔষধ'} এর ব্যবহার ও প্রয়োগ`)
+    : (sec.uses || `What is ${displayName || 'Medicine'} Used For?`);
 
   const titleDosage = isBn
     ? (sec.dosage_bn || 'সেবনবিধি ও মাত্রা')
@@ -190,12 +190,12 @@ export default function MedicinesPublicSingle({
     : (sec.warnings || 'Important Warnings & Precautions');
 
   const titlePrice = isBn
-    ? (sec.price_bn || `${displayName} এর বর্তমান বাজারমূল্য`)
-    : (sec.price || `${displayName} Price in Bangladesh`);
+    ? (sec.price_bn || `${displayName || 'ঔষধ'} এর বর্তমান বাজারমূল্য`)
+    : (sec.price || `${displayName || 'Medicine'} Price in Bangladesh`);
 
   const titleGallery = isBn
-    ? (sec.gallery_bn || `${displayName} প্যাকেট ও ফটো রেফারেন্স`)
-    : (sec.gallery || `${displayName} Tablet Packet`);
+    ? (sec.gallery_bn || `${displayName || 'ঔষধ'} প্যাকেট ও ফটো রেফারেন্স`)
+    : (sec.gallery || `${displayName || 'Medicine'} Tablet Packet`);
 
   const titleFaq = isBn
     ? (sec.faq_bn || 'সাধারণ প্রশ্নোত্তর (FAQ)')
@@ -212,15 +212,15 @@ export default function MedicinesPublicSingle({
   // Format clean name for "More about {Name}" (e.g. "Xyril 25 Tablet" -> "Xyril 25")
   const cleanMedicineName = (displayName || item.name || '')
     .replace(/(?:\s+Tablet|\s+Capsule|\s+Ointment|\s+Suspension|\s+ট্যাবলেট|\s+ক্যাপসুল|\s+মলম)+$/i, '')
-    .trim() || displayName;
+    .trim() || displayName || (isBn ? 'তথ্য' : 'Medicine');
 
   const displaySeoTitle = isBn
     ? `${displayName || cleanMedicineName} সম্পর্কে আরো`
     : `More about ${cleanMedicineName}`;
 
   const displaySeoContent = isBn
-    ? (item.seo_content_bn || item.seo_content)
-    : (item.seo_content || item.seo_content_bn);
+    ? (item.seo_content_bn || '')
+    : (item.seo_content || '');
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -249,9 +249,9 @@ export default function MedicinesPublicSingle({
         { href: '#more-about', label: `6. More about ${cleanMedicineName}` },
       ];
 
-  // Author details
+  // Author details - strictly separation by language, no English fallback in Bangla mode
   const authorName = isBn
-    ? (item.author?.name_bn || item.author?.name || 'ডা. আফসানা হক জ্যোতি')
+    ? (item.author?.name_bn || 'ডা. আফসানা হক জ্যোতি')
     : (item.author?.name || 'Dr. Afsana Haque Joty');
 
   const authorBio = isBn
@@ -362,7 +362,8 @@ export default function MedicinesPublicSingle({
                 {Array.isArray(item.faqs) && item.faqs.length > 0 && (
                   <div className="pl-3 space-y-1.5 text-xs text-slate-600 border-l-2 border-[#fce7ea] mt-2 pt-1">
                     {item.faqs.map((f, i) => {
-                      const qText = isBn ? (f.q_bn || f.q) : f.q;
+                      const qText = isBn ? (f.q_bn || '') : f.q;
+                      if (!qText) return null;
                       const prefix = isBn ? `৬.${toBnDigit(i + 1)}.` : `6.${i + 1}.`;
                       return (
                         <p key={i}>
@@ -406,10 +407,16 @@ export default function MedicinesPublicSingle({
 
               <div className="md:col-span-7 space-y-3">
                 <h2 className="text-[#721533] font-bold text-xl">{displayName}</h2>
-                <div className="text-xs text-slate-500 font-medium">
-                  <strong>{isBn ? 'জেনেরিক:' : 'Generic:'}</strong> {displayGeneric} | <strong>{isBn ? 'কোম্পানি:' : 'Pharma:'}</strong> {displayPharma}
-                </div>
-                <p className="text-sm text-slate-700 leading-relaxed">{displayIntro}</p>
+                {(displayGeneric || displayPharma) && (
+                  <div className="text-xs text-slate-500 font-medium">
+                    {displayGeneric && <><strong>{isBn ? 'জেনেরিক:' : 'Generic:'}</strong> {displayGeneric}</>}
+                    {displayGeneric && displayPharma && ' | '}
+                    {displayPharma && <><strong>{isBn ? 'কোম্পানি:' : 'Pharma:'}</strong> {displayPharma}</>}
+                  </div>
+                )}
+                {displayIntro && (
+                  <p className="text-sm text-slate-700 leading-relaxed">{displayIntro}</p>
+                )}
               </div>
             </div>
 
@@ -423,15 +430,17 @@ export default function MedicinesPublicSingle({
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{displayUsesText}</p>
               )}
 
-              {item.uses_items?.length > 0 && (
+              {Array.isArray(item.uses_items) && item.uses_items.length > 0 && (
                 <div className="space-y-2 text-xs sm:text-sm text-slate-700 pt-1">
                   {item.uses_items.map((u, i) => {
-                    const labelText = isBn ? (u.label_bn || u.label) : u.label;
-                    const descText = isBn ? (u.text_bn || u.text) : u.text;
+                    const labelText = isBn ? (u.label_bn || '') : u.label;
+                    const descText = isBn ? (u.text_bn || '') : u.text;
+                    if (isBn && !labelText && !descText) return null;
+                    if (!isBn && !labelText && !descText) return null;
                     return (
                       <div key={i} className="flex items-start gap-2.5 py-1">
                         <i className="fa-solid fa-circle-check text-[#8b1d41] mt-0.5 shrink-0" />
-                        <div><strong>{labelText}:</strong> {descText}</div>
+                        <div>{labelText && <strong>{labelText}: </strong>}{descText}</div>
                       </div>
                     );
                   })}
@@ -445,25 +454,29 @@ export default function MedicinesPublicSingle({
                 <span className="w-2 h-5 bg-[#8b1d41] rounded-full inline-block" />
                 <span>{titleDosage}</span>
               </h2>
-              <p className="text-xs sm:text-sm text-slate-700 font-medium">{displayDosage}</p>
-              <div className="space-y-3 text-xs sm:text-sm pt-1">
-                {displayDosageAdmin && (
-                  <div className="py-1">
-                    <strong className="text-slate-900 block mb-0.5 flex items-center gap-1.5">
-                      <i className="fa-solid fa-glass-water text-[#8b1d41]" /> {isBn ? 'সেবন নির্দেশিকা:' : 'Administration:'}
-                    </strong>
-                    <p className="text-slate-600 leading-relaxed">{displayDosageAdmin}</p>
-                  </div>
-                )}
-                {displayDosageTiming && (
-                  <div className="py-1">
-                    <strong className="text-slate-900 block mb-0.5 flex items-center gap-1.5">
-                      <i className="fa-solid fa-clock text-[#8b1d41]" /> {isBn ? 'উপযুক্ত সময়:' : 'Optimal Timing:'}
-                    </strong>
-                    <p className="text-slate-600 leading-relaxed">{displayDosageTiming}</p>
-                  </div>
-                )}
-              </div>
+              {displayDosage && (
+                <p className="text-xs sm:text-sm text-slate-700 font-medium">{displayDosage}</p>
+              )}
+              {(displayDosageAdmin || displayDosageTiming) && (
+                <div className="space-y-3 text-xs sm:text-sm pt-1">
+                  {displayDosageAdmin && (
+                    <div className="py-1">
+                      <strong className="text-slate-900 block mb-0.5 flex items-center gap-1.5">
+                        <i className="fa-solid fa-glass-water text-[#8b1d41]" /> {isBn ? 'সেবন নির্দেশিকা:' : 'Administration:'}
+                      </strong>
+                      <p className="text-slate-600 leading-relaxed">{displayDosageAdmin}</p>
+                    </div>
+                  )}
+                  {displayDosageTiming && (
+                    <div className="py-1">
+                      <strong className="text-slate-900 block mb-0.5 flex items-center gap-1.5">
+                        <i className="fa-solid fa-clock text-[#8b1d41]" /> {isBn ? 'উপযুক্ত সময়:' : 'Optimal Timing:'}
+                      </strong>
+                      <p className="text-slate-600 leading-relaxed">{displayDosageTiming}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
 
             {/* Section 3: Side Effects */}
@@ -475,12 +488,14 @@ export default function MedicinesPublicSingle({
               {displaySideEffects && (
                 <p className="text-xs sm:text-sm text-slate-600">{displaySideEffects}</p>
               )}
-              {item.side_effects_items?.length > 0 && (
+              {Array.isArray(item.side_effects_items) && item.side_effects_items.length > 0 && (
                 <div className="space-y-2 text-xs sm:text-sm pt-1">
                   {item.side_effects_items.map((s, i) => {
                     const text = isBn
-                      ? (typeof s === 'object' && s.text_bn ? s.text_bn : (typeof s === 'string' ? s : s.text))
-                      : (typeof s === 'object' ? s.text : s);
+                      ? (typeof s === 'object' ? (s.text_bn || '') : '')
+                      : (typeof s === 'object' ? (s.text || s.effect || '') : s);
+                    if (isBn && !text) return null;
+                    if (!isBn && !text) return null;
                     return (
                       <div key={i} className="flex items-center gap-2 py-0.5">
                         <i className="fa-solid fa-circle text-[6px] text-[#8b1d41]" />
@@ -498,15 +513,17 @@ export default function MedicinesPublicSingle({
                 <span className="w-2 h-5 bg-[#8b1d41] rounded-full inline-block" />
                 <span>{titleWarnings}</span>
               </h2>
-              {item.warnings?.length > 0 && (
+              {Array.isArray(item.warnings) && item.warnings.length > 0 && (
                 <div className="space-y-3 text-xs sm:text-sm text-slate-700 pt-1">
                   {item.warnings.map((w, i) => {
-                    const label = isBn ? (w.label_bn || w.label) : w.label;
-                    const text = isBn ? (w.text_bn || w.text) : w.text;
+                    const label = isBn ? (w.label_bn || '') : w.label;
+                    const text = isBn ? (w.text_bn || '') : w.text;
+                    if (isBn && !label && !text) return null;
+                    if (!isBn && !label && !text) return null;
                     return (
                       <div key={i} className="flex items-start gap-2.5 py-1">
                         <WarningIcon icon={w.icon} />
-                        <span><strong>{label}:</strong> {text}</span>
+                        <span>{label && <strong>{label}: </strong>}{text}</span>
                       </div>
                     );
                   })}
@@ -645,8 +662,10 @@ export default function MedicinesPublicSingle({
                       </h4>
                       <div className="space-y-2.5">
                         {item.faqs.map((f, i) => {
-                          const qText = isBn ? (f.q_bn || f.q) : f.q;
-                          const aText = isBn ? (f.a_bn || f.a) : f.a;
+                          const qText = isBn ? (f.q_bn || '') : f.q;
+                          const aText = isBn ? (f.a_bn || '') : f.a;
+                          if (isBn && !qText && !aText) return null;
+                          if (!isBn && !qText && !aText) return null;
                           return (
                             <div key={i} id={`faq-${i + 1}`} className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 scroll-mt-6">
                               <p className="font-bold text-xs sm:text-sm text-slate-900 flex items-start gap-2">

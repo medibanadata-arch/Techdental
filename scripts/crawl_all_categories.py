@@ -64,3 +64,4 @@ with open('scripts/all_crawled_category_urls.json', 'w', encoding='utf-8') as f:
 print("\nFinished crawling all 4 categories!")
 for k, v in results.items():
     print(f"  {k}: {len(v)} URLs")
+

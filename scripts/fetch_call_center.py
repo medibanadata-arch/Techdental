@@ -13,3 +13,4 @@ try:
         print("Img tag:", img_tag)
 except Exception as e:
     print("Error:", e)
+

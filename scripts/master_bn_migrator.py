@@ -227,3 +227,4 @@ for m in all_meds:
     cursor.execute("UPDATE medicines SET seo_title_bn = ? WHERE id = ?", (title_bn, m['id']))
 conn.commit()
 print("All medicines updated with consistent '... সম্পর্কে আরো' SEO title!")
+

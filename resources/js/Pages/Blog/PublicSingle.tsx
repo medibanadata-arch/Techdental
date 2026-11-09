@@ -108,9 +108,9 @@ export default function BlogPublicSingle({
     }
   }, [is_bn]);
 
-  const activeTitle = isBn ? (post?.title_bn || post?.title) : post?.title;
-  const activeExcerpt = isBn ? (post?.excerpt_bn || post?.excerpt) : post?.excerpt;
-  const rawContent = isBn ? (post?.content_bn || post?.content || '') : (post?.content || '');
+  const activeTitle = isBn ? (post?.title_bn || '') : post?.title;
+  const activeExcerpt = isBn ? (post?.excerpt_bn || '') : post?.excerpt;
+  const rawContent = isBn ? (post?.content_bn || '') : (post?.content || '');
   const authorName = isBn
     ? (post?.author_name_bn || 'ডা. আয়েশা সিদ্দিকা, বিডিএস')
     : (post?.author_name || 'Dr. Aysha Siddika, BDS');
@@ -316,8 +316,10 @@ export default function BlogPublicSingle({
 
               <div className="space-y-3">
                 {post.faqs!.map((f, i) => {
-                  const qText = (isBn && f.q_bn) ? f.q_bn : f.q;
-                  const aText = (isBn && f.a_bn) ? f.a_bn : f.a;
+                  const qText = isBn ? (f.q_bn || '') : f.q;
+                  const aText = isBn ? (f.a_bn || '') : f.a;
+                  if (isBn && !qText && !aText) return null;
+                  if (!isBn && !qText && !aText) return null;
                   const isOpen = openFaq === i;
 
                   return (
