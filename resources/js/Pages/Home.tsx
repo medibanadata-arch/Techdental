@@ -17,6 +17,12 @@ interface HomeProps extends PageProps {
   nav_menu?: any;
   home_content?: any;
   ai_chips?: string[];
+  ai_settings?: {
+    bot_name?: string;
+    bot_avatar?: string;
+    starter_questions?: string[];
+    gemini_enabled?: boolean;
+  };
 }
 
 interface ModalState {
@@ -48,6 +54,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   text?: string;
   answer?: AiAnswer;
+  timestamp?: string;
 }
 
 // Helper: Extract YouTube 11-char Video ID from any YouTube URL
@@ -229,19 +236,56 @@ export default function Home({
   }
   const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent("হ্যালো টেক ডেন্টাল, আমি চিকিৎসার বিষয়ে জানতে চাচ্ছি।")}`;
 
+  // Sequential Starter Questions (4 questions appearing 1-by-1 with 1 sec interval before chat starts)
+  const starterQuestions = useMemo(() => {
+    if (Array.isArray(ai_settings?.starter_questions) && ai_settings.starter_questions.length > 0) {
+      return ai_settings.starter_questions;
+    }
+    if (Array.isArray(ai_chips) && ai_chips.length > 0) {
+      return ai_chips;
+    }
+    return [
+      "ফিলিং চিকিৎসার খরচ কত?",
+      "দাঁতে গর্ত হলে কি করা উচিৎ?",
+      "রুট ক্যানেল করতে কত খরচ হয়?",
+      "দাঁত সোজা করার উপায় কি?",
+    ];
+  }, [ai_settings?.starter_questions, ai_chips]);
+
+  const [visibleQuestionsCount, setVisibleQuestionsCount] = useState(1);
+  const [animatedPlaceholderIdx, setAnimatedPlaceholderIdx] = useState(0);
+
   // Suggested Chips from backend or fallback (excluding crossed out items)
   const suggestedChips = useMemo(() => {
-    const list = Array.isArray(ai_chips) && ai_chips.length > 0
-      ? ai_chips
-      : [
-          "শাখার ঠিকানা কোথায়?",
-          "ফাঁকা দাঁতের চিকিৎসা",
-          "দাঁত ব্যথার চিকিৎসা",
-        ];
-    return list.filter((c: string) => !c.includes("ইমপ্ল্যান্ট"));
-  }, [ai_chips]);
+    return starterQuestions;
+  }, [starterQuestions]);
 
   const isChatActive = isWidgetOpen && (chatMessages.length > 0 || isAiLoading);
+
+  // Sequentially reveal 4 questions: 1st immediately, 2nd after 1s, 3rd after 2s, 4th after 3s
+  useEffect(() => {
+    if (isChatActive) return;
+    setVisibleQuestionsCount(1);
+    const interval = setInterval(() => {
+      setVisibleQuestionsCount((prev) => {
+        if (prev < starterQuestions.length) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isChatActive, starterQuestions]);
+
+  // Smooth typing/cycling placeholder inside the search box when idle
+  useEffect(() => {
+    if (aiInputValue || isAiFocused) return;
+    const placeholderTimer = setInterval(() => {
+      setAnimatedPlaceholderIdx((prev) => (prev + 1) % starterQuestions.length);
+    }, 3200);
+    return () => clearInterval(placeholderTimer);
+  }, [aiInputValue, isAiFocused, starterQuestions]);
 
   // Gallery items matching screenshot style
   const galleryItems = useMemo(() => {
@@ -509,6 +553,17 @@ export default function Home({
     }
   };
 
+  const getFormattedTime = () => {
+    const d = new Date();
+    let hours = d.getHours();
+    const minutes = d.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const minStr = minutes < 10 ? '0' + minutes : minutes;
+    return `${hours}:${minStr} ${ampm}`;
+  };
+
   // Connected to Backend API: checks admin keywords first, then Gemini AI, then fallback
   const processAIQuestion = async (query: string) => {
     if (!query.trim()) return;
@@ -518,10 +573,12 @@ export default function Home({
     setIsWidgetOpen(true);
 
     const userMsgId = `user-${Date.now()}`;
+    const currentTime = getFormattedTime();
     const userMsg: ChatMessage = {
       id: userMsgId,
       role: "user",
       text: cleanQuery,
+      timestamp: currentTime,
     };
 
     setChatMessages((prev) => [...prev, userMsg]);
@@ -529,7 +586,7 @@ export default function Home({
     scrollChatToQuestion(userMsgId);
 
     const startTime = Date.now();
-    const TARGET_DELAY_MS = 3000; // Exact 3-second delivery guarantee
+    const TARGET_DELAY_MS = 2500; // Realistic conversational pacing
 
     const ensureThreeSeconds = async () => {
       const elapsed = Date.now() - startTime;
@@ -551,7 +608,7 @@ export default function Home({
 
       const data = await res.json();
 
-      // Guarantee 3 seconds elapsed before presenting answer
+      // Guarantee smooth reply timing before presenting answer
       await ensureThreeSeconds();
 
       if (data && data.reply) {
@@ -565,20 +622,22 @@ export default function Home({
             .trim();
         }
 
+        const replyTime = getFormattedTime();
         const aiMsg: ChatMessage = {
           id: `ai-${Date.now()}`,
           role: "assistant",
           answer: {
-            title: data.title || "টেক ডেন্টাল",
+            title: data.title || (ai_settings?.bot_name || "Tech Dental Agent"),
             reply: cleanReplyText,
             icon: data.icon || "fa-sparkles",
             iconColor: data.icon_color || "text-blue-600",
             iconBg: data.icon_bg || "bg-blue-100",
             source: data.source || "keyword",
             actionType: data.action_type || "appointment",
-            actionLabel: data.action_label || "অনলাইন সিরিয়াল নিন",
+            actionLabel: data.action_label || "অনলাইন সিরিয়াল নিন",
             actionUrl: data.action_url,
           },
+          timestamp: replyTime,
         };
         setChatMessages((prev) => [...prev, aiMsg]);
         setIsAiLoading(false);
@@ -592,16 +651,18 @@ export default function Home({
 
     // Fallback if offline/network issue
     await ensureThreeSeconds();
+    const fallbackTime = getFormattedTime();
     const fallbackMsg: ChatMessage = {
       id: `ai-${Date.now()}`,
       role: "assistant",
       answer: {
-        title: "টেক ডেন্টাল",
+        title: ai_settings?.bot_name || "Tech Dental Agent",
         reply: `টেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (${hotline}) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
         actionType: "appointment",
-        actionLabel: "অনলাইন সিরিয়াল নিন",
+        actionLabel: "অনলাইন সিরিয়াল নিন",
         actionUrl: "/appointment",
       },
+      timestamp: fallbackTime,
     };
     setChatMessages((prev) => [...prev, fallbackMsg]);
     setIsAiLoading(false);
@@ -775,44 +836,65 @@ export default function Home({
   const renderChatMessage = (msg: ChatMessage) => {
     if (msg.role === "user") {
       return (
-        <div key={msg.id} data-msg-id={msg.id} className="flex justify-end pt-2">
-          <div className="bg-blue-50 text-blue-950 font-medium px-4 py-2 rounded-2xl rounded-tr-xs text-xs sm:text-sm max-w-[85%] border border-blue-100 shadow-2xs font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
+        <div key={msg.id} data-msg-id={msg.id} className="flex flex-col items-end pt-2">
+          <div className="bg-[#dbeafe] text-[#0f172a] font-normal px-4 py-2.5 rounded-[20px] rounded-br-[4px] text-[14px] sm:text-[15px] max-w-[85%] border border-blue-200/60 shadow-2xs font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
             {msg.text}
+          </div>
+          <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-1 mr-1 select-none">
+            <span>{msg.timestamp || getFormattedTime()}</span>
+            <svg className="w-3.5 h-3.5 text-blue-600 inline ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="18 6 7 17 2 12" />
+              <polyline points="22 10 14.5 17.5 13 16" />
+            </svg>
           </div>
         </div>
       );
     }
 
     return (
-      <div key={msg.id} data-msg-id={msg.id} className="text-[14px] sm:text-[15px] leading-relaxed text-[#202124] space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
-        <div className="text-slate-800 text-sm md:text-base leading-relaxed whitespace-pre-line font-normal font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif] tracking-wide">
-          {renderFormattedReply(msg.answer?.reply || "")}
-        </div>
+      <div key={msg.id} data-msg-id={msg.id} className="flex flex-col items-start pt-2">
+        <div className="bg-[#f8fafc] text-slate-800 p-4 sm:p-5 rounded-[22px] border border-slate-200/80 shadow-xs max-w-[92%] sm:max-w-[88%] font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
+          <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif] tracking-wide space-y-2">
+            {renderFormattedReply(msg.answer?.reply || "")}
+          </div>
 
-        {msg.answer?.actionLabel && (
-          <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-slate-100/80">
+          <div className="pt-3 mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/60">
             <button
               type="button"
               onClick={() => handleAnswerAction(msg.answer!)}
-              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition cursor-pointer"
+              className="inline-flex items-center gap-2 bg-[#1d63ed] hover:bg-blue-700 active:scale-95 text-white px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer"
             >
               <i className="fa-solid fa-calendar-check text-xs" />
-              <span>{msg.answer.actionLabel}</span>
+              <span>{msg.answer?.actionLabel || "অনলাইন সিরিয়াল নিন"}</span>
             </button>
           </div>
-        )}
+        </div>
+        <div className="text-[11px] text-slate-400 mt-1 ml-2 select-none">
+          {msg.timestamp || getFormattedTime()}
+        </div>
       </div>
     );
   };
 
   const getChipIcon = (chip: string, idx: number) => {
-    if (chip.includes("ইমপ্ল্যান্ট") || chip.toLowerCase().includes("implant") || idx === 3) {
+    const text = (chip || "").toLowerCase();
+    if (text.includes("ফিলিং") || text.includes("filling")) {
+      return <i className="fa-solid fa-tooth text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("গর্ত") || text.includes("cavity")) {
+      return <i className="fa-solid fa-circle-exclamation text-amber-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("রুট ক্যানেল") || text.includes("ব্যথা") || text.includes("pain")) {
+      return <i className="fa-solid fa-notes-medical text-rose-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("সোজা") || text.includes("ব্রেসেস") || text.includes("braces")) {
+      return <i className="fa-solid fa-teeth text-indigo-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("ইমপ্ল্যান্ট") || text.includes("implant")) {
       return (
         <span className="w-4 h-4 flex items-center justify-center text-slate-500 md:text-blue-500 shrink-0" title="ডেন্টাল ইমপ্ল্যান্ট">
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 md:w-4 md:h-4">
-            {/* Tooth Crown */}
             <path d="M7 2C5.3 2 4 3.3 4 5c0 2 1.2 3.7 2.8 4.5.2.1.2.3.2.5v1h10v-1c0-.2.1-.4.2-.5C18.8 8.7 20 7 20 5c0-1.7-1.3-3-3-3-1.8 0-3.2 1-5 1S8.8 2 7 2z" />
-            {/* Implant Collar & Threaded Screw */}
             <rect x="8" y="12" width="8" height="1.5" rx="0.5" />
             <rect x="8.5" y="14.5" width="7" height="1.5" rx="0.5" />
             <rect x="9.5" y="17" width="5" height="1.5" rx="0.5" />
@@ -821,28 +903,10 @@ export default function Home({
         </span>
       );
     }
-
-    if (chip.includes("ঠিকানা") || chip.includes("শাখা") || idx === 0) {
-      return (
-        <i className="fa-solid fa-location-dot text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />
-      );
+    if (text.includes("ঠিকানা") || text.includes("শাখা") || idx === 0) {
+      return <i className="fa-solid fa-location-dot text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />;
     }
-
-    if (chip.includes("ফাঁকা") || idx === 1) {
-      return (
-        <i className="fa-solid fa-tooth text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />
-      );
-    }
-
-    if (chip.includes("ব্যথা") || idx === 2) {
-      return (
-        <i className="fa-solid fa-notes-medical text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />
-      );
-    }
-
-    return (
-      <i className="fa-solid fa-tooth text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />
-    );
+    return <i className="fa-solid fa-tooth text-slate-500 md:text-blue-500 w-4 text-center text-[14px] md:text-base shrink-0" />;
   };
 
   // Action Buttons Modals
@@ -899,15 +963,15 @@ export default function Home({
             কিভাবে সাহায্য করতে পারি?
           </h1>
 
-          {/* Suggested Questions / Chips (Dynamically from Admin Dashboard) - Hidden when chat is active */}
+          {/* Sequential Starter Questions (4 questions appearing 1 by 1 with 1s delay) */}
           {!isChatActive && (
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-3 mb-6 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
-              {suggestedChips.map((chip, idx) => (
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-2.5 mb-6 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
+              {starterQuestions.slice(0, visibleQuestionsCount).map((chip, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => handleSelectSuggestion(chip)}
-                  className="flex items-center justify-start gap-3 md:gap-2 px-1 md:px-4 py-1.5 md:py-2.5 bg-transparent md:bg-white/80 hover:md:bg-white border-0 md:border border-slate-200/80 hover:border-blue-300 rounded-none md:rounded-full text-[12px] md:text-sm font-medium text-slate-600 md:text-slate-700 md:shadow-xs transition-all duration-200 hover:md:shadow-sm cursor-pointer"
+                  className="animate-in fade-in slide-in-from-bottom-2 duration-300 flex items-center justify-start gap-2.5 px-3.5 md:px-4 py-2 md:py-2.5 bg-white/90 hover:bg-white border border-slate-200/90 hover:border-blue-400 rounded-full text-xs md:text-sm font-medium text-slate-700 shadow-xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
                 >
                   {getChipIcon(chip, idx)}
                   <span>{chip}</span>
@@ -922,15 +986,31 @@ export default function Home({
           {/* ========================================== */}
           {isWidgetOpen && (chatMessages.length > 0 || isAiLoading) && (
             <div id="aiResponseWidget" className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-[0_12px_40px_rgb(0,0,0,0.06)] overflow-hidden flex flex-col h-[480px] mb-4 transition-all duration-300 text-left font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
-              {/* Top Minimal Action Header */}
-              <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/60 shrink-0">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 2C8.5 2 6 4.5 6 8c0 3.2 1.3 6.8 2 10 .4 1.8 1.4 3 2.5 3s1.7-1 2-3c.5-3.3.5-3.3 1-3.3s.5 0 1 3.3c.3 2 .9 3 2 3s2.1-1.2 2.5-3c.7-3.2 2-6.8 2-10 0-3.5-2.5-6-7-6z" />
-                    </svg>
-                  </span>
-                  <span className="text-xs sm:text-sm font-semibold text-slate-700">টেক ডেন্টাল</span>
+              {/* Top Chat Header Matching Image 1 */}
+              <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <div className="flex items-center gap-3">
+                  {ai_settings?.bot_avatar ? (
+                    <img
+                      src={ai_settings.bot_avatar}
+                      alt={ai_settings.bot_name || "Tech Dental Agent"}
+                      className="w-10 h-10 rounded-2xl object-cover shadow-xs border border-slate-100 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-2xl bg-[#1d63ed] text-white flex items-center justify-center shadow-xs shrink-0">
+                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 2C8.5 2 6 4.5 6 8c0 3.2 1.3 6.8 2 10 .4 1.8 1.4 3 2.5 3s1.7-1 2-3c.5-3.3.5-3.3 1-3.3s.5 0 1 3.3c.3 2 .9 3 2 3s2.1-1.2 2.5-3c.7-3.2 2-6.8 2-10 0-3.5-2.5-6-7-6z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="flex flex-col text-left">
+                    <span className="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight">
+                      {ai_settings?.bot_name || "Tech Dental Agent"}
+                    </span>
+                    <span className="text-[11px] sm:text-xs text-slate-500 font-normal flex items-center gap-1.5 mt-0.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                      Online
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-1 text-slate-500">
@@ -939,7 +1019,7 @@ export default function Home({
                     type="button"
                     onClick={() => setIsFullModalOpen(true)}
                     title="ফুল ভিউ দেখুন"
-                    className="p-1.5 hover:bg-slate-200/60 rounded-full hover:text-blue-600 transition cursor-pointer"
+                    className="p-1.5 hover:bg-slate-100 rounded-full hover:text-blue-600 transition cursor-pointer"
                   >
                     <i className="fa-solid fa-up-right-and-down-left-from-center text-xs sm:text-sm" />
                   </button>
@@ -971,7 +1051,7 @@ export default function Home({
               {/* Widget Related Suggested Chips */}
               <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/40 shrink-0 flex items-center gap-1.5 overflow-x-auto hide-scrollbar text-[11px]">
                 <span className="text-slate-400 whitespace-nowrap">সম্পর্কিত:</span>
-                {suggestedChips.map((chip, idx) => (
+                {starterQuestions.map((chip, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -1005,8 +1085,12 @@ export default function Home({
                   id="primarySearchInput"
                   value={aiInputValue}
                   onChange={(e) => setAiInputValue(e.target.value)}
-                  placeholder="খরচ, ঠিকানা, ডাক্তার..."
-                  className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base sm:text-lg outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none"
+                  placeholder={
+                    isAiFocused
+                      ? "খরচ, ঠিকানা, ডাক্তার..."
+                      : (starterQuestions[animatedPlaceholderIdx] || "খরচ, ঠিকানা, ডাক্তার...")
+                  }
+                  className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base sm:text-lg outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none transition-all"
                   onFocus={() => setIsAiFocused(true)}
                   onBlur={() => setIsAiFocused(false)}
                   onKeyDown={(e) => {
@@ -1542,14 +1626,29 @@ export default function Home({
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-3xl h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center">
-                  <i className="fa-solid fa-sparkles text-xs" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-slate-800">টেক ডেন্টাল এসিস্ট্যান্ট (ফুল ভিউ)</h4>
-                  <p className="text-[11px] text-slate-400">বিস্তারিত কথোপকথন ও পরামর্শ</p>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center gap-3">
+                {ai_settings?.bot_avatar ? (
+                  <img
+                    src={ai_settings.bot_avatar}
+                    alt={ai_settings.bot_name || "Tech Dental Agent"}
+                    className="w-10 h-10 rounded-2xl object-cover shadow-xs border border-slate-100 shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-2xl bg-[#1d63ed] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2C8.5 2 6 4.5 6 8c0 3.2 1.3 6.8 2 10 .4 1.8 1.4 3 2.5 3s1.7-1 2-3c.5-3.3.5-3.3 1-3.3s.5 0 1 3.3c.3 2 .9 3 2 3s2.1-1.2 2.5-3c.7-3.2 2-6.8 2-10 0-3.5-2.5-6-7-6z" />
+                    </svg>
+                  </div>
+                )}
+                <div className="flex flex-col text-left">
+                  <h4 className="font-bold text-sm sm:text-base text-slate-900 leading-tight">
+                    {ai_settings?.bot_name || "Tech Dental Agent"}
+                  </h4>
+                  <p className="text-[11px] sm:text-xs text-slate-500 font-normal flex items-center gap-1.5 mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    Online
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-1.5">

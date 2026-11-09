@@ -23,10 +23,8 @@ class NavMenuController extends Controller
                 'location' => 'header',
                 'items_json' => json_encode([
                     ['id' => '1', 'title' => 'Home', 'url' => '/', 'type' => 'custom'],
-                    ['id' => '2', 'title' => 'About Tech Dental', 'url' => '/page/about-us', 'type' => 'custom'],
-                    ['id' => '3', 'title' => 'Branches & Schedules', 'url' => '/page/branches-schedule', 'type' => 'custom'],
-                    ['id' => '4', 'title' => 'Privacy Policy', 'url' => '/page/privacy-policy', 'type' => 'custom'],
-                    ['id' => '5', 'title' => 'Terms of Service', 'url' => '/page/terms-of-service', 'type' => 'custom'],
+                    ['id' => '2', 'title' => 'About Tech Dental', 'url' => '/about', 'type' => 'custom'],
+                    ['id' => '3', 'title' => 'Branches & Schedules', 'url' => '/branch/mirpur', 'type' => 'custom'],
                 ])
             ]);
             $menus = collect([$defaultMenu]);

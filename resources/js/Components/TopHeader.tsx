@@ -388,8 +388,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       { title: 'About us', url: '#', level: 0 },
       { title: 'About Tech Dental', url: '/about', level: 1 },
       { title: 'Corporate Team', url: '/team', level: 1 },
-      { title: 'Privacy Policy', url: '/page/privacy-policy', level: 1 },
-      { title: 'Terms of Service', url: '/page/terms-of-service', level: 1 },
     ];
   }, [navMenu]);
 
@@ -400,7 +398,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     const tree: any[] = [];
     const stack: { item: any; level: number }[] = [];
 
-    rawMenuItems.forEach((rawItem) => {
+    // Filter out Privacy Policy and Terms of Service as they belong only to footer
+    const filteredItems = rawMenuItems.filter((item) => {
+      const t = String(item.title || '').trim().toLowerCase();
+      const u = String(item.url || '').trim().toLowerCase();
+      if (t === 'privacy policy' || t === 'terms of service' || t === 'terms & conditions') return false;
+      if (u.includes('privacy-policy') || u.includes('terms-of-service')) return false;
+      return true;
+    });
+
+    filteredItems.forEach((rawItem) => {
       const level = Number(rawItem.level || 0);
       let targetUrl = rawItem.url || '#';
 

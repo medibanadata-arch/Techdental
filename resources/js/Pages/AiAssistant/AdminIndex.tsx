@@ -85,6 +85,9 @@ interface ChatSettings {
     training_data?: string;
     chips?: string | string[];
     fallback_reply?: string;
+    bot_name?: string;
+    bot_avatar?: string;
+    starter_questions?: string | string[];
 }
 
 interface ChatLogItem {
@@ -139,6 +142,39 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
     const initialChips = useMemoChips(settings?.chips);
     const [chipsList, setChipsList] = useState<string[]>(initialChips);
     const [newChipInput, setNewChipInput] = useState('');
+
+    // Chatbot Branding & Sequential Starter Questions
+    const [botName, setBotName] = useState(settings?.bot_name || 'Tech Dental Agent');
+    const [botAvatar, setBotAvatar] = useState(settings?.bot_avatar || '');
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(settings?.bot_avatar || null);
+
+    const initialStarterQuestions = useMemo(() => {
+        if (!settings?.starter_questions) {
+            return [
+                'ফিলিং চিকিৎসার খরচ কত?',
+                'দাঁতে গর্ত হলে কি করা উচিৎ?',
+                'রুট ক্যানেল করতে কত খরচ হয়?',
+                'দাঁত সোজা করার উপায় কি?'
+            ];
+        }
+        if (Array.isArray(settings.starter_questions)) return settings.starter_questions;
+        try {
+            const p = JSON.parse(settings.starter_questions);
+            return Array.isArray(p) ? p : [];
+        } catch {
+            return [
+                'ফিলিং চিকিৎসার খরচ কত?',
+                'দাঁতে গর্ত হলে কি করা উচিৎ?',
+                'রুট ক্যানেল করতে কত খরচ হয়?',
+                'দাঁত সোজা করার উপায় কি?'
+            ];
+        }
+    }, [settings?.starter_questions]);
+
+    const [starterQuestionsList, setStarterQuestionsList] = useState<string[]>(initialStarterQuestions);
+    const [newStarterInput, setNewStarterInput] = useState('');
+    const [isSavingBranding, setIsSavingBranding] = useState(false);
 
     // API Testing State
     const [testPrompt, setTestPrompt] = useState('Where are Tech Dental branches located and what is the cost of scaling?');
@@ -325,6 +361,52 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
         });
     };
 
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setAvatarFile(file);
+            setAvatarPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleRemoveAvatar = () => {
+        setAvatarFile(null);
+        setAvatarPreview(null);
+        setBotAvatar('');
+    };
+
+    const handleAddStarterQuestion = (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmed = newStarterInput.trim();
+        if (trimmed && !starterQuestionsList.includes(trimmed)) {
+            setStarterQuestionsList([...starterQuestionsList, trimmed]);
+            setNewStarterInput('');
+        }
+    };
+
+    const handleRemoveStarterQuestion = (idx: number) => {
+        setStarterQuestionsList(starterQuestionsList.filter((_, i) => i !== idx));
+    };
+
+    const handleSaveBranding = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSavingBranding(true);
+        const formData = new FormData();
+        formData.append('bot_name', botName);
+        if (avatarFile) {
+            formData.append('bot_avatar', avatarFile);
+        } else {
+            formData.append('bot_avatar', botAvatar);
+        }
+        formData.append('starter_questions', JSON.stringify(starterQuestionsList));
+        formData.append('chips', JSON.stringify(chipsList));
+
+        router.post('/ai-assistant/settings', formData, {
+            forceFormData: true,
+            onFinish: () => setIsSavingBranding(false),
+        });
+    };
+
     return (
         <AdminLayout>
             <Head title="AI Chat Assistant - Admin Management" />
@@ -424,7 +506,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                         }`}
                     >
                         <HelpCircle size={14} />
-                        <span>Suggested Questions ({chipsList.length})</span>
+                        <span>Branding & Questions ({starterQuestionsList.length})</span>
                     </button>
 
                     <button
@@ -970,60 +1052,190 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                     </div>
                 )}
 
-                {/* TAB 3: SUGGESTED CHIPS */}
+                {/* TAB 3: BRANDING & STARTER QUESTIONS */}
                 {activeTab === 'chips' && (
-                    <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm max-w-2xl space-y-6">
-                        <div>
-                            <h3 className="font-bold text-slate-900 text-base mb-1">
-                                Suggested Questions Above Homepage Search Box
-                            </h3>
-                            <p className="text-xs text-slate-500">
-                                Preset quick-action query chips shown above the homepage chatbot input for one-click answers:
-                            </p>
-                        </div>
-
-                        {/* List */}
-                        <div className="space-y-2">
-                            {chipsList.map((chip, idx) => (
-                                <div
-                                    key={idx}
-                                    className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center font-bold">
-                                            {idx + 1}
-                                        </span>
-                                        <span>{chip}</span>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveChip(idx)}
-                                        className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition cursor-pointer"
-                                        title="Remove"
-                                    >
-                                        <X size={16} />
-                                    </button>
+                    <div className="space-y-6 max-w-3xl">
+                        {/* Live Header Preview Card */}
+                        <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-bold text-slate-900 text-base">
+                                        Chatbot Header Live Preview
+                                    </h3>
+                                    <p className="text-xs text-slate-500">
+                                        This is how your chat box header appears to patients on the website:
+                                    </p>
                                 </div>
-                            ))}
+                                <span className="text-[11px] bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-semibold border border-emerald-200">
+                                    Live Preview
+                                </span>
+                            </div>
+
+                            <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    {avatarPreview ? (
+                                        <img
+                                            src={avatarPreview}
+                                            alt={botName}
+                                            className="w-11 h-11 rounded-2xl object-cover shadow-xs border border-slate-200 shrink-0"
+                                        />
+                                    ) : (
+                                        <div className="w-11 h-11 rounded-2xl bg-[#1d63ed] text-white flex items-center justify-center shadow-xs shrink-0">
+                                            <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                                <path d="M12 2C8.5 2 6 4.5 6 8c0 3.2 1.3 6.8 2 10 .4 1.8 1.4 3 2.5 3s1.7-1 2-3c.5-3.3.5-3.3 1-3.3s.5 0 1 3.3c.3 2 .9 3 2 3s2.1-1.2 2.5-3c.7-3.2 2-6.8 2-10 0-3.5-2.5-6-7-6z" />
+                                            </svg>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col text-left">
+                                        <span className="text-base font-bold text-slate-900 leading-tight">
+                                            {botName || "Tech Dental Agent"}
+                                        </span>
+                                        <span className="text-xs text-slate-500 font-normal flex items-center gap-1.5 mt-0.5">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                                            Online
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="text-xs text-slate-400 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs font-mono">
+                                    {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} ✓✓
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Add Chip Form */}
-                        <form onSubmit={handleAddChip} className="flex gap-2">
-                            <input
-                                type="text"
-                                value={newChipInput}
-                                onChange={(e) => setNewChipInput(e.target.value)}
-                                placeholder="Enter new question (e.g. Cost of dental implants)..."
-                                className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                            />
+                        {/* Branding & Avatar Upload Section */}
+                        <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm space-y-5">
+                            <div>
+                                <h3 className="font-bold text-slate-900 text-base mb-1">
+                                    Chatbot Identity & Avatar Logo
+                                </h3>
+                                <p className="text-xs text-slate-500">
+                                    Upload a custom logo to display beside Tech Dental Agent in the chat header and patient reply bubbles:
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                        Chatbot Agent Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={botName}
+                                        onChange={(e) => setBotName(e.target.value)}
+                                        placeholder="Tech Dental Agent"
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-medium"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                        Chatbot Avatar Logo (Image Upload)
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl border border-slate-200 transition">
+                                            <Plus size={14} />
+                                            <span>{avatarPreview ? "Change Logo" : "Upload Logo"}</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleAvatarChange}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                        {avatarPreview && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveAvatar}
+                                                className="text-xs text-rose-600 hover:text-rose-700 font-semibold p-2 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                                            >
+                                                Remove Logo
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-1">Recommended square format (PNG, WebP, JPG)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Sequential Starter Questions (4 questions with 1s interval) */}
+                        <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm space-y-5">
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-bold text-slate-900 text-base mb-1">
+                                        Sequential Starter Questions (Before Chat Starts)
+                                    </h3>
+                                    <span className="text-xs bg-blue-50 text-blue-700 font-semibold px-2.5 py-0.5 rounded-full border border-blue-200">
+                                        1-Second Stagger
+                                    </span>
+                                </div>
+                                <p className="text-xs text-slate-500">
+                                    These questions appear sequentially one by one (1s interval) above the homepage search bar before the visitor sends a query:
+                                </p>
+                            </div>
+
+                            {/* List of Starter Questions */}
+                            <div className="space-y-2.5">
+                                {starterQuestionsList.map((q, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="flex items-center justify-between p-3.5 bg-slate-50/80 hover:bg-blue-50/40 rounded-xl border border-slate-200 text-sm font-semibold text-slate-800 transition"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold shadow-2xs">
+                                                {idx + 1}
+                                            </span>
+                                            <span>{q}</span>
+                                            <span className="text-[11px] text-slate-400 font-normal">
+                                                (Appears at {idx === 0 ? "0s" : `+${idx}s`})
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveStarterQuestion(idx)}
+                                            className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-white transition cursor-pointer"
+                                            title="Remove Question"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Add Starter Question */}
+                            <form onSubmit={handleAddStarterQuestion} className="flex gap-2 pt-1">
+                                <input
+                                    type="text"
+                                    value={newStarterInput}
+                                    onChange={(e) => setNewStarterInput(e.target.value)}
+                                    placeholder="Enter new question (e.g. ফিলিং চিকিৎসার খরচ কত?)..."
+                                    className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition shadow-sm flex items-center gap-1.5 cursor-pointer shrink-0"
+                                >
+                                    <Plus size={16} />
+                                    <span>Add Question</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        {/* Save Action Banner */}
+                        <div className="p-4 bg-slate-900 rounded-2xl text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+                            <div>
+                                <h4 className="font-bold text-sm">Save Chatbot Branding & Questions</h4>
+                                <p className="text-xs text-slate-400">Save custom logo avatar, agent name, and sequential questions to live site.</p>
+                            </div>
                             <button
-                                type="submit"
-                                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition shadow-sm flex items-center gap-1.5 cursor-pointer shrink-0"
+                                type="button"
+                                onClick={handleSaveBranding}
+                                disabled={isSavingBranding}
+                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-bold rounded-xl text-sm shadow-md transition cursor-pointer shrink-0 disabled:opacity-50 flex items-center gap-2"
                             >
-                                <Plus size={16} />
-                                <span>Add Question</span>
+                                {isSavingBranding ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                                <span>Save All Changes</span>
                             </button>
-                        </form>
+                        </div>
                     </div>
                 )}
 

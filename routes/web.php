@@ -58,6 +58,17 @@ $homeHandler = function () {
         'nav_menu' => \App\Models\NavMenu::first(),
         'home_content' => $homeContent,
         'ai_chips' => $aiChips,
+        'ai_settings' => [
+            'bot_name' => $aiSettings->bot_name ?? 'Tech Dental Agent',
+            'bot_avatar' => $aiSettings->bot_avatar ?? null,
+            'starter_questions' => !empty($aiSettings->starter_questions) ? json_decode($aiSettings->starter_questions, true) : [
+                'ফিলিং চিকিৎসার খরচ কত?',
+                'দাঁতে গর্ত হলে কি করা উচিৎ?',
+                'রুট ক্যানেল করতে কত খরচ হয়?',
+                'দাঁত সোজা করার উপায় কি?'
+            ],
+            'gemini_enabled' => (bool)($aiSettings->gemini_enabled ?? false),
+        ],
     ]);
 };
 

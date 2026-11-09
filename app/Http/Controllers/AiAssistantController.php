@@ -72,32 +72,90 @@ class AiAssistantController extends Controller
     public function updateSettings(Request $request)
     {
         $request->validate([
-            'gemini_model' => 'required|string',
+            'gemini_model' => 'nullable|string',
             'system_prompt' => 'nullable|string',
             'training_data' => 'nullable|string',
             'fallback_reply' => 'nullable|string',
+            'bot_name' => 'nullable|string|max:100',
+            'bot_avatar' => 'nullable',
         ]);
 
-        $chips = $request->input('chips');
-        if (is_string($chips)) {
-            $chips = array_values(array_filter(array_map('trim', explode(',', $chips))));
+        $updateData = [
+            'updated_at' => now(),
+        ];
+
+        if ($request->has('gemini_api_key')) {
+            $updateData['gemini_api_key'] = $request->input('gemini_api_key');
+        }
+        if ($request->has('gemini_model')) {
+            $updateData['gemini_model'] = $request->input('gemini_model', 'gemini-1.5-flash');
+        }
+        if ($request->has('gemini_enabled')) {
+            $updateData['gemini_enabled'] = (bool)$request->input('gemini_enabled', false);
+        }
+        if ($request->has('system_prompt')) {
+            $updateData['system_prompt'] = $request->input('system_prompt');
+        }
+        if ($request->has('training_data')) {
+            $updateData['training_data'] = $request->input('training_data');
+        }
+        if ($request->has('fallback_reply')) {
+            $updateData['fallback_reply'] = $request->input('fallback_reply');
+        }
+        if ($request->has('bot_name')) {
+            $updateData['bot_name'] = $request->input('bot_name') ?: 'Tech Dental Agent';
+        }
+
+        // Handle Avatar upload or string path
+        if ($request->hasFile('bot_avatar')) {
+            $file = $request->file('bot_avatar');
+            $filename = time() . '_bot_avatar.' . $file->getClientOriginalExtension();
+            $destinationPath = public_path('uploads/images');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+            $file->move($destinationPath, $filename);
+            $updateData['bot_avatar'] = '/uploads/images/' . $filename;
+        } elseif ($request->has('bot_avatar') && is_string($request->input('bot_avatar'))) {
+            $updateData['bot_avatar'] = $request->input('bot_avatar');
+        }
+
+        // Handle Starter questions (appearing sequentially before chat starts)
+        if ($request->has('starter_questions')) {
+            $starterQuestions = $request->input('starter_questions');
+            if (is_string($starterQuestions)) {
+                if (str_starts_with(trim($starterQuestions), '[')) {
+                    $starterQuestions = json_decode($starterQuestions, true);
+                } else {
+                    $lines = preg_split('/[\r\n]+/', $starterQuestions);
+                    if (count($lines) <= 1 && str_contains($starterQuestions, ',')) {
+                        $lines = explode(',', $starterQuestions);
+                    }
+                    $starterQuestions = array_values(array_filter(array_map('trim', $lines)));
+                }
+            }
+            $updateData['starter_questions'] = json_encode($starterQuestions ?: [
+                'ফিলিং চিকিৎসার খরচ কত?',
+                'দাঁতে গর্ত হলে কি করা উচিৎ?',
+                'রুট ক্যানেল করতে কত খরচ হয়?',
+                'দাঁত সোজা করার উপায় কি?'
+            ], JSON_UNESCAPED_UNICODE);
+        }
+
+        if ($request->has('chips')) {
+            $chips = $request->input('chips');
+            if (is_string($chips)) {
+                $chips = array_values(array_filter(array_map('trim', explode(',', $chips))));
+            }
+            $updateData['chips'] = json_encode($chips ?: ["শাখার ঠিকানা কোথায়?", "ফাঁকা দাঁতের চিকিৎসা", "দাঁত ব্যথার চিকিৎসা"], JSON_UNESCAPED_UNICODE);
         }
 
         DB::table('ai_chat_settings')->updateOrInsert(
             ['id' => 1],
-            [
-                'gemini_api_key' => $request->input('gemini_api_key'),
-                'gemini_model' => $request->input('gemini_model', 'gemini-1.5-flash'),
-                'gemini_enabled' => (bool)$request->input('gemini_enabled', false),
-                'system_prompt' => $request->input('system_prompt'),
-                'training_data' => $request->input('training_data'),
-                'chips' => json_encode($chips ?: ["শাখার ঠিকানা কোথায়?", "ফাঁকা দাঁতের চিকিৎসা", "দাঁত ব্যথার চিকিৎসা"], JSON_UNESCAPED_UNICODE),
-                'fallback_reply' => $request->input('fallback_reply'),
-                'updated_at' => now(),
-            ]
+            $updateData
         );
 
-        return back()->with('success', 'AI Assistant সেটিংস ও ট্রেনিং ডাটা সফলভাবে সংরক্ষিত হয়েছে।');
+        return back()->with('success', 'AI Assistant সেটিংস ও ব্র্যান্ডিং সফলভাবে সংরক্ষিত হয়েছে।');
     }
 
     /**
