@@ -7,3 +7,4 @@ for c in cols:
     cursor.execute(f"SELECT COUNT(*) FROM medicines WHERE {c} IS NOT NULL AND {c} != ''")
     cnt = cursor.fetchone()[0]
     print(f"{c}: {cnt} / 83")
+

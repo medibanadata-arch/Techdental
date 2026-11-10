@@ -39,3 +39,4 @@ for p in dental_bn:
     if p['href'] not in seen_bn:
         print(p['href'], "-->", p['title'][:40])
         seen_bn.add(p['href'])
+

@@ -23,3 +23,4 @@ for r in rows:
 print(f"uses_items with bn: {uses_with_bn} / {len(rows)}")
 print(f"warnings with bn: {warnings_with_bn} / {len(rows)}")
 print(f"side_effects_items with bn: {side_effects_with_bn} / {len(rows)}")
+

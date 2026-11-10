@@ -6,3 +6,4 @@ cursor.execute("SELECT warnings, uses_items FROM medicines WHERE slug = 'gum-can
 row = cursor.fetchone()
 print("gum-cancer warnings:", row[0])
 print("gum-cancer uses_items:", row[1])
+

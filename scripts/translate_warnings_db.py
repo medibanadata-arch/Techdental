@@ -65,3 +65,4 @@ for r in rows:
 
 conn.commit()
 print(f"Updated warnings with Bengali translations in {updated_count} medicines!")
+

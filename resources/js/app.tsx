@@ -5,10 +5,12 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const envName = import.meta.env.VITE_APP_NAME;
+const appName = !envName || envName === 'Laravel' ? 'Tech Dental' : envName;
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    // Several page titles already carry the brand; avoid "- Laravel" / double branding.
+    title: (title) => (/tech dental/i.test(title) ? title : `${title} - ${appName}`),
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.tsx`,

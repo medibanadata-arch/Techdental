@@ -78,6 +78,8 @@ interface MedicineItem {
   price_per_tablet: string;
   price_per_strip: string;
   price_manufacturer: string;
+  price_note?: { label: string; text: string }[];
+  price_note_bn?: { label: string; text: string }[];
   gallery: { src: string; caption: string }[];
   faqs: FaqItem[];
   section_titles?: Record<string, string>;
@@ -121,6 +123,10 @@ const toBnDigit = (num: number | string): string => {
   const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
   return String(num).replace(/\d/g, (d) => bnDigits[Number(d)] || d);
 };
+
+/** Imported Q&A text often still carries its original "1." / "১." prefix; the UI numbers items itself. */
+const cleanQuestion = (text?: string): string =>
+  (text || '').replace(/^\s*(?:\d+|[০-৯]+)[.)।]\s*/, '').trim();
 
 export default function MedicinesPublicSingle({
   item,
@@ -197,9 +203,14 @@ export default function MedicinesPublicSingle({
     ? (sec.gallery_bn || `${displayName || 'ঔষধ'} প্যাকেট ও ফটো রেফারেন্স`)
     : (sec.gallery || `${displayName || 'Medicine'} Tablet Packet`);
 
+  // Format clean name for "More about {Name}" (e.g. "Xyril 25 Tablet" -> "Xyril 25")
+  const cleanMedicineName = (displayName || item.name || '')
+    .replace(/(?:\s+Tablet|\s+Capsule|\s+Ointment|\s+Suspension|\s+ট্যাবলেট|\s+ক্যাপসুল|\s+মলম)+$/i, '')
+    .trim() || displayName || (isBn ? 'তথ্য' : 'Medicine');
+
   const titleFaq = isBn
-    ? (sec.faq_bn || 'সাধারণ প্রশ্নোত্তর (FAQ)')
-    : (sec.faq || 'Frequently Asked Questions (FAQ)');
+    ? (sec.faq_bn || `${displayName || cleanMedicineName} সম্পর্কে সচরাচর জিজ্ঞাসা (FAQ)`)
+    : (sec.faq || `Frequently Asked Questions (FAQ) About ${displayName || cleanMedicineName}`);
 
   const titleAuthor = isBn
     ? (sec.author_bn || 'মেডিকেল রিভিউয়ার ও বিশেষজ্ঞ পরিচিতি')
@@ -208,11 +219,6 @@ export default function MedicinesPublicSingle({
   const titleToc = isBn
     ? (sec.toc_bn || 'সূচিপত্র')
     : (sec.toc || 'Table of Contents');
-
-  // Format clean name for "More about {Name}" (e.g. "Xyril 25 Tablet" -> "Xyril 25")
-  const cleanMedicineName = (displayName || item.name || '')
-    .replace(/(?:\s+Tablet|\s+Capsule|\s+Ointment|\s+Suspension|\s+ট্যাবলেট|\s+ক্যাপসুল|\s+মলম)+$/i, '')
-    .trim() || displayName || (isBn ? 'তথ্য' : 'Medicine');
 
   const displaySeoTitle = isBn
     ? `${displayName || cleanMedicineName} সম্পর্কে আরো`
@@ -230,24 +236,35 @@ export default function MedicinesPublicSingle({
     return () => mq.removeEventListener('change', apply);
   }, []);
 
+  // FAQs are strictly per language: no English fallback in Bangla mode.
+  const faqList = (Array.isArray(item.faqs) ? item.faqs : []).filter((f) =>
+    isBn ? !!(f.q_bn && f.a_bn) : !!(f.q && f.a),
+  );
+  // The article's own price lines, verbatim (pack size, "approximately", manufacturer...).
+  const priceNotes = (isBn ? item.price_note_bn : item.price_note) || [];
+  const priceRowIcon = (label: string, i: number) => {
+    if (/tablet|ট্যাবলেট|ট্যাব/i.test(label)) return 'fa-coins';
+    if (/strip|স্ট্রিপ|পাতা/i.test(label)) return 'fa-tablets';
+    if (/manufact|প্রস্তুতকারক|কোম্পানি|কোম্পানী/i.test(label)) return 'fa-industry';
+    return ['fa-coins', 'fa-tablets', 'fa-industry'][i] || 'fa-circle-info';
+  };
+  const hasPrice = !!(item.price_per_tablet || item.price_per_strip || priceNotes.length);
+  // "More about" now holds the leftover rich content and the FAQ, so hide it when both are empty.
+  const hasMoreAbout = !!displaySeoContent || faqList.length > 0;
+
   // Table of Contents Numbers: English (1., 2.) in EN mode; Bengali (১., ২.) in BN mode
-  const tocTopItems = isBn
-    ? [
-        { href: '#overview', label: `১. ${titleUses}` },
-        { href: '#dosage', label: `২. ${titleDosage}` },
-        { href: '#side-effects', label: `৩. ${titleSideEffects}` },
-        { href: '#warnings', label: `৪. ${titleWarnings}` },
-        { href: '#price', label: `৫. ${titlePrice}` },
-        { href: '#more-about', label: `৬. ${displayName || cleanMedicineName} সম্পর্কে আরো` },
-      ]
-    : [
-        { href: '#overview', label: `1. ${titleUses}` },
-        { href: '#dosage', label: `2. ${titleDosage}` },
-        { href: '#side-effects', label: `3. ${titleSideEffects}` },
-        { href: '#warnings', label: `4. ${titleWarnings}` },
-        { href: '#price', label: `5. ${titlePrice}` },
-        { href: '#more-about', label: `6. More about ${cleanMedicineName}` },
-      ];
+  const tocNumber = (i: number) => (isBn ? toBnDigit(i + 1) : String(i + 1));
+  const tocSections = [
+    { href: '#overview', label: titleUses },
+    { href: '#dosage', label: titleDosage },
+    { href: '#side-effects', label: titleSideEffects },
+    { href: '#warnings', label: titleWarnings },
+    ...(hasPrice ? [{ href: '#price', label: titlePrice }] : []),
+    ...(item.author ? [{ href: '#author', label: titleAuthor }] : []),
+    ...(hasMoreAbout ? [{ href: '#more-about', label: displaySeoTitle }] : []),
+  ];
+  const tocTopItems = tocSections.map((s, i) => ({ ...s, label: `${tocNumber(i)}. ${s.label}` }));
+  const moreAboutNumber = tocSections.findIndex((s) => s.href === '#more-about') + 1;
 
   // Author details - strictly separation by language, no English fallback in Bangla mode
   const authorName = isBn
@@ -266,10 +283,16 @@ export default function MedicinesPublicSingle({
     ? (item.author?.disclaimer_bn || 'সতর্কবার্তা: শুধুমাত্র শিক্ষামূলক তথ্য। এটি কোনো পেশাদার চিকিৎসা পরামর্শের বিকল্প নয়।')
     : (item.author?.disclaimer || 'Disclaimer: Educational information only. Not a substitute for professional medical advice.');
 
+  const seoTitleSuffix = isBn
+    ? 'ব্যবহার, সেবনবিধি, পার্শ্বপ্রতিক্রিয়া ও মূল্য'
+    : (item.seo_title && !/^more about\b/i.test(item.seo_title.trim())
+        ? item.seo_title
+        : 'Uses, Dosage, Side Effects & Price in Bangladesh');
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Head>
-        <title>{item.seo_title ? `${displayName} – ${item.seo_title}` : `${displayName || 'Medicine'} - Dental Medicine & Usage | Tech Dental`}</title>
+        <title>{displayName ? `${displayName} – ${seoTitleSuffix}` : `${cleanMedicineName} | Tech Dental`}</title>
         <meta name="description" content={item.meta_desc || displaySubtitle || displayIntro} />
         {canonical_url && <link rel="canonical" href={canonical_url} />}
         {hreflang?.en && <link rel="alternate" hrefLang="en" href={hreflang.en} />}
@@ -359,12 +382,14 @@ export default function MedicinesPublicSingle({
                   </p>
                 ))}
 
-                {Array.isArray(item.faqs) && item.faqs.length > 0 && (
+                {faqList.length > 0 && hasMoreAbout && (
                   <div className="pl-3 space-y-1.5 text-xs text-slate-600 border-l-2 border-[#fce7ea] mt-2 pt-1">
-                    {item.faqs.map((f, i) => {
-                      const qText = isBn ? (f.q_bn || '') : f.q;
+                    {faqList.map((f, i) => {
+                      const qText = cleanQuestion(isBn ? f.q_bn : f.q);
                       if (!qText) return null;
-                      const prefix = isBn ? `৬.${toBnDigit(i + 1)}.` : `6.${i + 1}.`;
+                      const prefix = isBn
+                        ? `${toBnDigit(moreAboutNumber)}.${toBnDigit(i + 1)}.`
+                        : `${moreAboutNumber}.${i + 1}.`;
                       return (
                         <p key={i}>
                           <a
@@ -415,7 +440,7 @@ export default function MedicinesPublicSingle({
                   </div>
                 )}
                 {displayIntro && (
-                  <p className="text-sm text-slate-700 leading-relaxed">{displayIntro}</p>
+                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{displayIntro}</p>
                 )}
               </div>
             </div>
@@ -427,7 +452,7 @@ export default function MedicinesPublicSingle({
                 <span>{titleUses}</span>
               </h2>
               {displayUsesText && (
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{displayUsesText}</p>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">{displayUsesText}</p>
               )}
 
               {Array.isArray(item.uses_items) && item.uses_items.length > 0 && (
@@ -455,7 +480,7 @@ export default function MedicinesPublicSingle({
                 <span>{titleDosage}</span>
               </h2>
               {displayDosage && (
-                <p className="text-xs sm:text-sm text-slate-700 font-medium">{displayDosage}</p>
+                <p className="text-xs sm:text-sm text-slate-700 font-medium whitespace-pre-line">{displayDosage}</p>
               )}
               {(displayDosageAdmin || displayDosageTiming) && (
                 <div className="space-y-3 text-xs sm:text-sm pt-1">
@@ -486,7 +511,7 @@ export default function MedicinesPublicSingle({
                 <span>{titleSideEffects}</span>
               </h2>
               {displaySideEffects && (
-                <p className="text-xs sm:text-sm text-slate-600">{displaySideEffects}</p>
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">{displaySideEffects}</p>
               )}
               {Array.isArray(item.side_effects_items) && item.side_effects_items.length > 0 && (
                 <div className="space-y-2 text-xs sm:text-sm pt-1">
@@ -532,6 +557,7 @@ export default function MedicinesPublicSingle({
             </section>
 
             {/* Section 5: Price */}
+            {hasPrice && (
             <section id="price" className="scroll-mt-6 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -544,26 +570,38 @@ export default function MedicinesPublicSingle({
               </div>
 
               <div className="space-y-2.5 text-xs sm:text-sm text-slate-700 pt-1">
-                {item.price_per_tablet && (
-                  <div className="flex items-center gap-2.5 py-1">
-                    <i className="fa-solid fa-coins text-[#8b1d41] w-4 text-center" />
-                    <span><strong>{isBn ? 'প্রতি ট্যাবলেটের মূল্য:' : 'Price per Tablet:'}</strong> {isBn ? toBnDigit(item.price_per_tablet) : item.price_per_tablet}</span>
-                  </div>
-                )}
-                {item.price_per_strip && (
-                  <div className="flex items-center gap-2.5 py-1">
-                    <i className="fa-solid fa-tablets text-[#8b1d41] w-4 text-center" />
-                    <span><strong>{isBn ? 'প্রতি পাতার মূল্য (১০টি):' : 'Price per Strip (10 Tabs):'}</strong> {isBn ? toBnDigit(item.price_per_strip) : item.price_per_strip}</span>
-                  </div>
-                )}
-                {(item.price_manufacturer || item.pharma) && (
-                  <div className="flex items-center gap-2.5 py-1">
-                    <i className="fa-solid fa-industry text-[#8b1d41] w-4 text-center" />
-                    <span><strong>{isBn ? 'প্রস্তুতকারক কোম্পানি:' : 'Manufacturer:'}</strong> {displayPharma || item.price_manufacturer}</span>
-                  </div>
+                {priceNotes.length > 0 ? (
+                  priceNotes.map((n, i) => (
+                    <div key={i} className="flex items-start gap-2.5 py-1">
+                      <i className={`fa-solid ${priceRowIcon(n.label, i)} text-[#8b1d41] w-4 text-center mt-0.5`} />
+                      <span>{n.label && <strong>{n.label}: </strong>}{isBn ? toBnDigit(n.text) : n.text}</span>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    {item.price_per_tablet && (
+                      <div className="flex items-center gap-2.5 py-1">
+                        <i className="fa-solid fa-coins text-[#8b1d41] w-4 text-center" />
+                        <span><strong>{isBn ? 'প্রতি ট্যাবলেটের মূল্য:' : 'Price per Tablet:'}</strong> {isBn ? toBnDigit(item.price_per_tablet) : item.price_per_tablet}</span>
+                      </div>
+                    )}
+                    {item.price_per_strip && (
+                      <div className="flex items-center gap-2.5 py-1">
+                        <i className="fa-solid fa-tablets text-[#8b1d41] w-4 text-center" />
+                        <span><strong>{isBn ? 'প্রতি পাতার মূল্য:' : 'Price per Strip:'}</strong> {isBn ? toBnDigit(item.price_per_strip) : item.price_per_strip}</span>
+                      </div>
+                    )}
+                    {(item.price_manufacturer || item.pharma) && (
+                      <div className="flex items-center gap-2.5 py-1">
+                        <i className="fa-solid fa-industry text-[#8b1d41] w-4 text-center" />
+                        <span><strong>{isBn ? 'প্রস্তুতকারক কোম্পানি:' : 'Manufacturer:'}</strong> {displayPharma || item.price_manufacturer}</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </section>
+            )}
 
             {/* Product Visual Reference Grid */}
             {item.gallery?.length > 0 && (
@@ -585,6 +623,7 @@ export default function MedicinesPublicSingle({
               </div>
             )}
 
+            {/* Section 6: Frequently Asked Questions (FAQ) */}
             {/* Medical Reviewer Profile */}
             {item.author && (
               <section id="author" className="scroll-mt-6 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
@@ -630,6 +669,7 @@ export default function MedicinesPublicSingle({
             )}
 
             {/* Additional Information Accordion (Bottom SEO Box) */}
+            {hasMoreAbout && (
             <div id="more-about" className="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden scroll-mt-6 mb-6">
               <button
                 type="button"
@@ -653,27 +693,27 @@ export default function MedicinesPublicSingle({
                     />
                   )}
 
-                  {/* Frequently Asked Questions (FAQs) */}
-                  {Array.isArray(item.faqs) && item.faqs.length > 0 && (
-                    <div id="faq" className="pt-5 border-t border-slate-100 scroll-mt-6">
-                      <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-                        <span className="w-1.5 h-3.5 bg-[#8b1d41] rounded-full" />
-                        {titleFaq}
-                      </h4>
-                      <div className="space-y-2.5">
-                        {item.faqs.map((f, i) => {
-                          const qText = isBn ? (f.q_bn || '') : f.q;
+                  {/* Frequently Asked Questions */}
+                  {faqList.length > 0 && (
+                    <div className="space-y-5">
+                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <span className="w-2 h-4 bg-[#8b1d41] rounded-full inline-block" />
+                        <span>{titleFaq}</span>
+                      </h3>
+
+                      <div className="space-y-4 pt-1 divide-y divide-slate-100">
+                        {faqList.map((f, i) => {
+                          const qText = cleanQuestion(isBn ? f.q_bn : f.q);
                           const aText = isBn ? (f.a_bn || '') : f.a;
-                          if (isBn && !qText && !aText) return null;
-                          if (!isBn && !qText && !aText) return null;
+                          if (!qText) return null;
                           return (
-                            <div key={i} id={`faq-${i + 1}`} className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 scroll-mt-6">
-                              <p className="font-bold text-xs sm:text-sm text-slate-900 flex items-start gap-2">
-                                <span className="text-[#8b1d41] font-extrabold">{isBn ? `প্রশ্ন ${toBnDigit(i + 1)}:` : `Q${i + 1}:`}</span>
+                            <div key={i} id={`faq-${i + 1}`} className="space-y-1.5 pt-3.5 first:pt-0 scroll-mt-6">
+                              <h3 className="font-bold text-sm sm:text-[15px] text-slate-900 leading-snug">
+                                <span className="text-[#8b1d41] font-extrabold mr-1.5">{isBn ? 'প্রশ্ন:' : 'Q:'}</span>
                                 <span>{qText}</span>
-                              </p>
+                              </h3>
                               {aText && (
-                                <p className="text-xs sm:text-sm text-slate-600 mt-1 pl-6 leading-relaxed whitespace-pre-line">
+                                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line pl-0.5">
                                   {aText}
                                 </p>
                               )}
@@ -681,17 +721,20 @@ export default function MedicinesPublicSingle({
                           );
                         })}
                       </div>
-                    </div>
-                  )}
 
-                  {authorDisclaimer && (
-                    <p className="text-[11px] text-slate-400 italic pt-2 text-center">
-                      {authorDisclaimer}
-                    </p>
+                      {authorDisclaimer && (
+                        <div className="mt-5 pt-4 border-t border-slate-100 bg-slate-50/70 p-4 rounded-xl text-center">
+                          <p className="text-[11px] sm:text-xs text-slate-500 italic leading-relaxed">
+                            <strong>{isBn ? 'সতর্কতা:' : 'Disclaimer:'}</strong> {authorDisclaimer.replace(/^(?:Disclaimer|সতর্কতা|সতর্কবার্তা)[\s\:]*/i, '')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
             </div>
+            )}
           </main>
         </div>
       </div>

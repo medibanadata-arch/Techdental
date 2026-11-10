@@ -31,6 +31,7 @@ interface PostItem {
   author_bio?: string;
   author_bio_bn?: string;
   published_at: string;
+  meta_desc?: string;
   faqs?: FaqItem[];
   section_titles?: Record<string, string>;
   cta_box?: Record<string, string>;
@@ -88,6 +89,49 @@ const toBnDigit = (num: number | string): string => {
   return String(num).replace(/\d/g, (d) => bnDigits[Number(d)] || d);
 };
 
+/** Imported Q&A text often still carries its original "1." / "১." prefix; the UI numbers items itself. */
+const cleanQuestion = (text?: string): string =>
+  (text || '').replace(/^\s*(?:\d+|[০-৯]+)[.)।]\s*/, '').trim();
+
+/** Lower-cased, punctuation-free text for duplicate detection. */
+const squash = (text: string): string =>
+  (text || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+
+const htmlToText = (html: string): string =>
+  (html || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z#0-9]+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+/**
+ * Posts usually store a truncated copy of the opening paragraph in `excerpt`, and the
+ * page rendered that paragraph twice (intro box + article body). Split it instead:
+ * the complete opening paragraph is shown once, in the intro box, keeping its links.
+ */
+const splitOpeningParagraph = (excerpt: string, content: string): { html: string; rest: string } | null => {
+  const needle = squash((excerpt || '').replace(/\s*(?:\.\.\.|…)\s*$/u, ''));
+  if (needle.length < 20 || !content) return null;
+  const match = content.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i);
+  if (!match) return null;
+  // Only move a genuine opening paragraph: nothing readable may precede it
+  // (a heading first means the paragraph belongs to that section and must stay).
+  const before = content.slice(0, match.index ?? 0).replace(/<!--[\s\S]*?-->/g, '');
+  if (htmlToText(before) !== '') return null;
+  const first = squash(htmlToText(match[1]));
+  if (!first.startsWith(needle)) return null;
+  return { html: match[1], rest: content.replace(match[0], '') };
+};
+
+/** Drop a content heading that only repeats the page title (the H1 already shows it). */
+const stripTitleHeading = (html: string, title: string): string => {
+  const t = squash(title);
+  if (!t || !html) return html;
+  return html.replace(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/gi, (full, _level, inner) =>
+    squash(htmlToText(inner)) === t ? '' : full,
+  );
+};
+
 export default function BlogPublicSingle({
   post,
   related = [],
@@ -119,6 +163,7 @@ export default function BlogPublicSingle({
     : (post?.author_bio || 'Dr. Ayesha Siddika is the Assistant Medical Director and Senior Dental Surgeon at Tech Dental\'s Mirpur branch, with over 8 years of clinical experience. She earned her BDS from Shaheed Suhrawardy Medical College and completed PGT in Oral Surgery and Conservative Dentistry. Specializing in Aesthetic Dentistry, BMDC registered (No. 7897).');
 
   const contentHtml = rawContent;
+  const metaDescription = (!isBn && post?.meta_desc) ? post.meta_desc : activeExcerpt;
   const authorAvatar = post?.author_avatar || "https://ui-avatars.com/api/?name=Dr.+Aysha+Siddika&background=881337&color=fff&size=160";
 
   const sec = post?.section_titles || {};
@@ -154,9 +199,29 @@ export default function BlogPublicSingle({
   const ctaWebsite = cta.website || "www.techdentalcare.com";
   const ctaPhone = isBn ? "০৯৬৩৮-০০০৫০৫" : (cta.phone || "09638-000505");
 
-  const hasFaqs = Array.isArray(post.faqs) && post.faqs.length > 0;
-  const preparedHtml = useMemo(() => injectTocIds(contentHtml), [contentHtml]);
-  const tocItems = useMemo(() => extractToc(contentHtml, hasFaqs), [contentHtml, hasFaqs]);
+  // FAQs are strictly per language: a Bangla page never falls back to the English Q&A.
+  const faqList = (Array.isArray(post?.faqs) ? post.faqs : []).filter((f) =>
+    isBn ? !!(f.q_bn && f.a_bn) : !!(f.q && f.a),
+  );
+  const hasFaqs = faqList.length > 0;
+
+  // The excerpt is often a truncated copy of the opening paragraph. Show that paragraph
+  // once (in the intro box) instead of repeating it at the top of the article body.
+  const intro = useMemo(
+    () => splitOpeningParagraph(activeExcerpt || '', contentHtml || ''),
+    [activeExcerpt, contentHtml],
+  );
+  const excerptDuplicated = useMemo(() => {
+    const needle = squash((activeExcerpt || '').replace(/\s*(?:\.\.\.|…)\s*$/u, ''));
+    if (needle.length < 20) return false;
+    return squash(htmlToText(contentHtml || '')).includes(needle);
+  }, [activeExcerpt, contentHtml]);
+  const showIntroBox = !!activeExcerpt && (!!intro || !excerptDuplicated);
+  // Some imported articles repeat the H1 as their first content heading.
+  const bodyHtml = stripTitleHeading(intro ? intro.rest : contentHtml, activeTitle || '');
+
+  const preparedHtml = useMemo(() => injectTocIds(bodyHtml), [bodyHtml]);
+  const tocItems = useMemo(() => extractToc(bodyHtml, hasFaqs), [bodyHtml, hasFaqs]);
 
   if (!post) return null;
 
@@ -174,9 +239,9 @@ export default function BlogPublicSingle({
           <a href="#post-top" className="hover:underline hover:text-[#881337]">{isBn ? "মূল নিবন্ধ" : "Article"}</a>
         </li>
       )}
-      {post.faqs && post.faqs.length > 0 && (
+      {hasFaqs && (
         <li className="flex gap-2 pt-1 border-t border-rose-100">
-          <span>{isBn ? 'প্রশ্নोत्तर' : 'FAQ'}.</span>
+          <span>{isBn ? 'প্রশ্নোত্তর' : 'FAQ'}.</span>
           <a href="#faq" className="hover:underline hover:text-[#881337] font-bold">
             {titleFaq}
           </a>
@@ -189,7 +254,7 @@ export default function BlogPublicSingle({
     <div className="min-h-screen text-gray-800 antialiased overflow-x-hidden bg-[#f3f4f6]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Head>
         <title>{`${activeTitle || 'Blog'} | Tech Dental`}</title>
-        {activeExcerpt && <meta name="description" content={activeExcerpt} />}
+        {metaDescription && <meta name="description" content={metaDescription} />}
         {canonical_url && <link rel="canonical" href={canonical_url} />}
         {hreflang?.en && <link rel="alternate" hrefLang="en" href={hreflang.en} />}
         {hreflang?.bn && <link rel="alternate" hrefLang="bn" href={hreflang.bn} />}
@@ -288,17 +353,23 @@ export default function BlogPublicSingle({
           {/* Image and Introduction Flex Container */}
           <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 mb-6 sm:mb-8 w-full">
             {/* Featured Image (Left) */}
-            <div className="w-full lg:w-1/2 rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white">
+            <div className={`w-full ${showIntroBox ? 'lg:w-1/2' : ''} rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-white`}>
               <img src={post.img} alt={activeTitle} className="w-full h-auto object-cover aspect-video sm:aspect-[2/1]" />
             </div>
 
             {/* Introduction Box (Right) */}
-            <div className="w-full lg:w-1/2 bg-white p-5 sm:p-8 rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-[#881337] flex flex-col justify-center">
-              {activeExcerpt && (
-                <p className="mb-4 text-gray-700 text-[15px] sm:text-[16px] leading-relaxed">{activeExcerpt}</p>
-              )}
-              {!activeExcerpt && <p className="mb-4 text-gray-700 text-[15px] sm:text-[16px] leading-relaxed" dangerouslySetInnerHTML={{ __html: contentHtml.slice(0, 300) + '...' }} />}
-            </div>
+            {showIntroBox && (
+              <div className="w-full lg:w-1/2 bg-white p-5 sm:p-8 rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-[#881337] flex flex-col justify-center">
+                {intro ? (
+                  <div
+                    className="text-gray-700 text-[15px] sm:text-[16px] leading-relaxed [&_a]:text-[#881337] [&_a]:underline"
+                    dangerouslySetInnerHTML={{ __html: intro.html }}
+                  />
+                ) : (
+                  <p className="text-gray-700 text-[15px] sm:text-[16px] leading-relaxed">{activeExcerpt}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Article Body (Prose) */}
@@ -315,11 +386,10 @@ export default function BlogPublicSingle({
               </h2>
 
               <div className="space-y-3">
-                {post.faqs!.map((f, i) => {
-                  const qText = isBn ? (f.q_bn || '') : f.q;
+                {faqList.map((f, i) => {
+                  const qText = cleanQuestion(isBn ? f.q_bn : f.q);
                   const aText = isBn ? (f.a_bn || '') : f.a;
-                  if (isBn && !qText && !aText) return null;
-                  if (!isBn && !qText && !aText) return null;
+                  if (!qText && !aText) return null;
                   const isOpen = openFaq === i;
 
                   return (

@@ -112,7 +112,10 @@ class MedicineController extends Controller
 
     public function publicIndex()
     {
-        $medicines = Medicine::active()->orderBy('sort_order')->get();
+        $postSlugs = \App\Models\Post::whereNotNull('slug')->pluck('slug')->all();
+        $medicines = Medicine::active()
+            ->when($postSlugs, fn ($q) => $q->whereNotIn('slug', $postSlugs))
+            ->orderBy('sort_order')->get();
         return Inertia::render('Medicines/PublicIndex', [
             'medicines' => $medicines,
             'locations' => \App\Models\Location::orderBy('sort_order')->get(),
@@ -122,10 +125,23 @@ class MedicineController extends Controller
 
     public function publicShow(Request $request, $slug)
     {
-        $item = Medicine::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
-        $related = Medicine::active()->where('id', '!=', $item->id)->orderBy('sort_order')->take(4)->get();
-
         $isBn = $request->is('bn/*');
+
+        // Blog articles that were imported into the medicines table must not appear as
+        // duplicate medicine pages — send them to their real blog URL instead.
+        $post = \App\Models\Post::where('slug', $slug)->first();
+        if ($post) {
+            $toBn = $isBn && trim((string) $post->content_bn) !== '';
+            return redirect(($toBn ? '/bn/blog/' : '/blog/') . $slug, 301);
+        }
+
+        $item = Medicine::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
+        $postSlugs = \App\Models\Post::whereNotNull('slug')->pluck('slug')->all();
+        $related = Medicine::active()
+            ->where('id', '!=', $item->id)
+            ->when($postSlugs, fn ($q) => $q->whereNotIn('slug', $postSlugs))
+            ->orderBy('sort_order')->take(4)->get();
+
         $medSlug = $item->slug ?: $item->id;
         $canonicalUrl = $isBn ? url("bn/medicines/{$medSlug}") : url("medicines/{$medSlug}");
         $hreflang = [

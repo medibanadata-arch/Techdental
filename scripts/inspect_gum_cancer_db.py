@@ -8,3 +8,4 @@ print("gum-cancer-symptoms-causes:")
 print("uses_items:", row[2])
 print("warnings:", row[3])
 print("side_effects_items:", row[4])
+

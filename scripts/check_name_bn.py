@@ -9,3 +9,4 @@ rows = cursor.fetchall()
 print("Medicines without name_bn:", len(rows))
 for r in rows:
     print(r)
+

@@ -161,6 +161,7 @@ Route::get('/service/{slug}', [ServiceController::class, 'publicShow'])->name('s
 
 // ---------- Blog (public) ----------
 Route::get('/blog', [BlogController::class, 'publicIndex'])->name('blog.public');
+Route::get('/bn/blog', [BlogController::class, 'publicIndex'])->name('blog.public.bn');
 Route::get('/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.public.show');
 Route::get('/bn/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.public.show.bn');
 
@@ -172,15 +173,27 @@ Route::get('/blog-en/dental/{slug?}', function ($slug = null) {
     return $slug ? redirect("/blog/{$slug}", 301) : redirect('/blog', 301);
 });
 Route::get('/bn/blog/dental/{slug?}', function ($slug = null) {
-    return $slug ? redirect("/bn/blog/{$slug}", 301) : redirect('/blog', 301);
+    return $slug ? redirect("/bn/blog/{$slug}", 301) : redirect('/bn/blog', 301);
+});
+Route::get('/bn/dentistry/{slug}', function ($slug) {
+    return redirect("/bn/blog/{$slug}", 301);
 });
 
 // ---------- 301 Redirects for Old WordPress Medicine & Medical URLs ----------
 Route::get('/medicine/{slug}', function ($slug) {
     return redirect("/medicines/{$slug}", 301);
 });
+Route::get('/bn/medicine/{slug}', function ($slug) {
+    return redirect("/bn/medicines/{$slug}", 301);
+});
+Route::get('/bn/medication/{slug}', function ($slug) {
+    return redirect("/bn/medicines/{$slug}", 301);
+});
 Route::get('/blog-en/medical/{slug?}', function ($slug = null) {
     return $slug ? redirect("/medicines/{$slug}", 301) : redirect('/medicines', 301);
+});
+Route::get('/bn/blog/medical/{slug?}', function ($slug = null) {
+    return $slug ? redirect("/bn/medicines/{$slug}", 301) : redirect('/medicines', 301);
 });
 Route::get('/physician/{slug}', function ($slug) {
     return redirect("/blog/{$slug}", 301);
