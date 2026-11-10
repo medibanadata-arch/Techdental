@@ -51,6 +51,8 @@ export default function MediaIndex({ media }: Props) {
     const [filterDate, setFilterDate] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [bulkDeleting, setBulkDeleting] = useState(false);
     const [copied, setCopied] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -180,9 +182,49 @@ export default function MediaIndex({ media }: Props) {
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this file from local storage?')) {
             router.delete(route('media.destroy', id), {
-                onSuccess: () => setSelectedMedia(null),
+                onSuccess: () => {
+                    setSelectedMedia(null);
+                    setSelectedIds((prev) => prev.filter((x) => x !== id));
+                },
             });
         }
+    };
+
+    const toggleSelect = (id: number) => {
+        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    };
+
+    const allFilteredSelected =
+        filteredMedia.length > 0 && filteredMedia.every((item) => selectedIds.includes(item.id));
+
+    const toggleSelectAll = () => {
+        if (allFilteredSelected) {
+            const visible = new Set(filteredMedia.map((item) => item.id));
+            setSelectedIds((prev) => prev.filter((id) => !visible.has(id)));
+        } else {
+            setSelectedIds((prev) => Array.from(new Set([...prev, ...filteredMedia.map((item) => item.id)])));
+        }
+    };
+
+    const handleBulkDelete = () => {
+        if (selectedIds.length === 0 || bulkDeleting) return;
+        const count = selectedIds.length;
+        if (!confirm(`Delete ${count} selected file${count > 1 ? 's' : ''} permanently from local storage?`)) return;
+
+        setBulkDeleting(true);
+        router.delete(route('admin.api.media.bulk-destroy'), {
+            data: { ids: selectedIds },
+            preserveScroll: true,
+            onSuccess: () => {
+                setSelectedIds([]);
+                setSelectedMedia(null);
+                setBulkDeleting(false);
+            },
+            onError: () => {
+                setBulkDeleting(false);
+                alert('Failed to delete the selected files. Please try again.');
+            },
+        });
     };
 
     const uploadFiles = (files: File[]) => {
@@ -332,20 +374,81 @@ export default function MediaIndex({ media }: Props) {
                     </div>
                 </div>
 
+                {/* Selection & Bulk Actions Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-3.5 py-2.5 rounded-2xl border border-gray-200/80 shadow-xs">
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={toggleSelectAll}
+                            className="inline-flex items-center gap-2 text-xs font-semibold text-gray-700 hover:text-gray-900 transition cursor-pointer"
+                        >
+                            <span
+                                className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${
+                                    allFilteredSelected
+                                        ? 'bg-rose-600 border-rose-600 text-white'
+                                        : 'bg-white border-gray-300 text-transparent'
+                                }`}
+                            >
+                                <Check size={13} strokeWidth={3} />
+                            </span>
+                            <span>{allFilteredSelected ? 'Deselect all' : 'Select all'}</span>
+                        </button>
+                        <span className="text-xs text-gray-400">
+                            {selectedIds.length > 0
+                                ? `${selectedIds.length} selected`
+                                : `${filteredMedia.length} file${filteredMedia.length === 1 ? '' : 's'}`}
+                        </span>
+                    </div>
+
+                    {selectedIds.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={handleBulkDelete}
+                            disabled={bulkDeleting}
+                            className="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            <Trash2 size={14} />
+                            <span>{bulkDeleting ? 'Deleting...' : `Delete selected (${selectedIds.length})`}</span>
+                        </button>
+                    )}
+                </div>
+
                 {/* Main Content Area */}
                 {viewMode === 'grid' ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5">
                         {filteredMedia.map((item) => {
                             const mediaType = getMediaType(item);
+                            const isSelected = selectedIds.includes(item.id);
 
                             return (
                                 <div
                                     key={item.id}
                                     onClick={() => openMediaDetails(item)}
                                     className={`relative aspect-square rounded-2xl overflow-hidden bg-slate-900 border transition-all cursor-pointer group hover:shadow-md flex items-center justify-center ${
-                                        selectedMedia?.id === item.id ? 'ring-3 ring-rose-500 border-transparent' : 'border-gray-200/80 hover:border-gray-300'
+                                        isSelected
+                                            ? 'ring-3 ring-rose-500 border-transparent'
+                                            : selectedMedia?.id === item.id
+                                                ? 'ring-3 ring-rose-300 border-transparent'
+                                                : 'border-gray-200/80 hover:border-gray-300'
                                     }`}
                                 >
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleSelect(item.id);
+                                        }}
+                                        aria-label={isSelected ? 'Deselect file' : 'Select file'}
+                                        title={isSelected ? 'Deselect' : 'Select'}
+                                        className={`absolute top-2 left-2 z-20 w-6 h-6 rounded-md border flex items-center justify-center shadow-sm transition-all cursor-pointer ${
+                                            isSelected
+                                                ? 'bg-rose-600 border-rose-600 text-white opacity-100'
+                                                : 'bg-white/90 border-gray-300 text-transparent opacity-0 group-hover:opacity-100 hover:text-gray-400'
+                                        }`}
+                                    >
+                                        <Check size={14} strokeWidth={3} />
+                                    </button>
+
                                     {mediaType === 'image' && (
                                         <img
                                             src={item.url}
@@ -395,6 +498,20 @@ export default function MediaIndex({ media }: Props) {
                         <table className="w-full text-left text-xs text-gray-600">
                             <thead className="bg-gray-50/80 text-gray-700 font-bold border-b border-gray-200 uppercase tracking-wider text-[11px]">
                                 <tr>
+                                    <th className="p-3 w-10">
+                                        <button
+                                            type="button"
+                                            onClick={toggleSelectAll}
+                                            aria-label="Select all files"
+                                            className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${
+                                                allFilteredSelected
+                                                    ? 'bg-rose-600 border-rose-600 text-white'
+                                                    : 'bg-white border-gray-300 text-transparent hover:border-gray-400'
+                                            }`}
+                                        >
+                                            <Check size={13} strokeWidth={3} />
+                                        </button>
+                                    </th>
                                     <th className="p-3 w-16">Preview</th>
                                     <th className="p-3">Title / File</th>
                                     <th className="p-3">Type</th>
@@ -406,9 +523,27 @@ export default function MediaIndex({ media }: Props) {
                             <tbody className="divide-y divide-gray-100">
                                 {filteredMedia.map((item) => {
                                     const mediaType = getMediaType(item);
+                                    const isSelected = selectedIds.includes(item.id);
 
                                     return (
-                                        <tr key={item.id} className="hover:bg-gray-50/60 transition-colors">
+                                        <tr
+                                            key={item.id}
+                                            className={`transition-colors ${isSelected ? 'bg-rose-50/50' : 'hover:bg-gray-50/60'}`}
+                                        >
+                                            <td className="p-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleSelect(item.id)}
+                                                    aria-label={isSelected ? 'Deselect file' : 'Select file'}
+                                                    className={`w-5 h-5 rounded-md border flex items-center justify-center transition cursor-pointer ${
+                                                        isSelected
+                                                            ? 'bg-rose-600 border-rose-600 text-white'
+                                                            : 'bg-white border-gray-300 text-transparent hover:border-gray-400'
+                                                    }`}
+                                                >
+                                                    <Check size={13} strokeWidth={3} />
+                                                </button>
+                                            </td>
                                             <td className="p-3">
                                                 {mediaType === 'image' && (
                                                     <img

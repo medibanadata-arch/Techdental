@@ -1199,7 +1199,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               {visibleServices.map((svc, i) => (
                 <Link
                   key={svc.id || i}
-                  href={`/services/${svc.slug || svc.id}`}
+                  href={`/service/${svc.slug || svc.id}`}
                   className="flex items-center justify-between p-3.5 mb-3 border border-slate-100 rounded-2xl bg-white shadow-sm hover:shadow-md hover:border-slate-200 hover:-translate-y-0.5 transition-all group cursor-pointer"
                 >
                   <div className="flex items-center gap-4">

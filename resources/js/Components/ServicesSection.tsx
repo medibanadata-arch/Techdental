@@ -68,7 +68,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
             const price = '৳ ' + String(service.price || '1,500').replace(/^[৳\sBDTtk.]+/i, '').trim();
             const image = service.image || service.hero_main || 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=200';
             const slug = service.slug || service.id;
-            const serviceUrl = `/services/${slug}`;
+            const serviceUrl = `/service/${slug}`;
 
             return (
               <Link

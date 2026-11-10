@@ -184,7 +184,7 @@ export default function ServicesAdminIndex({ data = [] }: Props) {
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <a
-                                                href={`/services/${s.slug}`}
+                                                href={`/service/${s.slug}`}
                                                 target="_blank"
                                                 className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition"
                                                 title="View Public Page"

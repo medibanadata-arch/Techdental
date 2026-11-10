@@ -417,17 +417,44 @@ class MediaController extends Controller
     public function destroy($id)
     {
         $media = Media::findOrFail($id);
+        $this->deleteMediaFile($media);
+        $media->delete();
 
-        // Delete physical file from public/uploads if local file exists
+        return redirect()->route('media.index')->with('success', 'Media deleted successfully');
+    }
+
+    /** Delete several media items (files + records) in one request. */
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ]);
+
+        $items = Media::whereIn('id', $validated['ids'])->get();
+        $deleted = 0;
+
+        foreach ($items as $media) {
+            $this->deleteMediaFile($media);
+            $media->delete();
+            $deleted++;
+        }
+
+        $message = $deleted === 1
+            ? '1 media file deleted successfully'
+            : "{$deleted} media files deleted successfully";
+
+        return redirect()->route('media.index')->with('success', $message);
+    }
+
+    /** Remove the physical file when it lives in the local /uploads directory. */
+    private function deleteMediaFile(Media $media): void
+    {
         if (str_starts_with($media->url, '/uploads/')) {
             $filePath = public_path(ltrim($media->url, '/'));
             if (File::exists($filePath)) {
                 File::delete($filePath);
             }
         }
-
-        $media->delete();
-
-        return redirect()->route('media.index')->with('success', 'Media deleted successfully');
     }
 }

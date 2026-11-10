@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link, Head } from "@inertiajs/react";
+import { Link, Head, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import { useLanguage } from "@/utils/useLanguage";
-import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, HelpCircle, ShieldCheck, Clock, CalendarCheck, MapPin, Phone, BadgeCheck } from "lucide-react";
 
 interface FaqItem {
   q: string;
@@ -145,6 +146,8 @@ export default function BlogPublicSingle({
   const [tocOpen, setTocOpen] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { isBn, setLanguage } = useLanguage();
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
 
   useEffect(() => {
     if (typeof is_bn === 'boolean') {
@@ -222,6 +225,73 @@ export default function BlogPublicSingle({
 
   const preparedHtml = useMemo(() => injectTocIds(bodyHtml), [bodyHtml]);
   const tocItems = useMemo(() => extractToc(bodyHtml, hasFaqs), [bodyHtml, hasFaqs]);
+
+  const blogPath = `/blog/${post?.slug || ''}`;
+  const bnBlogPath = `/bn/blog/${post?.slug || ''}`;
+  const seoPath = isBn ? bnBlogPath : blogPath;
+  const canonicalUrl = `${siteUrl}${seoPath}`;
+  const seoImage = post?.img || '/images/og-default.jpg';
+
+  const postJsonLd = useMemo(() => {
+    const url = canonicalUrl;
+    const published = post?.published_at ? new Date(post.published_at).toISOString() : undefined;
+    const graph: any[] = [
+      {
+        '@type': 'BlogPosting',
+        '@id': `${url}#article`,
+        headline: activeTitle || 'Dental Article',
+        description: metaDescription || '',
+        url,
+        ...(seoImage ? { image: /^https?:\/\//i.test(seoImage) ? seoImage : `${siteUrl}${seoImage}` } : {}),
+        ...(published ? { datePublished: published, dateModified: published } : {}),
+        inLanguage: isBn ? 'bn-BD' : 'en-US',
+        ...(post?.category ? { articleSection: isBn ? (post.category_bn || post.category) : post.category } : {}),
+        author: {
+          '@type': 'Person',
+          name: authorName,
+          ...(post?.author_bio ? { description: authorBio } : {}),
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Tech Dental Care',
+          url: siteUrl,
+        },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${url}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: isBn ? 'হোম' : 'Home', item: siteUrl },
+          { '@type': 'ListItem', position: 2, name: isBn ? 'ডেন্টাল ব্লগ' : 'Dental Blog', item: `${siteUrl}${isBn ? '/bn/blog' : '/blog'}` },
+          { '@type': 'ListItem', position: 3, name: activeTitle || 'Article', item: url },
+        ],
+      },
+    ];
+
+    if (hasFaqs) {
+      const questions = faqList
+        .map((f) => ({
+          q: isBn ? f.q_bn : f.q,
+          a: isBn ? f.a_bn : f.a,
+        }))
+        .filter((f) => f.q && f.a)
+        .map((f) => ({
+          '@type': 'Question',
+          name: cleanQuestion(f.q),
+          acceptedAnswer: { '@type': 'Answer', text: (f.a || '').replace(/<[^>]+>/g, ' ').trim() },
+        }));
+      if (questions.length) {
+        graph.push({
+          '@type': 'FAQPage',
+          '@id': `${url}#faq`,
+          mainEntity: questions,
+        });
+      }
+    }
+
+    return { '@context': 'https://schema.org', '@graph': graph };
+  }, [activeTitle, authorBio, authorName, canonicalUrl, faqList, hasFaqs, isBn, metaDescription, post, seoImage, siteUrl]);
 
   if (!post) return null;
 

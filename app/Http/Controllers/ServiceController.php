@@ -90,8 +90,9 @@ class ServiceController extends Controller
 
     // ---------- Public pages ----------
 
-    public function publicIndex()
+    public function publicIndex(Request $request)
     {
+        $isBn = $request->is('bn/*');
         $services = Service::where('status', 'Published')->orderBy('rank_order')->get();
         $categories = Service::where('status', 'Published')->whereNotNull('category')->distinct()->pluck('category');
         return Inertia::render('Services/PublicIndex', [
@@ -99,28 +100,58 @@ class ServiceController extends Controller
             'categories' => $categories,
             'locations' => \App\Models\Location::orderBy('sort_order')->get(),
             'nav_menu' => \App\Models\NavMenu::first(),
+            'is_bn' => $isBn,
         ]);
     }
 
-    public function publicShow($slug)
+    /**
+     * Resolve a service by its English or Bangla slug, including slugs that
+     * existed before the URL structure was aligned with the old sitemap.
+     */
+    private function resolveService(string $slug, bool $isBn): ?Service
     {
-        $item = null;
         if (is_numeric($slug)) {
-            $item = Service::find($slug);
+            return Service::find($slug);
         }
-        if (!$item) {
-            $item = Service::where('slug', $slug)->first();
+
+        if ($isBn) {
+            $item = Service::where('slug_bn', $slug)->first();
+            if ($item) {
+                return $item;
+            }
+            // Allow an English slug on a /bn/ URL and redirect to the Bangla one.
+            return Service::where('slug', $slug)->first();
         }
-        if (!$item) {
-            $item = Service::where('slug', 'like', "%{$slug}%")->first();
+
+        $item = Service::where('slug', $slug)->first();
+        if ($item) {
+            return $item;
         }
-        if (!$item) {
-            $cleanTerm = str_replace('-', ' ', $slug);
-            $item = Service::where('title', 'like', "%{$cleanTerm}%")->first();
+
+        foreach (Service::whereNotNull('slug_legacy')->get() as $service) {
+            $legacy = json_decode((string) $service->slug_legacy, true) ?: [];
+            if (in_array($slug, $legacy, true)) {
+                return $service;
+            }
         }
-        if (!$item) {
-            // Graceful fallback to first published service
-            $item = Service::where('status', 'Published')->first() ?: Service::firstOrFail();
+
+        return null;
+    }
+
+    public function publicShow(Request $request, $slug)
+    {
+        $isBn = $request->is('bn/*');
+        $item = $this->resolveService((string) $slug, $isBn);
+
+        if (!$item || ($isBn && trim((string) $item->details_html_bn) === '')) {
+            abort(404);
+        }
+
+        $canonicalSlug = $isBn ? ($item->slug_bn ?: $item->slug) : $item->slug;
+        $prefix = $isBn ? '/bn/service/' : '/service/';
+
+        if ((string) $slug !== (string) $canonicalSlug) {
+            return redirect($prefix . $canonicalSlug, 301);
         }
 
         $doctors = \App\Models\Doctor::orderBy('rank_order')->get();
@@ -132,6 +163,31 @@ class ServiceController extends Controller
             'locations' => $locations,
             'related' => $related,
             'nav_menu' => \App\Models\NavMenu::first(),
+            'is_bn' => $isBn,
+            'language_urls' => [
+                'en' => '/service/' . $item->slug,
+                'bn' => $item->slug_bn ? '/bn/service/' . $item->slug_bn : null,
+            ],
         ]);
+    }
+
+    /** 301 old /services/{slug} URLs to the sitemap-aligned /service/{slug}. */
+    public function legacyShow($slug)
+    {
+        $item = $this->resolveService((string) $slug, false);
+        if (!$item) {
+            abort(404);
+        }
+        return redirect('/service/' . $item->slug, 301);
+    }
+
+    /** 301 old /bn/services/{slug} URLs to /bn/service/{slug}. */
+    public function legacyShowBn($slug)
+    {
+        $item = $this->resolveService((string) $slug, true);
+        if (!$item || trim((string) $item->details_html_bn) === '') {
+            abort(404);
+        }
+        return redirect('/bn/service/' . ($item->slug_bn ?: $item->slug), 301);
     }
 }

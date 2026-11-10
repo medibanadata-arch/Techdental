@@ -1,13 +1,16 @@
-import React, { useState, useMemo } from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useState } from "react";
+import { Link, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 
 interface ServiceItem {
   id: number;
   slug: string;
+  slug_bn?: string;
   title: string;
+  title_bn?: string;
   category?: string;
   price: string;
   price_suffix: string;
@@ -20,14 +23,49 @@ interface Props extends PageProps {
   categories?: string[];
   locations?: any[];
   nav_menu?: any;
+  is_bn?: boolean;
 }
 
-export default function ServicesPublicIndex({ services = [], locations = [], nav_menu }: Props) {
+export default function ServicesPublicIndex({ services = [], locations = [], nav_menu, is_bn = false }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("");
+  const isBn = Boolean(is_bn);
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+
+  const title = isBn
+    ? 'আমাদের ডেন্টাল সেবা ও চিকিৎসা'
+    : 'Dental Services & Treatments in Dhaka';
+  const description = isBn
+    ? 'টেক ডেন্টালের সব ডেন্টাল সেবা এক জায়গায়—ইমপ্লান্ট, ব্রেসেস, রুট ক্যানেল, ফিলিং, ক্যাপ, স্কেলিং ও আরও অনেক কিছু। ঢাকার মিরপুর, উত্তরা, বাদ্দা ও যাত্রাবাড়ীতে বিশেষজ্ঞ চিকিৎসা।'
+    : 'Explore every dental treatment at Tech Dental Care — implants, braces, root canal, fillings, crowns, scaling and more, across Mirpur, Uttara, Badda and Jatrabari in Dhaka.';
+
+  const serviceLink = (s: ServiceItem) =>
+    isBn ? `/bn/service/${s.slug_bn || s.slug}` : `/service/${s.slug}`;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 antialiased overflow-x-hidden w-full font-sans">
-      <Head title="Our Dental Services &amp; Treatments — Tech Dental" />
+      <Seo
+        title={title}
+        description={description}
+        path={isBn ? '/bn/services' : '/services'}
+        alternates={{
+          en: `${siteUrl}/services`,
+          bn: `${siteUrl}/bn/services`,
+          'x-default': `${siteUrl}/services`,
+        }}
+        noSuffix={isBn}
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": title,
+          "itemListElement": services.map((s, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "name": isBn ? (s.title_bn || s.title) : s.title,
+            "url": `${siteUrl}${serviceLink(s)}`,
+          })),
+        }}
+      />
 
       {/* 1. Header with Brand & Synchronized Branch Selector & Navigation Drawer */}
       <TopHeader
@@ -35,13 +73,14 @@ export default function ServicesPublicIndex({ services = [], locations = [], nav
         selectedBranch={selectedBranch}
         onBranchChange={setSelectedBranch}
         navMenu={nav_menu}
+        showLanguageSwitcher={true}
       />
 
       {/* Top Header Bar */}
       <header className="bg-[#8f163b] text-white w-full py-4 shadow-md">
         <div className="w-full px-4 md:px-8 flex justify-center items-center">
           <h1 className="text-xl md:text-2xl font-bold tracking-wide uppercase">
-            Our Services
+            {isBn ? 'আমাদের সেবাসমূহ' : 'Our Services'}
           </h1>
         </div>
       </header>
@@ -53,13 +92,13 @@ export default function ServicesPublicIndex({ services = [], locations = [], nav
           {services.map((s) => (
             <Link
               key={s.id}
-              href={`/services/${s.slug}`}
+              href={serviceLink(s)}
               className="service-card bg-white rounded-xl shadow-xs border border-gray-100 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 group"
             >
               <div className="card-img-wrapper h-32 sm:h-48 md:h-56 w-full relative bg-gray-100 overflow-hidden">
                 <img
                   src={s.hero_main || "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=800"}
-                  alt={s.title}
+                  alt={isBn ? (s.title_bn || s.title) : s.title}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&q=80&w=800";
                   }}
@@ -71,7 +110,7 @@ export default function ServicesPublicIndex({ services = [], locations = [], nav
                   {s.price || "৳ 1,000.00"}
                 </span>
                 <h2 className="text-gray-900 font-semibold text-sm md:text-lg leading-snug group-hover:text-[#8f163b] transition-colors">
-                  {s.title}
+                  {isBn ? (s.title_bn || s.title) : s.title}
                 </h2>
               </div>
             </Link>

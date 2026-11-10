@@ -30,6 +30,31 @@ class BlogController extends Controller
     }
 
     /** Public single article — /blog/{slug} & /bn/blog/{slug} */
+    /** Public "Blog > Others" listing — /blog/others & /bn/blog/others */
+    public function publicOthers(Request $request)
+    {
+        $posts = Post::where(function ($q) {
+                $q->whereNull('status')->orWhereIn('status', ['Published', 'published', '1', 1]);
+            })
+            ->where(function ($q) {
+                $q->whereNull('category')->orWhere('category', '!=', 'Dental');
+            })
+            ->where(function ($q) {
+                $q->whereNull('category_id')->orWhere('category_id', '!=', 7);
+            })
+            ->orderBy('id', 'asc')
+            ->get();
+
+        return Inertia::render('Blog/PublicIndex', [
+            'posts' => $posts,
+            'locations' => \App\Models\Location::orderBy('sort_order')->get(),
+            'nav_menu' => \App\Models\NavMenu::first(),
+            'is_bn' => $request->is('bn/*'),
+            'page_title' => 'Other Articles & Guides',
+            'page_subtitle' => 'Health news, case studies, clinic updates and patient guides from Tech Dental.',
+        ]);
+    }
+
     public function publicShow(Request $request, $slug)
     {
         // 301 redirects for previous long slugs to clean original canonical slugs

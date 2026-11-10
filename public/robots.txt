@@ -1,2 +1,20 @@
 User-agent: *
-Disallow:
+Allow: /
+
+# Backend and account areas
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /confirm-password
+Disallow: /appointments
+Disallow: /profile
+Disallow: /api/
+
+# Media uploads are public assets, keep them crawlable for image search
+Allow: /uploads/
+
+Sitemap: https://techdentalcare.com/sitemap.xml

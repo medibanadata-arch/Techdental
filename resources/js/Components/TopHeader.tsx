@@ -14,6 +14,8 @@ interface TopHeaderProps {
   headerLogo?: string;
   brandNameLine1?: string;
   brandNameLine2?: string;
+  /** Explicit language URLs for pages whose slug changes between languages (e.g. services). */
+  languageUrls?: { en: string; bn: string | null };
 }
 
 interface DrawerMenuItemProps {
@@ -127,6 +129,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   headerLogo: propLogo,
   brandNameLine1: propLine1,
   brandNameLine2: propLine2,
+  languageUrls,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openDrawerMenuKey, setOpenDrawerMenuKey] = useState<string | number | null>(null);
@@ -198,6 +201,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       pathWithoutBn.startsWith('/medicines/') ||
       pathWithoutBn === '/medicine' ||
       pathWithoutBn.startsWith('/medicine/') ||
+      pathWithoutBn === '/services' ||
+      pathWithoutBn.startsWith('/services/') ||
+      pathWithoutBn === '/service' ||
+      pathWithoutBn.startsWith('/service/') ||
       pathWithoutBn === '/blog' ||
       pathWithoutBn.startsWith('/blog/') ||
       pathWithoutBn === '/dental-guides' ||
@@ -286,8 +293,24 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     const singleBlogMatch = cleanPath.match(/^(?:\/bn)?\/blog\/([^\/]+)$/i);
     const singleMedicineMatch = cleanPath.match(/^(?:\/bn)?\/medicines\/([^\/]+)$/i);
     const isPatientRights = cleanPath.match(/^(?:\/bn)?\/patient-rights(?:\/.*)?$/i);
+    const isServiceList = cleanPath === '/services' || cleanPath === '/bn/services';
+    const singleServiceMatch = cleanPath.match(/^(?:\/bn)?\/services?\/([^\/]+)$/i);
 
-    if (isPatientRights) {
+    if (isServiceList) {
+      router.visit(targetLang === 'bn' ? '/bn/services' : '/services');
+    } else if (singleServiceMatch) {
+      if (languageUrls) {
+        const target = targetLang === 'bn' ? languageUrls.bn : languageUrls.en;
+        if (target) router.visit(target);
+      } else {
+        const targetUrl = targetLang === 'bn'
+          ? `/bn/services/${singleServiceMatch[1]}`
+          : `/services/${singleServiceMatch[1]}`;
+        if (cleanPath !== targetUrl.toLowerCase()) {
+          router.visit(targetUrl);
+        }
+      }
+    } else if (isPatientRights) {
       const targetUrl = targetLang === 'bn' ? '/bn/patient-rights' : '/patient-rights';
       if (cleanPath !== targetUrl.toLowerCase()) {
         router.visit(targetUrl);
@@ -385,6 +408,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       { title: 'Blog', url: '#', level: 0 },
       { title: 'Dental', url: '/blog', level: 1 },
       { title: 'Medicine', url: '/medicines', level: 1 },
+      { title: 'Others', url: '/blog/others', level: 1 },
       { title: 'About us', url: '#', level: 0 },
       { title: 'About Tech Dental', url: '/about', level: 1 },
       { title: 'Corporate Team', url: '/team', level: 1 },

@@ -10,7 +10,15 @@ class MedicineController extends Controller
 {
     public function index()
     {
-        $data = Medicine::orderBy('sort_order')->get();
+        // The Medicines list must only contain real medicines. Older imports also
+        // put blog articles/guides in this table; those are managed under
+        // Blog > Others as posts, so hide the duplicates here.
+        $postSlugs = \App\Models\Post::whereNotNull('slug')->pluck('slug')->all();
+
+        $data = Medicine::orderBy('sort_order')
+            ->when($postSlugs, fn ($q) => $q->whereNotIn('slug', $postSlugs))
+            ->get();
+
         return Inertia::render('Medicines/AdminIndex', ['data' => $data]);
     }
 

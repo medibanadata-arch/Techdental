@@ -28,6 +28,9 @@ interface Props extends PageProps {
     posts?: PostItem[];
     data?: PostItem[];
     counts?: Counts;
+    pageTitle?: string;
+    badgeLabel?: string;
+    isOthers?: boolean;
 }
 
 export default function PostsIndex(props: Props) {
@@ -38,6 +41,8 @@ export default function PostsIndex(props: Props) {
         drafts: posts.filter(p => p.status === 'draft').length,
         trash: posts.filter(p => p.status === 'trash').length,
     };
+    const pageTitle = props.pageTitle || 'Blog & Articles';
+    const categories = Array.from(new Set(posts.map(p => p.category).filter(Boolean))) as string[];
     const [activeTab, setActiveTab] = useState<'all' | 'published' | 'drafts' | 'trash'>('all');
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -129,7 +134,7 @@ export default function PostsIndex(props: Props) {
 
     return (
         <AdminLayout>
-            <Head title="Dental Blog & Guides Management - Tech Dental" />
+            <Head title={`${pageTitle} - Tech Dental`} />
 
             <div className="space-y-5 font-sans text-slate-800">
                 {/* 1. Header: Title + Add Post Button */}
@@ -141,10 +146,10 @@ export default function PostsIndex(props: Props) {
                         <div>
                             <div className="flex items-center gap-2">
                                 <h1 className="text-xl font-extrabold text-gray-900">
-                                    Blog &amp; Articles
+                                    {pageTitle}
                                 </h1>
                                 <span className="bg-rose-100 text-[#800038] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
-                                    {posts.length} Blogs
+                                    {props.badgeLabel || `${posts.length} Blogs`}
                                 </span>
                             </div>
                         </div>
@@ -152,13 +157,13 @@ export default function PostsIndex(props: Props) {
 
                     <div className="flex flex-wrap items-center gap-3">
                         <a
-                            href="/blog"
+                            href={props.isOthers ? '/blog/others' : '/blog'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-2xs"
                         >
                             <ExternalLink size={14} />
-                            View Public Blog
+                            {props.isOthers ? 'View Public Others' : 'View Public Blog'}
                         </a>
                         <Link
                             href={route('posts.create')}
@@ -280,9 +285,9 @@ export default function PostsIndex(props: Props) {
                             className="bg-white border border-slate-300 text-slate-700 text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-rose-500 font-medium cursor-pointer"
                         >
                             <option value="All Categories">All Categories</option>
-                            <option value="Dental Care">Dental Care</option>
-                            <option value="Dental Tips">Dental Tips</option>
-                            <option value="Oral Hygiene">Oral Hygiene</option>
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>{cat}</option>
+                            ))}
                         </select>
                     </div>
 

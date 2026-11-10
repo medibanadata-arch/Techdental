@@ -144,7 +144,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     submenu: [
                         {
                             name: 'Dental Blog & Guides',
-                            active: currentRoute?.startsWith('posts.'),
+                            active: currentRoute?.startsWith('posts.') && currentRoute !== 'posts.others',
                             children: [
                                 { name: 'All posts', href: route('posts.index'), active: currentRoute === 'posts.index' || currentRoute?.startsWith('posts.edit') || currentRoute?.startsWith('posts.show') },
                                 { name: 'Add new', href: route('posts.create'), active: currentRoute === 'posts.create' },
@@ -156,6 +156,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             name: 'Medicines',
                             href: route('medicines.admin'),
                             active: currentRoute?.startsWith('medicines.admin'),
+                        },
+                        {
+                            name: 'Others',
+                            href: route('posts.others'),
+                            active: currentRoute === 'posts.others',
                         },
                     ]
                 },

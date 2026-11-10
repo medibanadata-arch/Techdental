@@ -106,6 +106,9 @@ export default function MedicinesAdminIndex({ data = [] }: Props) {
                                     {data.length} Medicines
                                 </span>
                             </div>
+                            <p className="text-[11px] text-gray-500 mt-1">
+                                Only medicines are listed here. Articles &amp; guides are under <span className="font-semibold text-gray-700">Blog &rarr; Others</span>.
+                            </p>
                         </div>
                     </div>
 

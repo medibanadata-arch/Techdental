@@ -24,6 +24,41 @@ class PostController extends Controller
         ]);
     }
 
+    /**
+     * Blog > Others
+     *
+     * Every article that is not part of the dental blog category and is not a
+     * medicine. These used to be mixed into the Medicines table; they are
+     * managed here as normal posts instead.
+     */
+    public function others()
+    {
+        $posts = Post::where(function ($q) {
+                $q->whereNull('category')->orWhere('category', '!=', 'Dental');
+            })
+            ->where(function ($q) {
+                $q->whereNull('category_id')->orWhere('category_id', '!=', 7);
+            })
+            ->latest()
+            ->get();
+
+        $counts = [
+            'all' => $posts->where('status', '!=', 'trash')->count(),
+            'published' => $posts->where('status', 'published')->count(),
+            'drafts' => $posts->where('status', 'draft')->count(),
+            'trash' => $posts->where('status', 'trash')->count(),
+        ];
+
+        return Inertia::render('Posts/Index', [
+            'posts' => $posts,
+            'data' => $posts,
+            'counts' => $counts,
+            'pageTitle' => 'Others — Articles, News & Case Studies',
+            'badgeLabel' => $counts['all'] . ' Articles',
+            'isOthers' => true,
+        ]);
+    }
+
     public function create()
     {
         $mediaList = \App\Models\Media::latest()->get();

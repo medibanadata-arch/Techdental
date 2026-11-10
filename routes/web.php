@@ -27,6 +27,7 @@ use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\PatientRightsController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\PaymentMethodsController;
+use App\Http\Controllers\SitemapController;
 use Inertia\Inertia;
 
 $homeHandler = function () {
@@ -74,6 +75,9 @@ $homeHandler = function () {
 
 Route::get('/', $homeHandler)->name('home');
 Route::get('/home', $homeHandler)->name('home.alias');
+
+// SEO: XML sitemap (English + Bangla URLs with hreflang alternates)
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 Route::get('/dashboard', function () {
     return \Inertia\Inertia::render('Dashboard');
@@ -123,11 +127,15 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('posts/{id}/restore', [PostController::class, 'restore'])->name('posts.restore');
     Route::delete('posts/{id}/force-delete', [PostController::class, 'forceDelete'])->name('posts.force-delete');
 
+    // Blog > Others: non-medicine articles that are not part of the dental blog
+    Route::get('posts/others', [PostController::class, 'others'])->name('posts.others');
+
     // Resources
     Route::resource('featured-images', FeaturedImageController::class)->except(['show']);
     Route::get('media/{id}/download', [MediaController::class, 'download'])->name('media.download');
     Route::get('admin-api/media', [MediaController::class, 'apiIndex'])->name('admin.api.media');
     Route::post('admin-api/media/upload', [MediaController::class, 'apiUpload'])->name('admin.api.media.upload');
+    Route::delete('admin-api/media/bulk-delete', [MediaController::class, 'bulkDestroy'])->name('admin.api.media.bulk-destroy');
     Route::post('admin-api/media/{id}/rotate', [MediaController::class, 'rotate'])->name('admin.api.media.rotate');
     Route::resource('media', MediaController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('doctors/reorder', [DoctorController::class, 'reorder'])->name('doctors.reorder');
@@ -161,13 +169,19 @@ Route::get('/medicines/{slug}', [MedicineController::class, 'publicShow'])->name
 Route::get('/bn/medicines/{slug}', [MedicineController::class, 'publicShow'])->name('medicines.public.show.bn');
 
 // ---------- Services ----------
+// Canonical URLs follow the old site's product sitemap: /service/{slug}/ and /bn/service/{slug}/
 Route::get('/services', [ServiceController::class, 'publicIndex'])->name('services.public');
-Route::get('/services/{slug}', [ServiceController::class, 'publicShow'])->name('services.public.show');
-Route::get('/service/{slug}', [ServiceController::class, 'publicShow'])->name('service.alias.show');
+Route::get('/service/{slug}', [ServiceController::class, 'publicShow'])->name('service.public.show');
+Route::get('/services/{slug}', [ServiceController::class, 'legacyShow'])->name('services.public.show');
+Route::get('/bn/services', [ServiceController::class, 'publicIndex'])->name('services.public.bn');
+Route::get('/bn/service/{slug}', [ServiceController::class, 'publicShow'])->name('service.public.bn.show');
+Route::get('/bn/services/{slug}', [ServiceController::class, 'legacyShowBn'])->name('services.public.bn.show');
 
 // ---------- Blog (public) ----------
 Route::get('/blog', [BlogController::class, 'publicIndex'])->name('blog.public');
 Route::get('/bn/blog', [BlogController::class, 'publicIndex'])->name('blog.public.bn');
+Route::get('/blog/others', [BlogController::class, 'publicOthers'])->name('blog.public.others');
+Route::get('/bn/blog/others', [BlogController::class, 'publicOthers'])->name('blog.public.others.bn');
 Route::get('/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.public.show');
 Route::get('/bn/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.public.show.bn');
 

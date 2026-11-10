@@ -12,7 +12,6 @@
         <title inertia>{{ $companyName }}</title>
         <link rel="icon" type="image/x-icon" href="{{ $faviconUrl }}">
         <link rel="shortcut icon" href="{{ $faviconUrl }}">
-        <meta name="description" content="Tech Dental Care provides advanced, painless dental treatments across Mirpur, Badda, Uttara, and Jatrabari branches in Dhaka.">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <!-- Fonts & Icons -->

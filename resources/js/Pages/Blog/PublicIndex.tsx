@@ -22,6 +22,8 @@ interface Props extends PageProps {
   posts: PostItem[];
   locations?: any[];
   nav_menu?: any;
+  page_title?: string;
+  page_subtitle?: string;
 }
 
 const formatDate = (d?: string, isBn = false) => {
@@ -34,7 +36,7 @@ const formatDate = (d?: string, isBn = false) => {
   }
 };
 
-export default function BlogPublicIndex({ posts = [], locations = [], nav_menu }: Props) {
+export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, page_title, page_subtitle }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const { language, isBn } = useLanguage();
 
@@ -54,8 +56,11 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu }
       <header className="bg-white shadow-sm border-b border-gray-100 py-10 mb-10">
         <div className="w-full px-4 sm:px-8 lg:px-12 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
-            {isBn ? "ডেন্টাল ব্লগ ও নির্দেশিকা" : "Dental Blog & Guides"}
+            {page_title ? page_title : (isBn ? "ডেন্টাল ব্লগ ও নির্দেশিকা" : "Dental Blog & Guides")}
           </h1>
+          {page_subtitle && !isBn && (
+            <p className="text-sm text-gray-500 max-w-2xl mx-auto mb-3">{page_subtitle}</p>
+          )}
 
           {/* Breadcrumbs */}
           <nav className="flex justify-center text-sm font-medium text-[#db2777]" aria-label="Breadcrumb">
