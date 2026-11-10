@@ -77,7 +77,7 @@ Route::get('/home', $homeHandler)->name('home.alias');
 
 Route::get('/dashboard', function () {
     return \Inertia\Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'admin'])->name('dashboard');
 
 // Public Single Post route
 Route::get('post/{slug}', [PostController::class, 'publicShow'])->name('posts.public.show');
@@ -92,18 +92,24 @@ Route::post('api/ai-chat/stream', [AiAssistantController::class, 'streamChatApi'
 Route::post('appointments', [AppointmentController::class, 'store'])
     ->middleware('throttle:20,1')
     ->name('appointments.store');
-// Admin list; guests (e.g. old CTA links saved in page content) are sent to the public booking page.
-Route::get('appointments', [AppointmentController::class, 'index'])->name('appointments.index');
+// Admin list; guests (e.g. old CTA links saved in page content) are sent to login,
+// and only Administrator accounts may see patient booking data.
+Route::get('appointments', [AppointmentController::class, 'index'])
+    ->middleware(['auth', 'admin'])
+    ->name('appointments.index');
 
 // ============================================================
 // ADMIN PANEL — all management routes require an authenticated user
 // ============================================================
 Route::middleware('auth')->group(function () {
-    // Profile (Breeze)
+    // Profile (Breeze) — available to every signed-in account
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
+// Backend admin panel — Administrator role only
+Route::middleware(['auth', 'admin'])->group(function () {
     // Posts Submenu Routes
     Route::get('posts/categories', [CategoryController::class, 'index'])->name('posts.categories');
     Route::post('posts/categories', [CategoryController::class, 'store'])->name('posts.categories.store');
@@ -297,9 +303,9 @@ Route::get('/privacy-policy', fn() => redirect('/page/privacy-policy', 301));
 Route::get('/privacy', fn() => redirect('/page/privacy-policy', 301));
 
 // ============================================================
-// ADMIN CMS MODULES — require an authenticated user
+// ADMIN CMS MODULES - Administrator role only
 // ============================================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'admin'])->group(function () {
 // ---------- Medicines (admin) ----------
 Route::get('medicines-admin', [MedicineController::class, 'index'])->name('medicines.admin');
 Route::get('medicines-admin/create', [MedicineController::class, 'create'])->name('medicines.admin.create');

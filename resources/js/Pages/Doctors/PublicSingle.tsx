@@ -80,7 +80,8 @@ const splitDegree = (deg: string): string[] => {
 
 /** Turn the SEO text blob (segments separated by " — ") into Q&A pairs */
 const parseFaqs = (content: string): { q: string; a: string }[] => {
-  if (!content) return [];
+  // SEO content is rich HTML now; never try to split markup into Q&A pairs.
+  if (!content || /<[a-z][\s\S]*>/i.test(content)) return [];
   return content
     .split(/\s+—\s+/)
     .map((seg) => seg.trim())
@@ -398,7 +399,9 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                 className="w-full px-5 py-3.5 flex items-center justify-between text-left focus:outline-none cursor-pointer hover:bg-slate-50/70 transition-colors"
               >
                 <span className="text-sm sm:text-[15px] text-slate-700 font-medium leading-none">
-                  {item.seo_title || `More About ${item.name}`}
+                  {item.seo_title && /^more about\b/i.test(item.seo_title.trim())
+                    ? item.seo_title
+                    : `More About ${item.name}`}
                 </span>
                 <ChevronDown className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 flex-shrink-0 ${infoOpen ? 'rotate-180' : ''}`} />
               </button>
