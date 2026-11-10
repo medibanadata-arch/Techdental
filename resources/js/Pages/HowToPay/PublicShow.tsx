@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { TopHeader } from '@/Components/TopHeader';
 import { GlobalFooter } from '@/Components/GlobalFooter';
+import Seo from '@/Components/Seo';
 
 interface MethodItem {
   id: string;
@@ -266,10 +267,13 @@ export default function HowToPayPublicShow({
 
   return (
     <div className="bg-white flex flex-col min-h-screen text-[#0a0a0a] font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
+      <Seo
+        title={pageTitle}
+        description={metaDesc}
+        path="/how-to-pay"
+        noSuffix
+      />
       <Head>
-        <title>{pageTitle}</title>
-        <meta name="description" content={metaDesc} />
-        {canonical_url && <link rel="canonical" href={canonical_url} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

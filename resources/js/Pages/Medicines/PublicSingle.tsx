@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link, Head } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { ChevronDown, ChevronUp, Home } from "lucide-react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import { useLanguage } from "@/utils/useLanguage";
 
@@ -142,6 +143,8 @@ export default function MedicinesPublicSingle({
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const { isBn, setLanguage } = useLanguage();
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
 
   useEffect(() => {
     if (typeof is_bn === 'boolean') {
@@ -289,16 +292,77 @@ export default function MedicinesPublicSingle({
         ? item.seo_title
         : 'Uses, Dosage, Side Effects & Price in Bangladesh');
 
+  const medSlug = item.slug || String(item.id);
+  const medPath = `${isBn ? '/bn' : ''}/medicines/${medSlug}`;
+  const medCanonical = `${siteUrl}${medPath}`;
+  const medImage = item.image
+    ? (/^https?:\/\//i.test(item.image) ? item.image : `${siteUrl}${item.image.startsWith('/') ? '' : '/'}${item.image}`)
+    : undefined;
+
+  const medSchemas: any[] = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Drug',
+      name: displayName || item.name,
+      alternateName: displayGeneric || undefined,
+      description: item.meta_desc || displaySubtitle || displayIntro || undefined,
+      image: medImage,
+      url: medCanonical,
+      inLanguage: isBn ? 'bn' : 'en',
+      activeIngredient: displayGeneric || undefined,
+      manufacturer: displayPharma
+        ? { '@type': 'Organization', name: displayPharma }
+        : undefined,
+      nonProprietaryName: displayGeneric || undefined,
+      prescriptionStatus: item.tag || undefined,
+      offers: hasPrice
+        ? {
+            '@type': 'Offer',
+            priceCurrency: 'BDT',
+            price: (item.price_per_tablet || '').replace(/[^0-9.]/g, '') || undefined,
+            availability: 'https://schema.org/InStock',
+            url: medCanonical,
+          }
+        : undefined,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: isBn ? 'হোম' : 'Home', item: `${siteUrl}${isBn ? '/bn' : ''}/` },
+        { '@type': 'ListItem', position: 2, name: isBn ? 'ঔষধ' : 'Medicines', item: `${siteUrl}${isBn ? '/bn' : ''}/medicines` },
+        { '@type': 'ListItem', position: 3, name: displayName || item.name, item: medCanonical },
+      ],
+    },
+  ];
+
+  if (faqList.length > 0) {
+    medSchemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqList.map((f) => ({
+        '@type': 'Question',
+        name: isBn ? f.q_bn : f.q,
+        acceptedAnswer: { '@type': 'Answer', text: isBn ? f.a_bn : f.a },
+      })),
+    });
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
-      <Head>
-        <title>{displayName ? `${displayName} – ${seoTitleSuffix}` : `${cleanMedicineName} | Tech Dental`}</title>
-        <meta name="description" content={item.meta_desc || displaySubtitle || displayIntro} />
-        {canonical_url && <link rel="canonical" href={canonical_url} />}
-        {hreflang?.en && <link rel="alternate" hrefLang="en" href={hreflang.en} />}
-        {hreflang?.bn && <link rel="alternate" hrefLang="bn" href={hreflang.bn} />}
-        {hreflang?.['x-default'] && <link rel="alternate" hrefLang="x-default" href={hreflang['x-default']} />}
-      </Head>
+      <Seo
+        title={displayName ? `${displayName} – ${seoTitleSuffix}` : cleanMedicineName}
+        description={item.meta_desc || displaySubtitle || displayIntro}
+        canonical={medCanonical}
+        image={medImage || '/images/og-default.jpg'}
+        type="article"
+        alternates={{
+          en: `${siteUrl}/medicines/${medSlug}`,
+          bn: `${siteUrl}/bn/medicines/${medSlug}`,
+          'x-default': `${siteUrl}/medicines/${medSlug}`,
+        }}
+        schema={medSchemas}
+      />
 
       <TopHeader
         locations={locations}

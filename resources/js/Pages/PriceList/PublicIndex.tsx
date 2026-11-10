@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Head } from "@inertiajs/react";
 import { ChevronDown } from "lucide-react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 
 interface PriceRow {
@@ -69,40 +69,39 @@ export default function PriceListPublicIndex({ categories = [], settings, locati
       .filter(({ rows }) => rows.length > 0);
   }, [categories, query]);
 
+  const priceSchemas: any[] = [];
+  if (settings?.schema_json) {
+    try {
+      priceSchemas.push(JSON.parse(settings.schema_json));
+    } catch {
+      /* ignore invalid custom schema */
+    }
+  }
+  if (safeFaqs.length > 0) {
+    priceSchemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: safeFaqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: { '@type': 'Answer', text: faq.a },
+      })),
+    });
+  }
+
   return (
     <div
       className="min-h-screen bg-slate-50 text-slate-800 antialiased flex flex-col justify-between w-full"
       style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}
     >
-      <Head>
-        <title>{settings?.seo_title || settings?.page_title || 'Tech Dental Treatment Price List in Bangladesh – 2026'}</title>
-        {settings?.meta_desc && <meta name="description" content={settings.meta_desc} />}
-        <link rel="canonical" href={settings?.canonical_url || (typeof window !== 'undefined' ? window.location.origin + '/price-list' : 'https://techdentalcare.com/price-list')} />
-        <meta name="robots" content={`${settings?.robots_index !== false ? 'index' : 'noindex'}, ${settings?.robots_follow !== false ? 'follow' : 'nofollow'}`} />
-
-        {settings?.schema_json && (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: settings.schema_json }} />
-        )}
-        {safeFaqs.length > 0 && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": safeFaqs.map(faq => ({
-                  "@type": "Question",
-                  "name": faq.q,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": faq.a
-                  }
-                }))
-              })
-            }}
-          />
-        )}
-      </Head>
+      <Seo
+        title={settings?.seo_title || settings?.page_title || 'Tech Dental Treatment Price List in Bangladesh – 2026'}
+        description={settings?.meta_desc || settings?.seo_content || 'Updated treatment prices for dental implants, braces, root canal, crowns and more at Tech Dental Care in Dhaka.'}
+        path="/price-list"
+        robots={`${settings?.robots_index !== false ? 'index' : 'noindex'}, ${settings?.robots_follow !== false ? 'follow' : 'nofollow'}`}
+        schema={priceSchemas}
+        noSuffix
+      />
 
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 

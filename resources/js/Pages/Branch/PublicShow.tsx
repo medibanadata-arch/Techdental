@@ -1,7 +1,8 @@
 import React, { useState, useRef, useMemo, useEffect } from "react";
-import { Link, Head } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/Components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import { getBranchStatus } from "@/utils/branchStatus";
 import {
@@ -249,7 +250,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
   const visibleServices = servicesExpanded ? services.slice(0, 7) : services.slice(0, 3);
 
-  const pageCanonical = branch?.canonical_url || `https://techdentalbd.com/branch/${branch?.slug || branch?.id}`;
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const branchPath = `/branch/${branch?.slug || branch?.id}`;
+  const pageCanonical = `${siteUrl}${branchPath}`;
   const metaTitle = branch?.seo_title || `Best Dental Clinic in ${branchName} — Tech Dental Care`;
   const metaDescription = branch?.meta_desc || `Visit Tech Dental ${branchName} in Dhaka for painless root canal therapy, dental implants, cosmetic veneers and general dental treatments.`;
   const robotsContent = `${branch?.robots_index !== false ? 'index' : 'noindex'}, ${branch?.robots_follow !== false ? 'follow' : 'nofollow'}`;
@@ -314,19 +318,16 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
       className="min-h-screen antialiased w-full"
       style={{ backgroundColor: '#F8F9FA', color: '#1E293B', fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}
     >
-      <Head>
-        <title>{metaTitle}</title>
-        <meta name="description" content={metaDescription} />
-        <link rel="canonical" href={pageCanonical} />
-        <meta name="robots" content={robotsContent} />
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDescription} />
-        <meta property="og:url" content={pageCanonical} />
-        <meta property="og:type" content="business.business" />
-        <script type="application/ld+json">
-          {JSON.stringify(jsonLdSchema)}
-        </script>
-      </Head>
+      <Seo
+        title={metaTitle}
+        description={metaDescription}
+        canonical={pageCanonical}
+        type="website"
+        robots={robotsContent}
+        image={branch?.image}
+        schema={jsonLdSchema}
+        noSuffix
+      />
 
       {/* 1. Header with Full Width */}
       <TopHeader

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { router } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import {
   CheckCircle2,
@@ -184,6 +185,11 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
 
   return (
     <div className="min-h-screen flex flex-col w-full" style={{ backgroundColor: '#8a214d' }}>
+      <Seo
+        title="Book a Dental Appointment Online"
+        description="Book your dental appointment at Tech Dental Care in Dhaka. Choose your branch, treatment, preferred date and time — confirmation within minutes."
+        path="/appointment"
+      />
       {/* Top Header Full Width */}
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 

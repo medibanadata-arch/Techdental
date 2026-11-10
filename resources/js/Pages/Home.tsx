@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/Components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { BranchPickerModal } from "@/Components/BranchPickerModal";
 import { AppointmentModal } from "@/Components/AppointmentModal";
 import { BranchInfo, BRANCHES_DATA } from "@/data/dentalData";
@@ -137,6 +138,8 @@ export default function Home({
   ai_chips = [],
   ai_settings,
 }: HomeProps) {
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
   const [selectedBranch, setSelectedBranch] = useState("");
   const [aiInputValue, setAiInputValue] = useState("");
   const [modalInputValue, setModalInputValue] = useState("");
@@ -933,10 +936,72 @@ export default function Home({
 
   return (
     <div className="bg-gradient-to-b from-[#f4f7fc] to-[#dae9f6] md:from-sky-50/80 md:via-white md:to-blue-50/40 min-h-screen flex flex-col justify-between text-slate-800 antialiased selection:bg-blue-500 selection:text-white font-['Noto_Sans_Bengali','Anek_Bangla','Hind_Siliguri','Inter',sans-serif]">
-      <Head>
-        <title>{seoTitle}</title>
-        <meta name="description" content={seoDesc} />
-      </Head>
+      <Seo
+        title={seoTitle}
+        description={seoDesc}
+        path="/"
+        noSuffix={true}
+        schema={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": `${siteUrl}#organization`,
+              "name": "Tech Dental Care",
+              "url": siteUrl,
+              "logo": `${siteUrl}/uploads/images/tech-dental-logo.png`,
+              "telephone": "+8809638000505",
+              "email": "info@techdentalcare.com",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "827 (2nd Floor), Shewrapara, Begum Rokeya Sarani",
+                "addressLocality": "Mirpur, Dhaka",
+                "postalCode": "1216",
+                "addressCountry": "BD"
+              }
+            },
+            {
+              "@type": "Dentist",
+              "@id": `${siteUrl}#clinic`,
+              "name": "Tech Dental Care",
+              "url": siteUrl,
+              "image": `${siteUrl}/uploads/images/tech-dental-logo.png`,
+              "telephone": "+8809638000505",
+              "priceRange": "৳৳",
+              "currenciesAccepted": "BDT",
+              "paymentAccepted": "Cash, Debit Card, Credit Card, bKash, Nagad, Rocket, Bangla QR",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "827 (2nd Floor), Shewrapara, Begum Rokeya Sarani",
+                "addressLocality": "Mirpur, Dhaka",
+                "postalCode": "1216",
+                "addressCountry": "BD"
+              },
+              "areaServed": [
+                { "@type": "City", "name": "Dhaka" },
+                { "@type": "Place", "name": "Mirpur" },
+                { "@type": "Place", "name": "Uttara" },
+                { "@type": "Place", "name": "Badda" },
+                { "@type": "Place", "name": "Jatrabari" }
+              ],
+              "parentOrganization": { "@id": `${siteUrl}#organization` }
+            },
+            {
+              "@type": "WebSite",
+              "@id": `${siteUrl}#website`,
+              "url": siteUrl,
+              "name": "Tech Dental Care",
+              "publisher": { "@id": `${siteUrl}#organization` },
+              "inLanguage": ["en", "bn"],
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": `${siteUrl}/medicines?search={search_term_string}`,
+                "query-input": "required name=search_term_string"
+              }
+            }
+          ]
+        }}
+      />
 
       {/* Top Header Navigation */}
       <TopHeader
@@ -951,11 +1016,12 @@ export default function Home({
 
         {/* Top Section: AI Assistant Box */}
         <header className="w-full max-w-2xl mx-auto text-center flex flex-col items-center pt-2 md:pt-4">
+          <h1 className="sr-only">Tech Dental Care — Best Dental Clinic in Dhaka, Bangladesh</h1>
 
           {/* Title - One Line */}
-          <h1 className={`text-xl sm:text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-normal whitespace-nowrap ${isChatActive ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}>
+          <h2 className={`text-xl sm:text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-normal whitespace-nowrap ${isChatActive ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}>
             কিভাবে সাহায্য করতে পারি?
-          </h1>
+          </h2>
 
           {/* Top Chips above the search bar - Original 3 static chips */}
           {!isChatActive && (

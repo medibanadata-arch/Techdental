@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Head, Link, router, usePage } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import {
   MapPin, Calendar, Clock, Award, Check, X,
   ChevronDown, Phone, HeartHandshake, ArrowRight,
@@ -274,19 +275,15 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased flex flex-col w-full font-sans">
-      <Head>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
-        <link rel="canonical" href={pageCanonical} />
-        <meta name="robots" content={pageRobots} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDesc} />
-        <meta property="og:url" content={pageCanonical} />
-        <meta property="og:type" content="article" />
-        <script type="application/ld+json">
-          {JSON.stringify(pageSchema)}
-        </script>
-      </Head>
+      <Seo
+        title={pageTitle}
+        description={pageDesc}
+        canonical={pageCanonical}
+        robots={pageRobots}
+        schema={pageSchema}
+        type="article"
+        noSuffix
+      />
 
       {/* Admin Quick Edit Bar */}
       {auth?.user && item?.id && (

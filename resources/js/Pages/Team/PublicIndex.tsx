@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 
 interface Member {
@@ -35,6 +36,11 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
 
   return (
     <div className="min-h-screen font-sans text-gray-800 antialiased pb-5 sm:pb-6 w-full bg-slate-50" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+      <Seo
+        title="Our Team — Management, Doctors & Support Staff"
+        description="Meet the management, digital marketing, call centre and clinical support team behind Tech Dental Care, Bangladesh's trusted dental chain."
+        path="/team"
+      />
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 
       {/* 1. Management Team Section */}

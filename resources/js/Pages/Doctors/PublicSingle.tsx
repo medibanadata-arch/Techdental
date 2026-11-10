@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { ChevronDown } from "lucide-react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 
 interface Milestone {
@@ -112,6 +113,8 @@ const parseWhyList = (text: string) => {
 export default function DoctorsPublicSingle({ item, hotline, locations = [], nav_menu }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [seeMore, setSeeMore] = useState(false);
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
   const [infoOpen, setInfoOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
 
@@ -162,63 +165,56 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
 
   if (!item) return null;
 
+  const doctorSchemas: any[] = [];
+  if (item.schema_json) {
+    try {
+      doctorSchemas.push(JSON.parse(item.schema_json));
+    } catch {
+      /* ignore invalid custom schema */
+    }
+  }
+  if (doctorSchemas.length === 0) {
+    doctorSchemas.push({
+      "@context": "https://schema.org",
+      "@type": item.schema_type || "Physician",
+      "name": item.name,
+      "description": item.meta_desc || item.bio,
+      "medicalSpecialty": item.spec || "Dentistry",
+      "telephone": item.hotline || hotline,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": item.chamber_address,
+        "addressLocality": "Dhaka",
+        "addressCountry": "BD"
+      }
+    });
+  }
+  if (faqs.length > 0) {
+    doctorSchemas.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.filter(f => f && f.q).map(faq => ({
+        "@type": "Question",
+        "name": faq.q,
+        "acceptedAnswer": { "@type": "Answer", "text": faq.a || "" }
+      }))
+    });
+  }
+
   return (
     <div
       className="min-h-screen bg-white text-slate-600 antialiased flex flex-col justify-start"
       style={{ fontFamily: "'Inter', 'SolaimanLipi', 'Hind Siliguri', sans-serif" }}
     >
-      <Head>
-        <title>{item.seo_title ? `${item.name} – ${item.seo_title}` : `${item.name} - Senior Dental Specialist Profile | Tech Dental`}</title>
-        {item.meta_desc && <meta name="description" content={item.meta_desc} />}
-        <link rel="canonical" href={item.canonical_url || `https://techdentalcare.com/doctors/${item.id}`} />
-        <meta
-          name="robots"
-          content={`${item.robots_index !== false ? 'index' : 'noindex'}, ${item.robots_follow !== false ? 'follow' : 'nofollow'
-            }`}
-        />
-        {item.schema_json ? (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: item.schema_json }} />
-        ) : (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": item.schema_type || "Physician",
-                "name": item.name,
-                "description": item.meta_desc || item.bio,
-                "medicalSpecialty": item.spec || "Dentistry",
-                "telephone": item.hotline || hotline,
-                "address": {
-                  "@type": "PostalAddress",
-                  "streetAddress": item.chamber_address,
-                  "addressLocality": "Dhaka",
-                  "addressCountry": "BD"
-                }
-              })
-            }}
-          />
-        )}
-        {faqs.length > 0 && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": faqs.filter(f => f && f.q).map(faq => ({
-                  "@type": "Question",
-                  "name": faq.q,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": faq.a || ""
-                  }
-                }))
-              })
-            }}
-          />
-        )}
-      </Head>
+      <Seo
+        title={item.seo_title ? `${item.name} – ${item.seo_title}` : `${item.name} - Senior Dental Specialist Profile`}
+        description={item.meta_desc || item.bio}
+        path={`/doctors/${item.id}`}
+        image={item.img}
+        type="profile"
+        robots={`${item.robots_index !== false ? 'index' : 'noindex'}, ${item.robots_follow !== false ? 'follow' : 'nofollow'}`}
+        schema={doctorSchemas}
+      />
 
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 

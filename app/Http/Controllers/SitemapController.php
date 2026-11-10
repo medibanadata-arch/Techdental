@@ -35,10 +35,18 @@ class SitemapController extends Controller
             ['', '1.0'], ['/doctors', '0.9'], ['/medicines', '0.9'],
             ['/blog', '0.9'], ['/blog/others', '0.7'], ['/branches', '0.8'], ['/about', '0.8'],
             ['/price-list', '0.8'], ['/patient-rights', '0.6'], ['/how-to-pay', '0.6'],
-            ['/appointment', '0.8'], ['/team', '0.6'],
+            ['/appointment', '0.8'], ['/team', '0.6'], ['/gallery', '0.6'],
         ];
         foreach ($static as [$path, $priority]) {
             $add($path, null, $priority);
+        }
+
+        // Team member profiles
+        foreach (\App\Models\TeamMember::orderBy('id')->get() as $member) {
+            $slug = \Illuminate\Support\Str::slug($member->name);
+            if ($slug) {
+                $add('/team/' . $slug, optional($member->updated_at)->toAtomString(), '0.5');
+            }
         }
 
         // Services listing (English + Bangla)
@@ -113,6 +121,7 @@ class SitemapController extends Controller
 
         // Translated core pages
         $add('/bn/blog', null, '0.7');
+        $add('/bn/blog/others', null, '0.5');
         $add('/bn/patient-rights', null, '0.5');
         foreach ($posts as $post) {
             if (trim((string) $post->content_bn) !== '') {

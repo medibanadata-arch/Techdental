@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Head, Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { ChevronDown } from "lucide-react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 
 interface DoctorItem {
@@ -54,6 +55,8 @@ const DetailBox: React.FC<{ icon: string; label: string; value: string; title?: 
 export default function DoctorsPublicIndex({ data = [], settings, locations = [], nav_menu }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [filter, setFilter] = useState<'All' | string>('All');
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
   const [moreInfoOpen, setMoreInfoOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [apptDoctor, setApptDoctor] = useState<DoctorItem | null>(null);
@@ -109,43 +112,38 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
       : 'bg-slate-100 text-slate-700 hover:bg-pink-50 hover:text-pink-700'
     }`;
 
+  const doctorIndexSchemas: any[] = [];
+  if (settings?.schema_json) {
+    try {
+      doctorIndexSchemas.push(JSON.parse(settings.schema_json));
+    } catch {
+      /* ignore invalid custom schema */
+    }
+  }
+  if (safeFaqs.length > 0) {
+    doctorIndexSchemas.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": safeFaqs.filter(f => f && f.q).map(faq => ({
+        "@type": "Question",
+        "name": faq.q,
+        "acceptedAnswer": { "@type": "Answer", "text": faq.a || "" }
+      }))
+    });
+  }
+
   return (
     <div
       className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased flex flex-col"
       style={{ fontFamily: "'Inter', 'SolaimanLipi', 'Hind Siliguri', sans-serif" }}
     >
-      <Head>
-        <title>{settings?.page_title || 'Specialist Dentists & Dental Surgeons – Tech Dental'}</title>
-        {settings?.meta_desc && <meta name="description" content={settings.meta_desc} />}
-        {settings?.canonical_url && <link rel="canonical" href={settings.canonical_url} />}
-        <meta
-          name="robots"
-          content={`${settings?.robots_index ?? true ? 'index' : 'noindex'}, ${settings?.robots_follow ?? true ? 'follow' : 'nofollow'
-            }`}
-        />
-        {settings?.schema_json && (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: settings.schema_json }} />
-        )}
-        {safeFaqs.length > 0 && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": safeFaqs.filter(f => f && f.q).map(faq => ({
-                  "@type": "Question",
-                  "name": faq.q,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": faq.a || ""
-                  }
-                }))
-              })
-            }}
-          />
-        )}
-      </Head>
+      <Seo
+        title={settings?.page_title || 'Specialist Dentists & Dental Surgeons'}
+        description={settings?.meta_desc || 'Meet our certified dental surgeons and specialists across Mirpur, Uttara, Badda and Jatrabari in Dhaka.'}
+        path="/doctors"
+        robots={`${settings?.robots_index ?? true ? 'index' : 'noindex'}, ${settings?.robots_follow ?? true ? 'follow' : 'nofollow'}`}
+        schema={doctorIndexSchemas}
+      />
 
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 

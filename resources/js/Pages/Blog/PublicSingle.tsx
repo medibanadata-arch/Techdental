@@ -322,14 +322,24 @@ export default function BlogPublicSingle({
 
   return (
     <div className="min-h-screen text-gray-800 antialiased overflow-x-hidden bg-[#f3f4f6]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
-      <Head>
-        <title>{`${activeTitle || 'Blog'} | Tech Dental`}</title>
-        {metaDescription && <meta name="description" content={metaDescription} />}
-        {canonical_url && <link rel="canonical" href={canonical_url} />}
-        {hreflang?.en && <link rel="alternate" hrefLang="en" href={hreflang.en} />}
-        {hreflang?.bn && <link rel="alternate" hrefLang="bn" href={hreflang.bn} />}
-        {hreflang?.['x-default'] && <link rel="alternate" hrefLang="x-default" href={hreflang['x-default']} />}
-      </Head>
+      <Seo
+        title={activeTitle || 'Dental Blog'}
+        description={metaDescription}
+        path={seoPath}
+        image={seoImage}
+        type="article"
+        publishedTime={post.published_at ? new Date(post.published_at).toISOString() : undefined}
+        modifiedTime={post.published_at ? new Date(post.published_at).toISOString() : undefined}
+        author={authorName}
+        section={isBn ? (post.category_bn || post.category) : post.category}
+        alternates={{
+          en: `${siteUrl}${blogPath}`,
+          ...(post?.content_bn ? { bn: `${siteUrl}${bnBlogPath}` } : {}),
+          'x-default': `${siteUrl}${blogPath}`,
+        }}
+        schema={postJsonLd}
+        noSuffix={isBn}
+      />
 
       <TopHeader
         locations={locations}

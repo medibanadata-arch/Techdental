@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Link } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { BranchPickerModal } from "@/components/BranchPickerModal";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { 
   Play, Eye, Target, ShieldCheck, Zap, Check, Clock, Shield, 
   Phone, MapPin, Calendar, ChevronRight, Star, Award, Sparkles, 
@@ -89,37 +90,36 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
   const storyParagraphs = (content.story_p1 + (content.story_p2 ? '\n\n' + content.story_p2 : '')).split('\n\n').filter(Boolean);
   const displayDoctors = doctors.length > 0 ? doctors.slice(0, 8) : [];
 
+  const aboutSchemas: any[] = [];
+  if (content.schema_json) {
+    try {
+      aboutSchemas.push(JSON.parse(content.schema_json));
+    } catch {
+      /* ignore invalid custom schema */
+    }
+  }
+  if (Array.isArray(content.faqs) && content.faqs.length > 0) {
+    aboutSchemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: content.faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: { '@type': 'Answer', text: faq.a },
+      })),
+    });
+  }
+
   return (
     <div className="min-h-screen bg-white text-slate-800 antialiased overflow-x-hidden w-full flex flex-col font-sans">
-      <Head>
-        <title>{content.seo_title || `${content.hero_title || 'About Tech Dental Care'} — Digital Oral Healthcare`}</title>
-        {content.meta_desc && <meta name="description" content={content.meta_desc} />}
-        <link rel="canonical" href={content.canonical_url || (typeof window !== 'undefined' ? window.location.origin + '/about' : 'https://techdentalcare.com/about')} />
-        <meta name="robots" content={`${content.robots_index !== false ? 'index' : 'noindex'}, ${content.robots_follow !== false ? 'follow' : 'nofollow'}`} />
-
-        {content.schema_json && (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: content.schema_json }} />
-        )}
-        {Array.isArray(content.faqs) && content.faqs.length > 0 && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                "mainEntity": content.faqs.map(faq => ({
-                  "@type": "Question",
-                  "name": faq.q,
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": faq.a
-                  }
-                }))
-              })
-            }}
-          />
-        )}
-      </Head>
+      <Seo
+        title={content.seo_title || `${content.hero_title || 'About Tech Dental Care'} — Digital Oral Healthcare`}
+        description={content.meta_desc || content.hero_subtitle || content.story_p1}
+        path="/about"
+        robots={`${content.robots_index !== false ? 'index' : 'noindex'}, ${content.robots_follow !== false ? 'follow' : 'nofollow'}`}
+        schema={aboutSchemas}
+        noSuffix
+      />
 
       {/* 1. Full-Width Top Header */}
       <TopHeader 

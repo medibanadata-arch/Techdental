@@ -1,7 +1,8 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { TopHeader } from '@/components/TopHeader';
 import { GlobalFooter } from '@/Components/GlobalFooter';
+import Seo from '@/Components/Seo';
 import { useLanguage } from '@/utils/useLanguage';
 
 interface RightItem {
@@ -73,6 +74,8 @@ export default function PatientRightsPublicShow({
   hreflang,
 }: Props) {
   const { isBn } = useLanguage();
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
 
   // Dynamic texts based on language
   const heroTitle = isBn
@@ -109,14 +112,17 @@ export default function PatientRightsPublicShow({
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-800">
-      <Head>
-        <title>{metaTitle}</title>
-        <meta name="description" content={metaDesc} />
-        {canonical_url && <link rel="canonical" href={canonical_url} />}
-        {hreflang?.en && <link rel="alternate" hrefLang="en" href={hreflang.en} />}
-        {hreflang?.bn && <link rel="alternate" hrefLang="bn" href={hreflang.bn} />}
-        {hreflang?.['x-default'] && <link rel="alternate" hrefLang="x-default" href={hreflang['x-default']} />}
-      </Head>
+      <Seo
+        title={metaTitle}
+        description={metaDesc}
+        path={isBn ? '/bn/patient-rights' : '/patient-rights'}
+        alternates={{
+          en: `${siteUrl}/patient-rights`,
+          bn: `${siteUrl}/bn/patient-rights`,
+          'x-default': `${siteUrl}/patient-rights`,
+        }}
+        noSuffix
+      />
 
       {/* Global Top Header with English / Bengali switcher (branch picker hidden) */}
       <TopHeader

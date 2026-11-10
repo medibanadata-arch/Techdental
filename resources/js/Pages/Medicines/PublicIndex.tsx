@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { Search, X } from "lucide-react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import { useLanguage } from "@/utils/useLanguage";
 
@@ -35,6 +36,7 @@ interface Props extends PageProps {
   medicines: MedicineItem[];
   locations?: any[];
   nav_menu?: any;
+  is_bn?: boolean;
 }
 
 const CATEGORY_LABELS_EN: Record<string, string> = {
@@ -61,12 +63,15 @@ export default function MedicinesPublicIndex({
   medicines = [],
   locations = [],
   nav_menu,
+  is_bn = false,
 }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const [activeCat, setActiveCat] = useState("all");
   const [query, setQuery] = useState("");
   const [modalItem, setModalItem] = useState<MedicineItem | null>(null);
   const { isBn } = useLanguage();
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
 
   const categories = useMemo(() => {
     const counts: Record<string, number> = { all: medicines.length };
@@ -101,6 +106,25 @@ export default function MedicinesPublicIndex({
 
   return (
     <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+      <Seo
+        title={isBn ? 'ঔষধ ও প্রেসক্রিপশন নির্দেশিকা' : 'Medicines & Pharmacy Guides in Bangladesh'}
+        description={isBn
+          ? 'দাঁতের ব্যথা, ইনফেকশন ও মুখের স্বাস্থ্যের জন্য ব্যবহৃত ঔষধের ব্যবহারবিধি, মাত্রা, পার্শ্বপ্রতিক্রিয়া ও দাম জানুন।'
+          : 'Dental and general medicines used for tooth pain, infection and oral health — uses, dosage, side effects and prices in Bangladesh.'}
+        path="/medicines"
+        noSuffix={isBn}
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: isBn ? 'ঔষধ ও প্রেসক্রিপশন নির্দেশিকা' : 'Medicines & Pharmacy Guides',
+          itemListElement: medicines.map((m, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: isBn ? (m.name_bn || m.name) : m.name,
+            url: `${siteUrl}/medicines/${m.slug}`,
+          })),
+        }}
+      />
       <TopHeader
         locations={locations}
         selectedBranch={selectedBranch}

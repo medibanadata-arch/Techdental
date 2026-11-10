@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import { useLanguage } from "@/utils/useLanguage";
 
@@ -24,6 +25,7 @@ interface Props extends PageProps {
   nav_menu?: any;
   page_title?: string;
   page_subtitle?: string;
+  is_bn?: boolean;
 }
 
 const formatDate = (d?: string, isBn = false) => {
@@ -36,12 +38,52 @@ const formatDate = (d?: string, isBn = false) => {
   }
 };
 
-export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, page_title, page_subtitle }: Props) {
+export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, page_title, page_subtitle, is_bn = false }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const { language, isBn } = useLanguage();
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const currentPath = (page.url || '/blog').split('?')[0];
+  const isOthers = /\/blog\/others\/?$/.test(currentPath);
+  const isBnPage = Boolean(is_bn) || currentPath.startsWith('/bn/');
+
+  const seoTitle = isOthers
+    ? (isBnPage ? 'অন্যান্য স্বাস্থ্য নিবন্ধ ও গাইড' : 'Other Health Articles & Guides')
+    : (isBnPage ? 'ডেন্টাল ব্লগ ও নির্দেশিকা' : 'Dental Blog & Guides');
+  const seoDescription = isOthers
+    ? (isBnPage
+        ? 'টেক ডেন্টাল কেয়ারের স্বাস্থ্য সংবাদ, কেস স্টাডি, ক্লিনিক আপডেট ও রোগীর নির্দেশিকা এক জায়গায়।'
+        : 'Health news, case studies, clinic updates and patient guides from Tech Dental Care in Dhaka.')
+    : (isBnPage
+        ? 'দাঁত, মাড়ি ও মুখের স্বাস্থ্য নিয়ে বিশেষজ্ঞ ডেন্টিস্টদের লেখা নির্ভরযোগ্য বাংলা নিবন্ধ ও চিকিৎসা গাইড পড়ুন।'
+        : 'Expert dental articles and treatment guides from Tech Dental Care — oral health tips, procedures and costs in Bangladesh.');
+
+  const enPath = isOthers ? '/blog/others' : '/blog';
+  const bnPath = isOthers ? '/bn/blog/others' : '/bn/blog';
+
+  const activePosts = posts.filter((p) => (isBnPage ? Boolean(p.title_bn) : Boolean(p.title)));
 
   return (
     <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+      <Seo
+        title={seoTitle}
+        description={seoDescription}
+        path={isBnPage ? bnPath : enPath}
+        alternates={{ en: `${siteUrl}${enPath}`, bn: `${siteUrl}${bnPath}`, 'x-default': `${siteUrl}${enPath}` }}
+        noSuffix={isBnPage}
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: seoTitle,
+          itemListElement: activePosts.map((p, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: isBnPage ? (p.title_bn || p.title) : p.title,
+            url: `${siteUrl}${isBnPage ? '/bn/blog/' : '/blog/'}${p.slug}`,
+          })),
+        }}
+      />
+
       <TopHeader
         locations={locations}
         selectedBranch={selectedBranch}

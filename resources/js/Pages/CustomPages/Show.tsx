@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { TopHeader } from "@/components/TopHeader";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { BranchPickerModal } from "@/components/BranchPickerModal";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import {
     Calendar, Clock, ShieldCheck, MapPin, Phone,
     Share2, Check, Copy, ArrowRight, Edit3, ChevronRight,
@@ -101,18 +102,15 @@ export default function CustomPageShow({ item, locations = [], nav_menu }: Custo
 
     return (
         <div className="min-h-screen bg-white text-slate-800 flex flex-col w-full antialiased">
-            <Head>
-                <title>{pageTitle}</title>
-                <meta name="description" content={pageDesc} />
-                <link rel="canonical" href={pageCanonical} />
-                <meta name="robots" content={pageRobots} />
-                <meta property="og:title" content={pageTitle} />
-                <meta property="og:description" content={pageDesc} />
-                <meta property="og:url" content={pageCanonical} />
-                <script type="application/ld+json">
-                    {JSON.stringify(pageSchema)}
-                </script>
-            </Head>
+            <Seo
+                title={pageTitle}
+                description={pageDesc}
+                canonical={pageCanonical}
+                robots={pageRobots}
+                schema={pageSchema}
+                type="article"
+                noSuffix
+            />
 
             {/* App Viewport Container: Full Width Responsive */}
             <main className="w-full bg-white overflow-hidden flex flex-col">

@@ -35,7 +35,16 @@ const DEFAULT_DESCRIPTION =
 const DEFAULT_IMAGE = '/images/og-default.jpg';
 
 export const trimDescription = (text?: string, max = 158): string => {
-    const clean = (text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const clean = (text || '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&#39;|&apos;/gi, "'")
+        .replace(/&quot;/gi, '"')
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
     if (!clean) return DEFAULT_DESCRIPTION;
     if (clean.length <= max) return clean;
     const cut = clean.slice(0, max);

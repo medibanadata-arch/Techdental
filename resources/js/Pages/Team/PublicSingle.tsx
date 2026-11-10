@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 
 interface TeamMemberData {
@@ -45,12 +46,29 @@ export default function TeamPublicSingle({ member, locations = [], nav_menu }: P
 
   const isCeoMessage = member.section === 'management' || parseLetter(member.letter).length > 0;
   const paragraphs = parseLetter(member.letter);
+  const memberSlug = (member.name || '').toLowerCase().replace(/[.']/g, '').replace(/\s+/g, '-');
 
   return (
     <div
       className="antialiased text-[#2C2A29] min-h-screen flex flex-col w-full"
       style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif", backgroundColor: PAGES_BG }}
     >
+      <Seo
+        title={`${member.name} — ${member.role} at Tech Dental Care`}
+        description={paragraphs[0] || `${member.name} is ${member.role} at Tech Dental Care, a leading dental care network in Dhaka, Bangladesh.`}
+        path={`/team/${memberSlug}`}
+        image={member.image}
+        type="profile"
+        noSuffix
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: member.name,
+          jobTitle: member.role,
+          image: member.image || undefined,
+          worksFor: { '@type': 'Organization', name: 'Tech Dental Care' },
+        }}
+      />
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 
       {isCeoMessage && (

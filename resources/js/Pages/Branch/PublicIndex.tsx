@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 
 interface BranchItem {
@@ -26,6 +27,11 @@ export default function BranchPublicIndex({ branches = [], nav_menu, locations =
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-800 antialiased pb-5 sm:pb-6" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+      <Seo
+        title="Dental Clinic Branches in Dhaka — Mirpur, Uttara, Badda & Jatrabari"
+        description="Find your nearest Tech Dental Care branch in Dhaka. View addresses, opening hours, phone numbers and directions for Mirpur, Uttara, Badda and Jatrabari."
+        path="/branches"
+      />
       <TopHeader locations={locations.length ? locations : branches} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 
       <main className="max-w-[95rem] mx-auto px-4 sm:px-6 lg:px-8 mt-8">

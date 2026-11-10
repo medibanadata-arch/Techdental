@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { TopHeader } from '@/components/TopHeader';
 import { GlobalFooter } from '@/Components/GlobalFooter';
+import Seo from '@/Components/Seo';
 import {
   User,
   Mail,
@@ -54,13 +55,11 @@ export default function ComplaintPublicShow({ locations = [], nav_menu }: Props)
 
   return (
     <div className="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans">
-      <Head>
-        <title>Patient Feedback & Complaint Box | Tech Dental Care</title>
-        <meta
-          name="description"
-          content="Submit confidential patient complaints, feedback, and suggestions directly to Tech Dental Care management."
-        />
-      </Head>
+      <Seo
+        title="Patient Feedback & Complaint Box"
+        description="Submit confidential patient complaints, feedback and suggestions directly to Tech Dental Care management in Dhaka."
+        path="/complaint-box"
+      />
 
       {/* Top Header without branch selector */}
       <TopHeader

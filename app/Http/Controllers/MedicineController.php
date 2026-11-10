@@ -118,7 +118,7 @@ class MedicineController extends Controller
 
     // ---------- Public pages ----------
 
-    public function publicIndex()
+    public function publicIndex(Request $request)
     {
         $postSlugs = \App\Models\Post::whereNotNull('slug')->pluck('slug')->all();
         $medicines = Medicine::active()
@@ -128,6 +128,7 @@ class MedicineController extends Controller
             'medicines' => $medicines,
             'locations' => \App\Models\Location::orderBy('sort_order')->get(),
             'nav_menu' => \App\Models\NavMenu::first(),
+            'is_bn' => $request->is('bn/*'),
         ]);
     }
 

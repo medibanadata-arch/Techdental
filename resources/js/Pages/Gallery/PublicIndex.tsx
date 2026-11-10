@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Head } from "@inertiajs/react";
 import { TopHeader } from "@/Components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
 import { PageProps } from "@inertiajs/core";
 
 interface GalleryProps extends PageProps {
@@ -164,7 +164,11 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-['Inter','Plus_Jakarta_Sans','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
-      <Head title="Tech Dental Gallery — Photos & Videos" />
+      <Seo
+        title="Tech Dental Gallery — Photos & Videos"
+        description="Explore photos and videos of Tech Dental Care clinics, treatment rooms, sterilization protocols, doctors and happy patients across Dhaka."
+        path="/gallery"
+      />
 
       {/* Top Header Navigation */}
       <TopHeader
