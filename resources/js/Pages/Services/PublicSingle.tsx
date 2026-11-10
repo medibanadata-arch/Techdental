@@ -78,6 +78,14 @@ export default function ServicesPublicSingle({ item, doctors = [], locations = [
   const reviews = Array.isArray(item.reviews) ? item.reviews : [];
   const faqs = Array.isArray(item.faqs) ? item.faqs : [];
 
+  // "Types of <service name> with prices" — short name taken from details_heading
+  const pricingHeading = (() => {
+    const short = (item.details_heading || item.title || 'Treatment')
+      .replace(/^More About\s+/i, '')
+      .trim();
+    return `Types of ${short} with prices`;
+  })();
+
   const displayThumbs = [
     item.hero_main,
     ...(Array.isArray(item.hero_thumbs) ? item.hero_thumbs : [])
@@ -286,7 +294,7 @@ export default function ServicesPublicSingle({ item, doctors = [], locations = [
           <div className="w-full px-4 sm:px-8 lg:px-16 mx-auto">
             <div className="text-left md:text-center max-w-3xl mx-auto mb-8">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                Types of implants with prices
+                {pricingHeading}
               </h2>
             </div>
 
