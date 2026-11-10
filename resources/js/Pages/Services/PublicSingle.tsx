@@ -67,6 +67,7 @@ export default function ServicesPublicSingle({ item, doctors = [], locations = [
   );
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const [appointmentDoctor, setAppointmentDoctor] = useState("");
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   if (!item) return null;
 
@@ -391,13 +392,48 @@ export default function ServicesPublicSingle({ item, doctors = [], locations = [
                     </div>
                   )}
                 </div>
+
+                {faqs.filter(f => f.q).length > 0 && (
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h2 className="font-bold text-gray-900 text-base sm:text-lg md:text-xl mb-3">
+                      Frequently Asked Questions (FAQ)
+                    </h2>
+                    <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
+                      {faqs.filter(f => f.q).map((f, i) => (
+                        <div key={i}>
+                          <button
+                            type="button"
+                            onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                            aria-expanded={openFaq === i}
+                            className="w-full flex justify-between items-start gap-4 p-4 text-left hover:bg-gray-50 transition cursor-pointer"
+                          >
+                            <span className="font-semibold text-gray-900 text-sm sm:text-base">
+                              {i + 1}. {f.q}
+                            </span>
+                            <ChevronDown
+                              className={`w-5 h-5 text-gray-500 transform transition-transform duration-300 shrink-0 ${openFaq === i ? 'rotate-180' : ''}`}
+                            />
+                          </button>
+                          {openFaq === i && (
+                            <div className="px-4 pb-4 -mt-1">
+                              {f.a ? (
+                                <div
+                                  className="rich-content-view wp-editor-content prose max-w-none text-slate-700 text-sm sm:text-base leading-relaxed"
+                                  dangerouslySetInnerHTML={{ __html: f.a }}
+                                />
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </section>
-
-      {/* Global Footer */}
       <GlobalFooter hideCtaStrip={true} />
 
       {/* Appointment Modal */}

@@ -5,3 +5,7 @@
 /storage/*.key
 .phpunit.result.cache
 *.log
+
+/scratch
+__pycache__/
+*.pyc
