@@ -52,6 +52,8 @@ class BlogController extends Controller
             'is_bn' => $request->is('bn/*'),
             'page_title' => 'Other Articles & Guides',
             'page_subtitle' => 'Health news, case studies, clinic updates and patient guides from Tech Dental.',
+            'page_title_bn' => 'অন্যান্য আর্টিকেল ও গাইড',
+            'page_subtitle_bn' => 'টেক ডেন্টালের স্বাস্থ্য সংবাদ, কেস স্টাডি, ক্লিনিক আপডেট ও রোগীর গাইড।',
         ]);
     }
 
@@ -89,6 +91,11 @@ class BlogController extends Controller
         // instead of rendering an empty page.
         if ($isBn && trim((string) $post->content_bn) === '') {
             return redirect("/blog/{$post->slug}", 301);
+        }
+
+        // Bangla-only articles: send the English URL to the Bangla version instead of an empty page.
+        if (!$isBn && trim((string) $post->content) === '' && trim((string) $post->content_bn) !== '') {
+            return redirect("/bn/blog/{$post->slug}", 301);
         }
 
         $postSlug = $post->slug ?: $post->id;

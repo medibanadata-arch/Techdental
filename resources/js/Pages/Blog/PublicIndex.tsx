@@ -25,6 +25,8 @@ interface Props extends PageProps {
   nav_menu?: any;
   page_title?: string;
   page_subtitle?: string;
+  page_title_bn?: string;
+  page_subtitle_bn?: string;
   is_bn?: boolean;
 }
 
@@ -38,7 +40,7 @@ const formatDate = (d?: string, isBn = false) => {
   }
 };
 
-export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, page_title, page_subtitle, is_bn = false }: Props) {
+export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, page_title, page_subtitle, page_title_bn, page_subtitle_bn, is_bn = false }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("mirpur");
   const { language, isBn } = useLanguage();
   const page = usePage();
@@ -61,7 +63,11 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
   const enPath = isOthers ? '/blog/others' : '/blog';
   const bnPath = isOthers ? '/bn/blog/others' : '/bn/blog';
 
-  const activePosts = posts.filter((p) => (isBnPage ? Boolean(p.title_bn) : Boolean(p.title)));
+  const hasEn = (p: any) => Boolean((p.content || '').trim());
+  const hasBn = (p: any) => Boolean((p.content_bn || '').trim());
+  const readablePosts = posts.filter((p) => (isBnPage ? hasBn(p) || hasEn(p) : hasEn(p)));
+
+  const activePosts = readablePosts.filter((p) => (isBnPage ? hasBn(p) : hasEn(p)));
 
   return (
     <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
@@ -98,10 +104,14 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
       <header className="bg-white shadow-sm border-b border-gray-100 py-10 mb-10">
         <div className="w-full px-4 sm:px-8 lg:px-12 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
-            {page_title ? page_title : (isBn ? "ডেন্টাল ব্লগ ও নির্দেশিকা" : "Dental Blog & Guides")}
+            {isBnPage
+              ? (page_title_bn || (page_title ? page_title : "ডেন্টাল ব্লগ ও নির্দেশিকা"))
+              : (page_title || "Dental Blog & Guides")}
           </h1>
-          {page_subtitle && !isBn && (
-            <p className="text-sm text-gray-500 max-w-2xl mx-auto mb-3">{page_subtitle}</p>
+          {(isBnPage ? page_subtitle_bn : page_subtitle) && (
+            <p className="text-sm text-gray-500 max-w-2xl mx-auto mb-3">
+              {isBnPage ? page_subtitle_bn : page_subtitle}
+            </p>
           )}
 
           {/* Breadcrumbs */}
@@ -128,16 +138,20 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
       {/* Main Content Grid */}
       <main className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 pb-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8">
-          {posts.map((p) => {
-            const activeTitle = isBn ? (p.title_bn || '') : p.title;
-            const activeExcerpt = isBn ? (p.excerpt_bn || '') : p.excerpt;
+          {readablePosts.map((p) => {
+            const postHasBangla = hasBn(p);
+            const activeTitle = isBnPage ? (p.title_bn || p.title) : p.title;
+            const activeExcerpt = isBnPage ? (p.excerpt_bn || p.excerpt) : p.excerpt;
+            const cardHref = isBnPage
+              ? (postHasBangla ? `/bn/blog/${p.slug}` : `/blog/${p.slug}`)
+              : `/blog/${p.slug}`;
 
             return (
               <article
                 key={p.id}
                 className="bg-white rounded-md shadow-sm hover:shadow-lg border border-gray-100 overflow-hidden flex flex-col group transition-all duration-300"
               >
-                <Link href={`/blog/${p.slug}`} className="flex flex-col h-full focus:outline-none">
+                <Link href={cardHref} className="flex flex-col h-full focus:outline-none">
                   <div className="relative aspect-[16/9] overflow-hidden bg-gray-200">
                     <img
                       src={p.img}
@@ -154,7 +168,7 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
                     </p>
                   </div>
                   <div className="px-5 py-3 border-t border-gray-100 flex justify-between items-center mt-auto">
-                    <time className="text-[11px] text-gray-400 font-light">{formatDate(p.published_at, isBn)}</time>
+                    <time className="text-[11px] text-gray-400 font-light">{formatDate(p.published_at, isBnPage)}</time>
                     <i className="fa-solid fa-arrow-right-long text-[#db2777] text-[12px] group-hover:translate-x-1 group-hover:text-[#ec4899] transition-all duration-300" />
                   </div>
                 </Link>
@@ -163,7 +177,7 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
           })}
         </div>
 
-        {posts.length === 0 && (
+        {readablePosts.length === 0 && (
           <div className="py-20 text-center text-sm text-gray-400">
             {isBn ? "কোনো ব্লগ পোস্ট পাওয়া যায়নি।" : "No blog posts published yet."}
           </div>
