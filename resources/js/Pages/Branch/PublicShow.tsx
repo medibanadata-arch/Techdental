@@ -401,8 +401,9 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             border-radius: 28px;
           }
           .bs-track {
+            position: absolute;
+            inset: 0;
             display: flex;
-            height: 100%;
             transition: transform .5s cubic-bezier(.22, 1, .36, 1);
             will-change: transform;
           }
@@ -681,19 +682,19 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             .bs-page {
               grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
               gap: 56px;
-              align-items: start;
+              align-items: stretch;
               margin-top: 6px;
             }
             .bs-arch {
               position: sticky;
               top: 24px;
-              aspect-ratio: 4 / 3;
+              aspect-ratio: auto;
             }
             .bs-info {
               text-align: left;
               margin-top: 0;
-              max-width: 560px;
-              justify-self: start;
+              max-width: none;
+              justify-self: stretch;
             }
             .bs-acts {
               margin-top: 26px;
