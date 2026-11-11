@@ -1291,20 +1291,22 @@ export default function MedicinesAdminEdit({ item }: Props) {
                                     />
                                 </div>
                                 <div className="md:col-span-6">
-                                    <input
-                                        type="text"
-                                        placeholder="Warning Details (EN)"
+                                    <RichContentEditor
+                                        label="Warning Details (EN)"
                                         value={w.text}
-                                        onChange={(e) => updateWarning(i, 'text', e.target.value)}
-                                        className="w-full px-2.5 py-1.5 text-xs bg-white border border-gray-200 rounded-lg"
+                                        onChange={(val) => updateWarning(i, 'text', val)}
+                                        placeholder="Warning details, links or emphasised text..."
+                                        minHeight="110px"
                                     />
-                                    <input
-                                        type="text"
-                                        placeholder="সতর্কতার বিবরণ (বাংলা)"
-                                        value={w.text_bn || ''}
-                                        onChange={(e) => updateWarning(i, 'text_bn', e.target.value)}
-                                        className="w-full px-2.5 py-1.5 text-xs bg-white border border-rose-200 rounded-lg mt-1.5"
-                                    />
+                                    <div className="mt-2.5">
+                                        <RichContentEditor
+                                            label="সতর্কতার বিবরণ (বাংলা)"
+                                            value={w.text_bn || ''}
+                                            onChange={(val) => updateWarning(i, 'text_bn', val)}
+                                            placeholder="সতর্কতার বিবরণ, লিংক বা গুরুত্বপূর্ণ অংশ..."
+                                            minHeight="110px"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="md:col-span-1 text-right">
                                     <button
