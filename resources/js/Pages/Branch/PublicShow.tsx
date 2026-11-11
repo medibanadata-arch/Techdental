@@ -681,12 +681,13 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             .bs-page {
               grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
               gap: 56px;
-              align-items: center;
+              align-items: start;
               margin-top: 6px;
             }
             .bs-arch {
               position: sticky;
               top: 24px;
+              aspect-ratio: 4 / 3;
             }
             .bs-info {
               text-align: left;
