@@ -57,6 +57,11 @@ $homeHandler = function () {
             ->orderBy('sort_order')
             ->get(),
         'nav_menu' => \App\Models\NavMenu::first(),
+        'videos' => \Illuminate\Support\Facades\DB::table('home_videos')
+            ->where('is_active', 1)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get(),
         'home_content' => $homeContent,
         'ai_chips' => $aiChips,
         'ai_settings' => [
@@ -280,6 +285,11 @@ Route::get('/gallery', function () {
             ->where('is_active', 1)
             ->orderBy('sort_order')
             ->get(),
+        'videos' => \App\Models\HomeVideo::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get(),
     ]);
 })->name('gallery.public');
 Route::get('/photos', fn() => redirect('/gallery', 301));
@@ -362,11 +372,14 @@ Route::delete('branch-admin/{id}', [BranchController::class, 'adminDestroy'])->n
 // ---------- Homepage CMS ----------
 Route::get('homepage-cms', [HomeContentController::class, 'index'])->name('homepage.admin');
 Route::put('homepage-cms/content', [HomeContentController::class, 'saveContent'])->name('homepage.admin.content');
-Route::post('homepage-cms/sections-order', [HomeContentController::class, 'saveSectionsOrder'])->name('homepage.admin.sections.order');
 Route::post('homepage-cms/gallery', [HomeContentController::class, 'createGalleryRow'])->name('homepage.admin.gallery.create');
 Route::put('homepage-cms/gallery/{id}', [HomeContentController::class, 'saveGalleryRow'])->name('homepage.admin.gallery.update');
 Route::delete('homepage-cms/gallery/{id}', [HomeContentController::class, 'deleteGalleryRow'])->name('homepage.admin.gallery.destroy');
 Route::post('homepage-cms/gallery/reorder', [HomeContentController::class, 'reorderGallery'])->name('homepage.admin.gallery.reorder');
+Route::post('homepage-cms/videos', [HomeContentController::class, 'createVideo'])->name('homepage.admin.videos.create');
+Route::put('homepage-cms/videos/{id}', [HomeContentController::class, 'saveVideo'])->name('homepage.admin.videos.update');
+Route::delete('homepage-cms/videos/{id}', [HomeContentController::class, 'deleteVideo'])->name('homepage.admin.videos.destroy');
+Route::post('homepage-cms/videos/reorder', [HomeContentController::class, 'reorderVideos'])->name('homepage.admin.videos.reorder');
 Route::put('homepage-cms/branches/{id}', [HomeContentController::class, 'saveBranch'])->name('homepage.admin.branches.update');
 Route::post('homepage-cms/branches/reorder', [HomeContentController::class, 'reorderBranches'])->name('homepage.admin.branches.reorder');
 Route::put('homepage-cms/doctors/{id}', [HomeContentController::class, 'saveDoctor'])->name('homepage.admin.doctors.update');

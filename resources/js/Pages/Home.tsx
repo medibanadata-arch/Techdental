@@ -6,6 +6,7 @@ import Seo from "@/Components/Seo";
 import { BranchPickerModal } from "@/Components/BranchPickerModal";
 import { AppointmentModal } from "@/Components/AppointmentModal";
 import { BranchInfo, BRANCHES_DATA } from "@/data/dentalData";
+import { getHomepageCopy } from "@/data/homepageCopy";
 import { getBranchStatus } from "@/utils/branchStatus";
 import { PageProps } from '@inertiajs/core';
 
@@ -15,6 +16,7 @@ interface HomeProps extends PageProps {
   doctors?: any[];
   posts?: any[];
   featured_images?: any[];
+  videos?: any[];
   nav_menu?: any;
   home_content?: any;
   ai_chips?: string[];
@@ -66,7 +68,7 @@ export const extractYouTubeId = (url: string): string | null => {
 };
 
 // YouTube Inline Embed Player Component
-export const ChatYouTubeEmbed: React.FC<{ videoId: string; title?: string }> = ({ videoId, title }) => {
+export const ChatYouTubeEmbed: React.FC<{ videoId: string; title?: string; watchLabel?: string; clickTitle?: string }> = ({ videoId, title, watchLabel = 'ভিডিও দেখুন', clickTitle = 'ভিডিও দেখতে ক্লিক করুন' }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
@@ -85,7 +87,7 @@ export const ChatYouTubeEmbed: React.FC<{ videoId: string; title?: string }> = (
         <div
           onClick={() => setIsPlaying(true)}
           className="relative w-full aspect-video cursor-pointer overflow-hidden bg-slate-900 group"
-          title="ভিডিও দেখতে ক্লিক করুন"
+          title={clickTitle}
         >
           {/* Thumbnail */}
           <img
@@ -105,7 +107,7 @@ export const ChatYouTubeEmbed: React.FC<{ videoId: string; title?: string }> = (
           {/* Top Badge */}
           <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/70 backdrop-blur-xs text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-white/15 shadow-xs">
             <i className="fa-brands fa-youtube text-red-500 text-xs" />
-            <span>ভিডিও দেখুন</span>
+            <span>{watchLabel}</span>
           </div>
 
           {/* Center Play Button */}
@@ -133,6 +135,7 @@ export default function Home({
   doctors = [],
   posts = [],
   featured_images = [],
+  videos = [],
   nav_menu,
   home_content,
   ai_chips = [],
@@ -140,6 +143,7 @@ export default function Home({
 }: HomeProps) {
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const copy = useMemo(() => getHomepageCopy(home_content?.homepage_texts), [home_content?.homepage_texts]);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [aiInputValue, setAiInputValue] = useState("");
   const [modalInputValue, setModalInputValue] = useState("");
@@ -240,24 +244,36 @@ export default function Home({
   }
   const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent("হ্যালো টেক ডেন্টাল, আমি চিকিৎসার বিষয়ে জানতে চাচ্ছি।")}`;
 
-  // Top Chips above the search bar: 3 original static chips
+  // Top Chips above the search bar: editable from AI Assistant → Chips
   const topChips = useMemo(() => [
     "শাখার ঠিকানা কোথায়?",
     "ফাঁকা দাঁতের চিকিৎসা",
     "দাঁত ব্যথার চিকিৎসা",
   ], []);
 
+  const chipList = useMemo(() => {
+    const fromBackend = Array.isArray(ai_chips)
+      ? ai_chips.filter((chip) => typeof chip === 'string' && chip.trim() !== '')
+      : [];
+    return fromBackend.length > 0 ? fromBackend : topChips;
+  }, [ai_chips, topChips]);
+
   // Search box placeholder questions with timed slide-in sequence:
   // 0s: ফিলিং চিকিৎসার খরচ কত?
   // +1s: দাঁতে গর্ত হলে কি করা উচিৎ?
   // +2s: রুট ক্যানেল করতে কত খরচ হয়?
   // +3s: দাঁত সোজা করার উপায় কি?
-  const searchQuestions = useMemo(() => [
-    "ফিলিং চিকিৎসার খরচ কত?",
-    "দাঁতে গর্ত হলে কি করা উচিৎ?",
-    "রুট ক্যানেল করতে কত খরচ হয়?",
-    "দাঁত সোজা করার উপায় কি?",
-  ], []);
+  const searchQuestions = useMemo(() => {
+    const saved = Array.isArray(ai_settings?.starter_questions)
+      ? ai_settings!.starter_questions!.filter((q) => typeof q === 'string' && q.trim() !== '')
+      : [];
+    return saved.length > 0 ? saved : [
+      "ফিলিং চিকিৎসার খরচ কত?",
+      "দাঁতে গর্ত হলে কি করা উচিৎ?",
+      "রুট ক্যানেল করতে কত খরচ হয়?",
+      "দাঁত সোজা করার উপায় কি?",
+    ];
+  }, [ai_settings?.starter_questions]);
 
   const [animatedPlaceholderIdx, setAnimatedPlaceholderIdx] = useState(0);
 
@@ -293,148 +309,27 @@ export default function Home({
     };
   }, [aiInputValue, isAiFocused, searchQuestions]);
 
-  // Gallery items matching screenshot style
-  const galleryItems = useMemo(() => {
-    if (Array.isArray(featured_images) && featured_images.length > 0) {
-      return featured_images;
-    }
-    return [
-      {
-        id: 1,
-        title: "টেক ডেন্টাল হেড অফিস",
-        src: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80",
-        branch: "Uttara",
-        badge: "টেক ডেন্টাল হেড অফিস",
-        badgeColor: "bg-[#e43324]",
-        view_count: 2537,
-      },
-      {
-        id: 2,
-        title: "আধুনিক মাইক্রোস্কোপিক ডেন্টাল কেয়ার",
-        src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
-        branch: "Badda",
-        badge: "আধুনিক মাইক্রোস্কোপিক ডেন্টাল কেয়ার",
-        badgeColor: "bg-[#1a73e8]",
-        view_count: 1890,
-      },
-      {
-        id: 3,
-        title: "উন্নত ও আরামদায়ক চিকিৎসা পরিবেশ",
-        src: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80",
-        branch: "Mirpur",
-        badge: "বিশেষজ্ঞ পরামর্শ কেন্দ্র",
-        badgeColor: "bg-[#059669]",
-        view_count: 2237,
-      },
-      {
-        id: 4,
-        title: "ডিজিটাল ইন্ট্রাওরাল স্ক্যানিং রুম",
-        src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
-        branch: "Uttara",
-        badge: "ডিজিটাল স্ক্যানিং",
-        badgeColor: "bg-[#0284c7]",
-        view_count: 3105,
-      },
-      {
-        id: 5,
-        title: "অত্যাধুনিক ডেন্টাল ওটি সেটআপ",
-        src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
-        branch: "Mirpur",
-        badge: "ডেন্টাল ওটি",
-        badgeColor: "bg-[#7c3aed]",
-        view_count: 2780,
-      },
-      {
-        id: 6,
-        title: "৩ডি কোন বিম সিটি স্ক্যান (CBCT)",
-        src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
-        branch: "Badda",
-        badge: "CBCT ডায়াগনস্টিক",
-        badgeColor: "bg-[#ea580c]",
-        view_count: 2150,
-      },
-      {
-        id: 7,
-        title: "জীবাণুমুক্তকরণ ও স্টেরিলাইজেশন জোন",
-        src: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
-        branch: "Uttara",
-        badge: "স্টেরিলাইজেশন",
-        badgeColor: "bg-[#0891b2]",
-        view_count: 1940,
-      },
-      {
-        id: 8,
-        title: "শিশুদের স্পেশাল ডেন্টাল কর্নার",
-        src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
-        branch: "Mirpur",
-        badge: "পেডিয়াট্রিক ডেন্টিস্ট্রি",
-        badgeColor: "bg-[#db2777]",
-        view_count: 2490,
-      },
-    ];
-  }, [featured_images]);
+  // Gallery items are fully managed in Homepage CMS → Hero Slider & Gallery
+  const galleryItems = useMemo(
+    () => (Array.isArray(featured_images) ? featured_images : []),
+    [featured_images]
+  );
 
   const displayedImages = isImagesExpanded ? galleryItems.slice(0, 8) : galleryItems.slice(0, 4);
 
-  // Video Gallery items matching screenshot style
-  const videoGalleryItems = useMemo(() => [
-    {
-      id: 1,
-      videoId: "szdRKLSLzOE",
-      title: "আল্ট্রাসনিক স্কেলিং ও আধুনিক পলিশিং",
-      branch: "Mirpur",
-      views: 3420,
-    },
-    {
-      id: 2,
-      videoId: "szdRKLSLzOE",
-      title: "কম্পিউটারাইজড পেইনলেস রুট ক্যানেল",
-      branch: "Uttara",
-      views: 2850,
-    },
-    {
-      id: 3,
-      videoId: "szdRKLSLzOE",
-      title: "জার্মান প্রযুক্তির ডেন্টাল ইমপ্ল্যান্ট সার্জারি",
-      branch: "Badda",
-      views: 4120,
-    },
-    {
-      id: 4,
-      videoId: "szdRKLSLzOE",
-      title: "দাঁত ফাঁকা ও আঁকাবাঁকা চিকিৎসা (ব্রেসেস)",
-      branch: "Mirpur",
-      views: 2190,
-    },
-    {
-      id: 5,
-      videoId: "szdRKLSLzOE",
-      title: "ডিজিটাল স্মাইল ডিজাইন ও ভিনিয়ার্স",
-      branch: "Uttara",
-      views: 2640,
-    },
-    {
-      id: 6,
-      videoId: "szdRKLSLzOE",
-      title: "বাচ্চাদের দাঁতের যত্ন ও ক্যাভিটি ফিলিং",
-      branch: "Badda",
-      views: 1850,
-    },
-    {
-      id: 7,
-      videoId: "szdRKLSLzOE",
-      title: "আধুনিক ডিজিটাল ৩ডি ওপিজি এক্স-রে রুম",
-      branch: "Uttara",
-      views: 3200,
-    },
-    {
-      id: 8,
-      videoId: "szdRKLSLzOE",
-      title: "ক্লাস-বি অটোক্লেভ ১০০% জীবাণুমুক্তকরণ ব্যবস্থা",
-      branch: "Mirpur",
-      views: 2950,
-    },
-  ], []);
+  // Video gallery items are fully managed in Homepage CMS → Video Gallery
+  const videoGalleryItems = useMemo(
+    () =>
+      (Array.isArray(videos) ? videos : [])
+        .map((item: any) => ({
+          id: item.id,
+          videoId: item.video_id || extractYouTubeId(item.youtube_url || '') || '',
+          title: item.title || '',
+          branch: item.branch || '',
+        }))
+        .filter((item: any) => item.videoId),
+    [videos]
+  );
 
   const displayedVideos = isVideosExpanded ? videoGalleryItems.slice(0, 6) : videoGalleryItems.slice(0, 3);
 
@@ -698,7 +593,7 @@ export default function Home({
           const cleanUrl = uPart.replace(/[.,;:)\]]+$/, '');
           const ytId = extractYouTubeId(cleanUrl);
           if (ytId) {
-            return <ChatYouTubeEmbed key={uKey} videoId={ytId} />;
+            return <ChatYouTubeEmbed key={uKey} videoId={ytId} watchLabel={copy.video_watch_label} clickTitle={copy.video_click_title} />;
           }
           return (
             <a
@@ -750,7 +645,7 @@ export default function Home({
           const cleanHref = href.replace(/[.,;:)\]]+$/, '');
           const ytId = extractYouTubeId(cleanHref);
           if (ytId) {
-            return <ChatYouTubeEmbed key={lKey} videoId={ytId} title={label} />;
+            return <ChatYouTubeEmbed key={lKey} videoId={ytId} title={label} watchLabel={copy.video_watch_label} clickTitle={copy.video_click_title} />;
           }
           return (
             <a
@@ -908,16 +803,17 @@ export default function Home({
 
   // Action Buttons Modals
   const handleActionModal = (type: "Call" | "Directions" | "WhatsApp" | "Book") => {
+    const fill = (text: string) => text.replace(/\{hotline\}/g, hotline);
     if (type === "Call") {
       window.location.href = `tel:${hotline}`;
       setModal({
         isOpen: true,
-        title: "কল করুন (Call)",
-        message: `টেক ডেন্টাল হটলাইন নম্বরে কল করতে ডায়াল করুন:\n${hotline}`,
+        title: fill(copy.call_modal_title),
+        message: fill(copy.call_modal_message),
         icon: "fa-phone",
         iconColor: "text-blue-600",
         iconBg: "bg-blue-100",
-        actionText: `এখনই কল করুন (${hotline})`,
+        actionText: fill(copy.call_modal_action),
         onAction: () => {
           window.location.href = `tel:${hotline}`;
         },
@@ -1020,13 +916,13 @@ export default function Home({
 
           {/* Title - One Line */}
           <h2 className={`text-xl sm:text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-normal whitespace-nowrap ${isChatActive ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}>
-            কিভাবে সাহায্য করতে পারি?
+            {copy.hero_title}
           </h2>
 
-          {/* Top Chips above the search bar - Original 3 static chips */}
+          {/* Top Chips above the search bar — editable in AI Assistant → Chips */}
           {!isChatActive && (
             <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-2.5 mb-6 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
-              {topChips.map((chip, idx) => (
+              {chipList.map((chip, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -1068,7 +964,7 @@ export default function Home({
                     </span>
                     <span className="text-[11px] sm:text-xs text-slate-500 font-normal flex items-center gap-1.5 mt-0.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                      Online
+                      {copy.ai_online_label}
                     </span>
                   </div>
                 </div>
@@ -1078,7 +974,7 @@ export default function Home({
                   <button
                     type="button"
                     onClick={() => setIsFullModalOpen(true)}
-                    title="ফুল ভিউ দেখুন"
+                    title={copy.ai_expand_title}
                     className="p-1.5 hover:bg-slate-100 rounded-full hover:text-blue-600 transition cursor-pointer"
                   >
                     <i className="fa-solid fa-up-right-and-down-left-from-center text-xs sm:text-sm" />
@@ -1088,7 +984,7 @@ export default function Home({
                   <button
                     type="button"
                     onClick={handleCloseWidget}
-                    title="বন্ধ করুন"
+                    title={copy.ai_close_title}
                     className="p-1.5 hover:bg-red-50 rounded-full hover:text-red-500 transition ml-0.5 cursor-pointer"
                   >
                     <i className="fa-solid fa-xmark text-sm" />
@@ -1110,8 +1006,8 @@ export default function Home({
 
               {/* Widget Related Suggested Chips */}
               <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/40 shrink-0 flex items-center gap-1.5 overflow-x-auto hide-scrollbar text-[11px]">
-                <span className="text-slate-400 whitespace-nowrap">সম্পর্কিত:</span>
-                {topChips.map((chip, idx) => (
+                <span className="text-slate-400 whitespace-nowrap">{copy.ai_related_label}</span>
+                {chipList.map((chip, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -1157,7 +1053,7 @@ export default function Home({
                     id="primarySearchInput"
                     value={aiInputValue}
                     onChange={(e) => setAiInputValue(e.target.value)}
-                    placeholder={isAiFocused ? "খরচ, ঠিকানা, ডাক্তার..." : ""}
+                    placeholder={isAiFocused ? copy.search_placeholder_focus : ""}
                     className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base sm:text-lg outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none transition-all relative z-10"
                     onFocus={() => setIsAiFocused(true)}
                     onBlur={() => setIsAiFocused(false)}
@@ -1178,7 +1074,7 @@ export default function Home({
                 id="searchSubmitBtn"
                 disabled={isAiLoading}
                 className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#1d63ed] hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center transition shadow-md shadow-blue-500/25 shrink-0 cursor-pointer"
-                title="সার্চ করুন"
+                title={copy.search_button_title}
               >
                 {isAiLoading ? (
                   <i className="fa-solid fa-circle-notch fa-spin text-base" />
@@ -1204,7 +1100,7 @@ export default function Home({
             <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
               <i className="fa-solid fa-phone text-[#1a73e8] text-xl" />
             </div>
-            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">Call</span>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">{copy.quick_call_label}</span>
           </button>
 
           {/* Directions CTA */}
@@ -1227,7 +1123,7 @@ export default function Home({
                 <polygon points="3 11 22 2 13 21 11 13 3 11" />
               </svg>
             </div>
-            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">Directions</span>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">{copy.quick_directions_label}</span>
           </button>
 
           {/* WhatsApp CTA */}
@@ -1239,7 +1135,7 @@ export default function Home({
             <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
               <i className="fa-brands fa-whatsapp text-[#25d366] text-2xl" />
             </div>
-            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">WhatsApp</span>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">{copy.quick_whatsapp_label}</span>
           </button>
 
           {/* Book CTA */}
@@ -1251,7 +1147,7 @@ export default function Home({
             <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
               <i className="fa-regular fa-calendar-check text-[#881337] text-xl" />
             </div>
-            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">Book</span>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">{copy.quick_book_label}</span>
           </button>
 
         </div>
@@ -1260,19 +1156,20 @@ export default function Home({
         {/* IMAGE GALLERY */}
         {/* Initial: 4 on desktop, 2 on mobile. Expand: 8 images, then See Less & See More (/gallery) */}
         {/* ========================================== */}
+        {galleryItems.length > 0 && (
         <section id="image-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-solid fa-images text-blue-600" />
-              <span>Image Gallery</span>
+              <span>{copy.image_gallery_title}</span>
             </h2>
           </div>
 
           {/* 4 in desktop, 2 in mobile (collapsed) -> 8 images when expanded */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {displayedImages.map((item: any, idx: number) => {
-              const titleBadge = item.badge || item.title || "Tech Dental";
-              const imgSrc = item.src || item.image || item.url || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80";
+              const titleBadge = item.badge || item.title || copy.gallery_alt_fallback;
+              const imgSrc = item.src || item.image || item.url || "";
               const isHiddenOnMobile = !isImagesExpanded && idx >= 2;
 
               return (
@@ -1288,7 +1185,7 @@ export default function Home({
                   className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
                     isHiddenOnMobile ? "hidden md:block" : ""
                   }`}
-                  title="ছবি দেখতে ক্লিক করুন"
+                  title={copy.image_click_title}
                 >
                   <img
                     src={imgSrc}
@@ -1310,7 +1207,7 @@ export default function Home({
                 onClick={() => setIsImagesExpanded(true)}
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
               >
-                <span>See More</span>
+                <span>{copy.see_more_label}</span>
                 <i className="fa-solid fa-chevron-down text-xs" />
               </button>
             ) : (
@@ -1326,29 +1223,31 @@ export default function Home({
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
                 >
                   <i className="fa-solid fa-chevron-up text-xs" />
-                  <span>See Less</span>
+                  <span>{copy.see_less_label}</span>
                 </button>
                 <Link
                   href="/gallery"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-md transition active:scale-95 cursor-pointer"
                 >
-                  <span>See More</span>
+                  <span>{copy.see_more_label}</span>
                   <i className="fa-solid fa-arrow-right text-xs" />
                 </Link>
               </>
             )}
           </div>
         </section>
+        )}
 
         {/* ========================================== */}
         {/* VIDEO GALLERY */}
         {/* Mobile: 1 column stacked (not side by side), Desktop: 3 columns. Expand: 6 videos, then See Less & See More (/gallery#videos) */}
         {/* ========================================== */}
+        {videoGalleryItems.length > 0 && (
         <section id="video-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
               <i className="fa-brands fa-youtube text-red-600" />
-              <span>Video Gallery</span>
+              <span>{copy.video_gallery_title}</span>
             </h2>
           </div>
 
@@ -1364,7 +1263,7 @@ export default function Home({
                   className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-video group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
                     isHiddenOnMobile ? "hidden md:block" : ""
                   }`}
-                  title="ভিডিও দেখতে ক্লিক করুন"
+                  title={copy.video_click_title}
                 >
                   <img
                     src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
@@ -1399,7 +1298,7 @@ export default function Home({
                 onClick={() => setIsVideosExpanded(true)}
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
               >
-                <span>See More</span>
+                <span>{copy.see_more_label}</span>
                 <i className="fa-solid fa-chevron-down text-xs" />
               </button>
             ) : (
@@ -1415,19 +1314,20 @@ export default function Home({
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
                 >
                   <i className="fa-solid fa-chevron-up text-xs" />
-                  <span>See Less</span>
+                  <span>{copy.see_less_label}</span>
                 </button>
                 <Link
                   href="/gallery#videos"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-md transition active:scale-95 cursor-pointer"
                 >
-                  <span>See More</span>
+                  <span>{copy.see_more_label}</span>
                   <i className="fa-solid fa-arrow-right text-xs" />
                 </Link>
               </>
             )}
           </div>
         </section>
+        )}
 
         {/* Bottom Section: Call to Action (CTA) & More Accordion */}
         <section className="w-full mb-6 md:mb-8 mt-auto">
@@ -1506,7 +1406,7 @@ export default function Home({
                     <div className="pt-4 border-t border-slate-100 space-y-3">
                       <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                         <span className="w-1.5 h-3.5 bg-rose-700 rounded-full" />
-                        Frequently Asked Questions (FAQ)
+                        {copy.faq_title}
                       </h4>
                       <div className="space-y-2">
                         {safeFaqs.filter((f: any) => f && f.q).map((faq: any, i: number) => (
@@ -1557,7 +1457,7 @@ export default function Home({
                 onClick={() => setModal({ ...modal, isOpen: false })}
                 className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition cursor-pointer"
               >
-                ঠিক আছে (OK)
+                {copy.ok_button_label}
               </button>
             </div>
           </div>
@@ -1716,7 +1616,7 @@ export default function Home({
                   </h4>
                   <p className="text-[11px] sm:text-xs text-slate-500 font-normal flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                    Online
+                    {copy.ai_online_label}
                   </p>
                 </div>
               </div>
@@ -1725,7 +1625,7 @@ export default function Home({
                   type="button"
                   onClick={() => setIsFullModalOpen(false)}
                   className="p-2 hover:bg-slate-200 rounded-full text-slate-600 transition cursor-pointer"
-                  title="বন্ধ করুন"
+                  title={copy.ai_close_title}
                 >
                   <i className="fa-solid fa-xmark text-base" />
                 </button>

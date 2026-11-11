@@ -8,9 +8,10 @@ interface GalleryProps extends PageProps {
   locations?: any[];
   nav_menu?: any;
   featured_images?: any[];
+  videos?: any[];
 }
 
-export default function GalleryPublicIndex({ locations = [], nav_menu, featured_images = [] }: GalleryProps) {
+export default function GalleryPublicIndex({ locations = [], nav_menu, featured_images = [], videos = [] }: GalleryProps) {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "images" | "videos">("all");
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; index: number } | null>(null);
@@ -23,116 +24,20 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
     }
   }, []);
 
-  const imageItems = useMemo(() => {
-    if (Array.isArray(featured_images) && featured_images.length > 0) {
-      return featured_images;
-    }
-    return [
-      {
-        id: 1,
-        title: "Tech Dental Head Office",
-        src: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 2,
-        title: "Advanced Microscopic Dental Care",
-        src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 3,
-        title: "Modern & Comfortable Environment",
-        src: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 4,
-        title: "Digital Intraoral Scanning Suite",
-        src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 5,
-        title: "Advanced Dental Operation Theater",
-        src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 6,
-        title: "3D Cone Beam CT Scan (CBCT)",
-        src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 7,
-        title: "Sterilization & Hygiene Zone",
-        src: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 8,
-        title: "Kids Specialized Dental Corner",
-        src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 9,
-        title: "Digital Smile Design Consultation",
-        src: "https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 10,
-        title: "Painless Dental Implant Center",
-        src: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 11,
-        title: "Laser Dental Treatment Unit",
-        src: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
-      },
-      {
-        id: 12,
-        title: "Patient Waiting & Relaxation Lounge",
-        src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
-      },
-    ];
-  }, [featured_images]);
+  // Images come from Featured Sliders in the backend (no hardcoded fallbacks).
+  const imageItems = useMemo(() => (
+    Array.isArray(featured_images) ? featured_images : []
+  ), [featured_images]);
 
-  const videoItems = useMemo(() => [
-    {
-      id: 1,
-      videoId: "szdRKLSLzOE",
-      title: "Ultrasonic Scaling & Advanced Polishing",
-    },
-    {
-      id: 2,
-      videoId: "szdRKLSLzOE",
-      title: "Computerized Painless Root Canal",
-    },
-    {
-      id: 3,
-      videoId: "szdRKLSLzOE",
-      title: "German Dental Implant Surgery",
-    },
-    {
-      id: 4,
-      videoId: "szdRKLSLzOE",
-      title: "Dental Braces & Teeth Alignment",
-    },
-    {
-      id: 5,
-      videoId: "szdRKLSLzOE",
-      title: "Digital Smile Design & Veneers",
-    },
-    {
-      id: 6,
-      videoId: "szdRKLSLzOE",
-      title: "Pediatric Dental Care & Cavity Filling",
-    },
-    {
-      id: 7,
-      videoId: "szdRKLSLzOE",
-      title: "Digital 3D OPG X-Ray Unit",
-    },
-    {
-      id: 8,
-      videoId: "szdRKLSLzOE",
-      title: "Class-B Autoclave 100% Sterilization",
-    },
-  ], []);
+  // Videos come from Homepage CMS > Video Gallery (home_videos table).
+  const videoItems = useMemo(() => (
+    (Array.isArray(videos) ? videos : []).map((v: any) => ({
+      id: v.id,
+      videoId: v.video_id,
+      title: v.title || '',
+      branch: v.branch || '',
+    })).filter((v: any) => v.videoId)
+  ), [videos]);
 
   // Keyboard navigation for image lightbox
   useEffect(() => {
@@ -191,18 +96,22 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-12">
 
         {/* Tab Filters */}
+        {(imageItems.length > 0 || videoItems.length > 0) && (
         <div className="flex items-center justify-center gap-2 mb-8">
-          <button
-            type="button"
-            onClick={() => setActiveTab("all")}
-            className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition cursor-pointer ${
-              activeTab === "all"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-            }`}
-          >
-            All
-          </button>
+          {imageItems.length > 0 && videoItems.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setActiveTab("all")}
+              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                activeTab === "all"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+              }`}
+            >
+              All
+            </button>
+          )}
+          {imageItems.length > 0 && (
           <button
             type="button"
             onClick={() => setActiveTab("images")}
@@ -215,6 +124,8 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             <i className="fa-solid fa-images text-xs" />
             <span>Images</span>
           </button>
+          )}
+          {videoItems.length > 0 && (
           <button
             type="button"
             onClick={() => setActiveTab("videos")}
@@ -227,10 +138,18 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             <i className="fa-brands fa-youtube text-xs" />
             <span>Videos</span>
           </button>
+          )}
         </div>
+        )}
+
+        {imageItems.length === 0 && videoItems.length === 0 && (
+          <div className="text-center py-20 text-sm font-medium text-slate-500">
+            Photos and videos will appear here soon.
+          </div>
+        )}
 
         {/* Images Grid */}
-        {(activeTab === "all" || activeTab === "images") && (
+        {imageItems.length > 0 && (activeTab === "all" || activeTab === "images") && (
           <section className="mb-12" id="images">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
@@ -245,7 +164,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
               {imageItems.map((item: any, idx: number) => {
                 const title = item.title && item.title !== "Homepage" ? item.title : "";
-                const imgSrc = item.src || item.image || item.url || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80";
+                const imgSrc = item.src || item.image || item.url || "";
 
                 return (
                   <div
@@ -276,7 +195,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
         )}
 
         {/* Videos Grid */}
-        {(activeTab === "all" || activeTab === "videos") && (
+        {videoItems.length > 0 && (activeTab === "all" || activeTab === "videos") && (
           <section className="mb-12" id="videos">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">

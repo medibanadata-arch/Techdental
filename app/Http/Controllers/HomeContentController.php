@@ -12,20 +12,20 @@ use Illuminate\Support\Facades\DB;
 
 class HomeContentController extends Controller
 {
-    public static function getDefaultSectionsConfig()
+    /** Extract the 11-character YouTube video ID from any YouTube URL (or raw ID). */
+    public static function extractYouTubeId(?string $url): ?string
     {
-        return [
-            ['key' => 'gallery', 'title' => 'Homepage Slider & Showcase Gallery', 'subtitle' => 'Hero banner showcase at the top of homepage', 'enabled' => true, 'order' => 1],
-            ['key' => 'quick_actions', 'title' => 'Quick Action Buttons', 'subtitle' => 'Call, Directions, WhatsApp & Book Now bar', 'enabled' => true, 'order' => 2],
-            ['key' => 'opening_hours', 'title' => 'Opening Hours & Schedule', 'subtitle' => 'Real-time open/close schedule status accordion', 'enabled' => true, 'order' => 3],
-            ['key' => 'branches', 'title' => 'Our Branches', 'subtitle' => 'Mirpur, Uttara, Badda & Jatrabari branch tabs & timings', 'enabled' => true, 'order' => 4],
-            ['key' => 'doctors', 'title' => 'Specialist Doctors', 'subtitle' => 'Oral surgeons and dental specialists showcase cards', 'enabled' => true, 'order' => 5],
-            ['key' => 'services', 'title' => 'Services & Pricing', 'subtitle' => 'Treatments list with standard consultation prices', 'enabled' => true, 'order' => 6],
-            ['key' => 'reviews', 'title' => 'Patient Reviews & Rating', 'subtitle' => '4.9 Google rating & patient feedback strip', 'enabled' => true, 'order' => 7],
-            ['key' => 'appointment_cta', 'title' => 'Make Appointment CTA Button', 'subtitle' => 'Direct prominent booking CTA banner', 'enabled' => true, 'order' => 8],
-            ['key' => 'guides', 'title' => 'Dental Care Guides', 'subtitle' => 'Articles and educational guides for patients', 'enabled' => true, 'order' => 9],
-            ['key' => 'about_seo', 'title' => 'More About Tech Dental & FAQs', 'subtitle' => 'Clinic overview text and frequently asked questions', 'enabled' => true, 'order' => 10],
-        ];
+        if (!$url) {
+            return null;
+        }
+        $url = trim($url);
+        if (preg_match('/^[a-zA-Z0-9_-]{11}$/', $url)) {
+            return $url;
+        }
+        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i', $url, $m)) {
+            return $m[1];
+        }
+        return null;
     }
 
     public function index()
@@ -33,11 +33,6 @@ class HomeContentController extends Controller
         $content = HomeContent::first();
         if (!$content) {
             $content = HomeContent::create([]);
-        }
-
-        if (empty($content->sections_config)) {
-            $content->sections_config = self::getDefaultSectionsConfig();
-            $content->save();
         }
 
         // Initialize services sort_order if not set
@@ -78,6 +73,7 @@ class HomeContentController extends Controller
             'branches' => $branches,
             'doctors' => $doctors,
             'services' => $services,
+            'videos' => \App\Models\HomeVideo::orderBy('sort_order')->orderBy('id')->get(),
             'posts' => DB::table('posts')
                 ->where(function ($q) {
                     $q->whereNull('status')->orWhere('status', '!=', 'trash');
@@ -87,21 +83,6 @@ class HomeContentController extends Controller
                 ->get(),
         ];
         return Inertia::render('HomeContent/AdminIndex', $data);
-    }
-
-    /** Save Sections Order & Visibility */
-    public function saveSectionsOrder(Request $request)
-    {
-        $validated = $request->validate([
-            'sections' => 'required|array',
-        ]);
-        $content = HomeContent::first();
-        if (!$content) {
-            $content = HomeContent::create([]);
-        }
-        $content->sections_config = $validated['sections'];
-        $content->save();
-        return back()->with('success', 'Homepage sections arrangement saved successfully!');
     }
 
     /** Save SEO, branding & FAQ section (home_content singleton) */
@@ -122,7 +103,7 @@ class HomeContentController extends Controller
             'about_image' => 'nullable|string',
             'about_caption' => 'nullable|string',
             'faqs' => 'nullable|array',
-            'sections_config' => 'nullable|array',
+            'homepage_texts' => 'nullable|array',
         ]);
         $content = HomeContent::first();
         if (!$content) {
@@ -289,5 +270,73 @@ class HomeContentController extends Controller
             }
         }
         return back()->with('success', 'Services ranking updated.');
+    }
+
+    /** Homepage YouTube videos: Create, Update, Delete & Reorder */
+    public function createVideo(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'nullable|string',
+            'youtube_url' => 'required|string',
+            'branch' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        $videoId = self::extractYouTubeId($validated['youtube_url']);
+        if (!$videoId) {
+            return back()->with('error', 'Please enter a valid YouTube video URL (e.g. https://www.youtube.com/watch?v=...)');
+        }
+
+        \App\Models\HomeVideo::create([
+            'title' => $validated['title'] ?? null,
+            'youtube_url' => $validated['youtube_url'],
+            'video_id' => $videoId,
+            'branch' => $validated['branch'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+            'sort_order' => $validated['sort_order'] ?? ((\App\Models\HomeVideo::max('sort_order') ?? 0) + 1),
+        ]);
+
+        return back()->with('success', 'Video added to the homepage gallery.');
+    }
+
+    public function saveVideo(Request $request, $id)
+    {
+        $video = \App\Models\HomeVideo::findOrFail($id);
+        $validated = $request->validate([
+            'title' => 'nullable|string',
+            'youtube_url' => 'nullable|string',
+            'branch' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        if (!empty($validated['youtube_url'])) {
+            $videoId = self::extractYouTubeId($validated['youtube_url']);
+            if (!$videoId) {
+                return back()->with('error', 'Please enter a valid YouTube video URL.');
+            }
+            $validated['video_id'] = $videoId;
+        }
+
+        $video->update(array_filter($validated, fn ($v) => $v !== null));
+        return back()->with('success', 'Video updated.');
+    }
+
+    public function deleteVideo($id)
+    {
+        \App\Models\HomeVideo::findOrFail($id)->delete();
+        return back()->with('success', 'Video deleted.');
+    }
+
+    public function reorderVideos(Request $request)
+    {
+        $items = $request->input('items', []);
+        foreach ($items as $item) {
+            if (isset($item['id']) && isset($item['sort_order'])) {
+                \App\Models\HomeVideo::where('id', $item['id'])->update(['sort_order' => (int)$item['sort_order']]);
+            }
+        }
+        return back()->with('success', 'Video order updated.');
     }
 }

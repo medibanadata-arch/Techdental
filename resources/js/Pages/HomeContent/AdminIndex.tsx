@@ -29,20 +29,16 @@ import {
     FileText,
     Navigation,
     MessageSquare,
-    Calendar
+    Calendar,
+    Video,
+    Type,
+    PlusCircle
 } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
 import MediaImagePicker from '@/components/ImagePicker/MediaImagePicker';
 import RichContentEditor from '@/Components/RichContentEditor';
 import SeoMetaBox from '@/Components/SeoMetaBox';
-
-interface SectionConfigItem {
-    key: string;
-    title: string;
-    subtitle?: string;
-    enabled: boolean;
-    order: number;
-}
+import { HOMEPAGE_COPY_DEFAULTS, HOMEPAGE_COPY_FIELDS } from '@/data/homepageCopy';
 
 interface HomeContentData {
     id?: number;
@@ -60,7 +56,17 @@ interface HomeContentData {
     about_image?: string;
     about_caption?: string;
     faqs?: { q: string; a: string }[];
-    sections_config?: SectionConfigItem[];
+    homepage_texts?: Record<string, string>;
+}
+
+interface VideoItem {
+    id: number;
+    title?: string;
+    youtube_url?: string;
+    video_id?: string;
+    branch?: string;
+    sort_order?: number;
+    is_active?: boolean;
 }
 
 interface GalleryItem {
@@ -121,6 +127,7 @@ interface ServiceItem {
 interface Props extends PageProps {
     content: HomeContentData;
     gallery: GalleryItem[];
+    videos?: VideoItem[];
     branches: BranchItem[];
     doctors: DoctorItem[];
     services: ServiceItem[];
@@ -130,12 +137,13 @@ interface Props extends PageProps {
 export default function HomeContentAdminIndex({
     content,
     gallery = [],
+    videos = [],
     branches = [],
     doctors = [],
     services = [],
     posts = []
 }: Props) {
-    const [activeTab, setActiveTab] = useState<'gallery' | 'branches' | 'services' | 'doctors' | 'about_seo' | 'sections'>('gallery');
+    const [activeTab, setActiveTab] = useState<'gallery' | 'videos' | 'page_texts' | 'branches' | 'services' | 'doctors' | 'about_seo'>('gallery');
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
     const showNotification = (msg: string) => {
@@ -144,56 +152,7 @@ export default function HomeContentAdminIndex({
     };
 
     // -------------------------------------------------------------
-    // TAB 1: SECTIONS LAYOUT & RANKING STATE
-    // -------------------------------------------------------------
-    const initialSections: SectionConfigItem[] = (content?.sections_config && content.sections_config.length > 0)
-        ? content.sections_config
-        : [
-            { key: 'gallery', title: 'Hero Slider & Showcase Gallery', subtitle: 'Top media banner showcasing operatory, equipment & branch highlights', enabled: true, order: 1 },
-            { key: 'quick_actions', title: 'Quick Action Buttons', subtitle: 'Direct Call, Directions, WhatsApp & Book Now bar', enabled: true, order: 2 },
-            { key: 'opening_hours', title: 'Opening Hours & Schedule', subtitle: 'Real-time open/close schedule status accordion for branches', enabled: true, order: 3 },
-            { key: 'branches', title: 'Our Branches', subtitle: 'Mirpur, Uttara, Badda & Jatrabari branch tabs & contact details', enabled: true, order: 4 },
-            { key: 'doctors', title: 'Specialist Doctors', subtitle: 'Specialist Oral Surgeons and Dental Specialists cards', enabled: true, order: 5 },
-            { key: 'services', title: 'Services & Pricing', subtitle: 'Dental treatments list with transparent consultation & treatment pricing', enabled: true, order: 6 },
-            { key: 'reviews', title: 'Patient Reviews & Rating', subtitle: '4.9 Google rating & patient feedback strip', enabled: true, order: 7 },
-            { key: 'appointment_cta', title: 'Make Appointment CTA Button', subtitle: 'Direct prominent booking CTA banner', enabled: true, order: 8 },
-            { key: 'guides', title: 'Dental Care Guides', subtitle: 'Articles and educational guides for patients', enabled: true, order: 9 },
-            { key: 'about_seo', title: 'More About Tech Dental & FAQs', subtitle: 'Clinic overview text and frequently asked questions', enabled: true, order: 10 },
-        ];
-
-    const [sectionsList, setSectionsList] = useState<SectionConfigItem[]>(
-        [...initialSections].sort((a, b) => a.order - b.order)
-    );
-
-    const moveSection = (index: number, direction: 'up' | 'down') => {
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        if (targetIndex < 0 || targetIndex >= sectionsList.length) return;
-
-        const updated = [...sectionsList];
-        const temp = updated[index];
-        updated[index] = updated[targetIndex];
-        updated[targetIndex] = temp;
-
-        // Reassign sequential order numbers 1..N
-        const normalized = updated.map((sec, idx) => ({ ...sec, order: idx + 1 }));
-        setSectionsList(normalized);
-    };
-
-    const toggleSectionEnabled = (index: number) => {
-        const updated = [...sectionsList];
-        updated[index] = { ...updated[index], enabled: !updated[index].enabled };
-        setSectionsList(updated);
-    };
-
-    const handleSaveSections = (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-        router.post(route('homepage.admin.sections.order'), { sections: sectionsList }, {
-            onSuccess: () => showNotification('Homepage sections ranking & layout saved successfully!'),
-        });
-    };
-
-    // -------------------------------------------------------------
-    // TAB 2: GALLERY / SLIDER STATE & REORDERING
+    // TAB 1: GALLERY / SLIDER STATE & REORDERING
     // -------------------------------------------------------------
     const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(
         [...gallery].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
@@ -287,7 +246,97 @@ export default function HomeContentAdminIndex({
     };
 
     // -------------------------------------------------------------
-    // TAB 3: BRANCHES & 4 QUICK BUTTONS
+    // TAB 2: YOUTUBE VIDEO GALLERY
+    // -------------------------------------------------------------
+    const [videoList, setVideoList] = useState<VideoItem[]>(
+        [...videos].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    );
+    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    const [editingVideoId, setEditingVideoId] = useState<number | null>(null);
+    const [videoForm, setVideoForm] = useState({
+        title: '',
+        youtube_url: '',
+        branch: '',
+        is_active: true,
+        sort_order: 1,
+    });
+
+    const moveVideoItem = (index: number, direction: 'up' | 'down') => {
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= videoList.length) return;
+
+        const updated = [...videoList];
+        const temp = updated[index];
+        updated[index] = updated[targetIndex];
+        updated[targetIndex] = temp;
+
+        const normalized = updated.map((v, idx) => ({ ...v, sort_order: idx + 1 }));
+        setVideoList(normalized);
+
+        router.post(route('homepage.admin.videos.reorder'), {
+            items: normalized.map(v => ({ id: v.id, sort_order: v.sort_order }))
+        }, {
+            preserveScroll: true,
+            onSuccess: () => showNotification('Video order updated!'),
+        });
+    };
+
+    const openAddVideo = () => {
+        setEditingVideoId(null);
+        setVideoForm({
+            title: '',
+            youtube_url: '',
+            branch: '',
+            is_active: true,
+            sort_order: videoList.length + 1,
+        });
+        setIsVideoModalOpen(true);
+    };
+
+    const openEditVideo = (item: VideoItem) => {
+        setEditingVideoId(item.id);
+        setVideoForm({
+            title: item.title || '',
+            youtube_url: item.youtube_url || '',
+            branch: item.branch || '',
+            is_active: item.is_active !== false,
+            sort_order: item.sort_order || 1,
+        });
+        setIsVideoModalOpen(true);
+    };
+
+    const handleSaveVideo = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (editingVideoId) {
+            router.put(route('homepage.admin.videos.update', editingVideoId), videoForm, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsVideoModalOpen(false);
+                    showNotification('Video updated successfully!');
+                },
+            });
+        } else {
+            router.post(route('homepage.admin.videos.create'), videoForm, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setIsVideoModalOpen(false);
+                    showNotification('New YouTube video added successfully!');
+                },
+            });
+        }
+    };
+
+    const handleDeleteVideo = (id: number) => {
+        if (confirm('Delete this video from the homepage gallery?')) {
+            router.delete(route('homepage.admin.videos.destroy', id), {
+                preserveScroll: true,
+                onSuccess: () => showNotification('Video removed.'),
+            });
+        }
+    };
+
+    // -------------------------------------------------------------
+    // TAB 4: BRANCHES & 4 QUICK BUTTONS
     // -------------------------------------------------------------
     const [branchList, setBranchList] = useState<BranchItem[]>(
         [...branches].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
@@ -349,7 +398,7 @@ export default function HomeContentAdminIndex({
     };
 
     // -------------------------------------------------------------
-    // TAB 4: SPECIALIST DOCTORS REORDERING & EDIT
+    // TAB 5: SPECIALIST DOCTORS REORDERING & EDIT
     // -------------------------------------------------------------
     const [doctorList, setDoctorList] = useState<DoctorItem[]>(
         [...doctors].sort((a, b) => (a.rank_order ?? 0) - (b.rank_order ?? 0))
@@ -402,7 +451,7 @@ export default function HomeContentAdminIndex({
     };
 
     // -------------------------------------------------------------
-    // TAB 5: SERVICES & PRICING REORDERING & EDIT
+    // TAB 6: SERVICES & PRICING REORDERING & EDIT
     // -------------------------------------------------------------
     const [serviceList, setServiceList] = useState<ServiceItem[]>(
         [...services].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
@@ -454,7 +503,7 @@ export default function HomeContentAdminIndex({
     };
 
     // -------------------------------------------------------------
-    // TAB 6: ABOUT, SEO & FAQS STATE
+    // TAB 7: ABOUT, SEO & FAQS STATE
     // -------------------------------------------------------------
     const [seoForm, setSeoForm] = useState({
         seo_title: content?.seo_title || 'Tech Dental Care | Premier Dental Clinic in Dhaka',
@@ -495,6 +544,30 @@ export default function HomeContentAdminIndex({
         setSeoForm({ ...seoForm, faqs: seoForm.faqs.filter((_, i) => i !== idx) });
     };
 
+    // -------------------------------------------------------------
+    // TAB 3: PAGE TEXTS (every editable string on the homepage)
+    const [textForm, setTextForm] = useState<Record<string, string>>(() => {
+        const saved = content?.homepage_texts || {};
+        const merged: Record<string, string> = { ...HOMEPAGE_COPY_DEFAULTS };
+        Object.keys(merged).forEach((key) => {
+            const value = saved[key];
+            if (typeof value === 'string' && value.trim() !== '') {
+                merged[key] = value;
+            }
+        });
+        return merged;
+    });
+
+    const handleSaveTexts = (e: React.FormEvent) => {
+        e.preventDefault();
+        router.put(route('homepage.admin.content'), { homepage_texts: textForm }, {
+            preserveScroll: true,
+            onSuccess: () => showNotification('Homepage page texts saved successfully!'),
+        });
+    };
+
+    const copyGroups = Array.from(new Set(HOMEPAGE_COPY_FIELDS.map((f) => f.group)));
+
     return (
         <AdminLayout>
             <Head title="Homepage CMS - Full Management" />
@@ -530,7 +603,7 @@ export default function HomeContentAdminIndex({
                 </div>
             </div>
 
-            {/* Navigation Tabs (Organized by Homepage Sections from Top to Bottom) */}
+            {/* Navigation Tabs (Homepage sections, top to bottom) */}
             <div className="bg-white rounded-2xl border border-gray-200 p-2 shadow-2xs mb-6 flex flex-wrap gap-1.5 sm:gap-2">
                 <button
                     onClick={() => setActiveTab('gallery')}
@@ -538,7 +611,25 @@ export default function HomeContentAdminIndex({
                         activeTab === 'gallery' ? 'bg-[#800038] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
-                    <ImageIcon size={15} /> 1. Hero Slider &amp; Gallery ({galleryItems.length})
+                    <ImageIcon size={15} /> 1. Image Slider &amp; Gallery ({galleryItems.length})
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('videos')}
+                    className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                        activeTab === 'videos' ? 'bg-[#800038] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                >
+                    <Video size={15} /> 2. Video Gallery ({videoList.length})
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('page_texts')}
+                    className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                        activeTab === 'page_texts' ? 'bg-[#800038] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                >
+                    <Type size={15} /> 3. Page Texts
                 </button>
 
                 <button
@@ -547,7 +638,7 @@ export default function HomeContentAdminIndex({
                         activeTab === 'branches' ? 'bg-[#800038] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
-                    <MapPin size={15} /> 2. Branches &amp; 4 Action Buttons ({branchList.length})
+                    <MapPin size={15} /> 4. Branches &amp; 4 Action Buttons ({branchList.length})
                 </button>
 
                 <button
@@ -556,7 +647,7 @@ export default function HomeContentAdminIndex({
                         activeTab === 'services' ? 'bg-[#800038] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
-                    <Sparkles size={15} /> 3. Services &amp; Treatments ({serviceList.length})
+                    <Sparkles size={15} /> 5. Services &amp; Treatments ({serviceList.length})
                 </button>
 
                 <button
@@ -565,7 +656,7 @@ export default function HomeContentAdminIndex({
                         activeTab === 'doctors' ? 'bg-[#800038] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
-                    <Users size={15} /> 4. Specialist Doctors ({doctorList.length})
+                    <Users size={15} /> 6. Specialist Doctors ({doctorList.length})
                 </button>
 
                 <button
@@ -574,116 +665,12 @@ export default function HomeContentAdminIndex({
                         activeTab === 'about_seo' ? 'bg-[#800038] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                 >
-                    <Search size={15} /> 5. More About (SEO Content &amp; FAQs)
-                </button>
-
-                <button
-                    onClick={() => setActiveTab('sections')}
-                    className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                        activeTab === 'sections' ? 'bg-[#800038] text-white shadow-xs' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                >
-                    <Sliders size={15} /> 6. Section Order &amp; Visibility ({sectionsList.length})
+                    <Search size={15} /> 7. More About (SEO Content &amp; FAQs)
                 </button>
             </div>
 
             {/* ============================================================= */}
-            {/* TAB 1: SECTION LAYOUT & REORDERING (PAGE BUILDER)             */}
-            {/* ============================================================= */}
-            {activeTab === 'sections' && (
-                <div className="space-y-4">
-                    <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <div>
-                            <h2 className="text-sm font-bold text-gray-900">Homepage Section Order &amp; Visibility</h2>
-                            <p className="text-xs text-gray-500">Reorder sections up/down, toggle show/hide, and rename section titles on the live homepage.</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => handleSaveSections()}
-                            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
-                        >
-                            <Save size={15} /> Save Sections Arrangement
-                        </button>
-                    </div>
-
-                    <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs divide-y divide-gray-100 overflow-hidden">
-                        {sectionsList.map((section, idx) => (
-                            <div
-                                key={section.key}
-                                className={`p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition hover:bg-gray-50/70 ${
-                                    !section.enabled ? 'bg-gray-50/50 opacity-60' : ''
-                                }`}
-                            >
-                                <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                                    <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 font-extrabold text-xs flex items-center justify-center shrink-0 border border-slate-200 shadow-2xs">
-                                        #{idx + 1}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="text"
-                                                value={section.title}
-                                                onChange={(e) => {
-                                                    const updated = [...sectionsList];
-                                                    updated[idx] = { ...updated[idx], title: e.target.value };
-                                                    setSectionsList(updated);
-                                                }}
-                                                className="font-bold text-xs text-gray-900 px-2 py-1 border border-gray-200 rounded-lg hover:border-gray-300 focus:border-[#800038] w-full max-w-sm"
-                                            />
-                                            <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded shrink-0">
-                                                {section.key}
-                                            </span>
-                                        </div>
-                                        <p className="text-[11px] text-gray-500 mt-0.5 truncate">{section.subtitle}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                                    {/* Visibility switch */}
-                                    <button
-                                        type="button"
-                                        onClick={() => toggleSectionEnabled(idx)}
-                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                                            section.enabled
-                                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                                : 'bg-gray-100 text-gray-500 border border-gray-200'
-                                        }`}
-                                    >
-                                        {section.enabled ? <Check size={13} /> : <X size={13} />}
-                                        <span>{section.enabled ? 'Visible' : 'Hidden'}</span>
-                                    </button>
-
-                                    {/* Up / Down Reordering Buttons */}
-                                    <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                                        <button
-                                            type="button"
-                                            disabled={idx === 0}
-                                            onClick={() => moveSection(idx, 'up')}
-                                            className="p-2 text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
-                                            title="Move Section Up"
-                                        >
-                                            <ArrowUp size={14} />
-                                        </button>
-                                        <div className="w-[1px] h-5 bg-gray-200"></div>
-                                        <button
-                                            type="button"
-                                            disabled={idx === sectionsList.length - 1}
-                                            onClick={() => moveSection(idx, 'down')}
-                                            className="p-2 text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
-                                            title="Move Section Down"
-                                        >
-                                            <ArrowDown size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* ============================================================= */}
-            {/* TAB 2: HERO SLIDER & GALLERY                                  */}
+            {/* TAB 1: IMAGE SLIDER & GALLERY                                 */}
             {/* ============================================================= */}
             {activeTab === 'gallery' && (
                 <div className="space-y-4">
@@ -777,7 +764,170 @@ export default function HomeContentAdminIndex({
             )}
 
             {/* ============================================================= */}
-            {/* TAB 3: BRANCHES & 4 ACTION BUTTONS                            */}
+            {/* TAB 2: YOUTUBE VIDEO GALLERY                                  */}
+            {/* ============================================================= */}
+            {activeTab === 'videos' && (
+                <div className="space-y-4">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div className="text-xs text-gray-500 font-medium">
+                            Add any YouTube link (watch, share or shorts) — the video ID and thumbnail are detected automatically.
+                            Videos are shown on the homepage in this order. If this list is empty, the Video Gallery section is hidden.
+                        </div>
+                        <button
+                            type="button"
+                            onClick={openAddVideo}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
+                        >
+                            <Plus size={15} /> Add YouTube Video
+                        </button>
+                    </div>
+
+                    {videoList.length === 0 ? (
+                        <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500">
+                            No videos yet. Click “Add YouTube Video” to add the first one.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {videoList.map((item, idx) => (
+                                <div key={item.id} className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs group hover:border-red-300 transition flex flex-col justify-between ${item.is_active === false ? 'opacity-60' : ''}`}>
+                                    <div>
+                                        <div className="relative aspect-video bg-gray-900 overflow-hidden">
+                                            {item.video_id ? (
+                                                <img
+                                                    src={`https://img.youtube.com/vi/${item.video_id}/hqdefault.jpg`}
+                                                    alt={item.title || 'YouTube video'}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-white/60">
+                                                    <Video size={40} />
+                                                </div>
+                                            )}
+                                            <span className="absolute top-3 right-3 px-2 py-0.5 rounded-md text-[11px] font-black bg-black/75 text-white backdrop-blur-xs shadow-md">
+                                                Rank #{idx + 1}
+                                            </span>
+                                            {item.is_active === false && (
+                                                <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md text-[11px] font-bold bg-gray-800/90 text-white">
+                                                    Hidden
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="p-4 space-y-1">
+                                            <h3 className="font-bold text-gray-900 text-sm line-clamp-2">{item.title || 'Untitled video'}</h3>
+                                            <p className="text-[11px] text-gray-400 truncate">{item.branch || 'All branches'} · {item.youtube_url}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-3 border-t border-gray-100 flex items-center justify-between text-xs bg-gray-50/50">
+                                        <div className="flex items-center gap-1 border border-gray-200 rounded-lg bg-white px-1 py-0.5">
+                                            <button
+                                                type="button"
+                                                disabled={idx === 0}
+                                                onClick={() => moveVideoItem(idx, 'up')}
+                                                className="p-1 text-gray-600 hover:text-black disabled:opacity-20 cursor-pointer"
+                                                title="Move Up"
+                                            >
+                                                <ArrowUp size={13} />
+                                            </button>
+                                            <span className="text-[11px] font-bold text-gray-400">#{idx + 1}</span>
+                                            <button
+                                                type="button"
+                                                disabled={idx === videoList.length - 1}
+                                                onClick={() => moveVideoItem(idx, 'down')}
+                                                className="p-1 text-gray-600 hover:text-black disabled:opacity-20 cursor-pointer"
+                                                title="Move Down"
+                                            >
+                                                <ArrowDown size={13} />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => openEditVideo(item)}
+                                                className="p-1.5 text-rose-600 hover:text-rose-800 cursor-pointer"
+                                                title="Edit Video"
+                                            >
+                                                <Edit3 size={15} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteVideo(item.id)}
+                                                className="p-1.5 text-red-500 hover:text-red-700 cursor-pointer"
+                                                title="Delete Video"
+                                            >
+                                                <Trash2 size={15} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ============================================================= */}
+            {/* TAB 3: PAGE TEXTS                                             */}
+            {/* ============================================================= */}
+            {activeTab === 'page_texts' && (
+                <form onSubmit={handleSaveTexts} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6 max-w-4xl">
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div>
+                            <h2 className="text-base font-bold text-gray-900">Homepage Page Texts</h2>
+                            <p className="text-xs text-gray-500">Every visible label, heading and button on the homepage. Leave a field empty to use its default.</p>
+                        </div>
+                        <button
+                            type="submit"
+                            className="inline-flex items-center gap-2 px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer"
+                        >
+                            <Save size={16} /> Save Page Texts
+                        </button>
+                    </div>
+
+                    {copyGroups.map((group) => (
+                        <div key={group} className="p-5 bg-gray-50/70 border border-gray-200/80 rounded-2xl space-y-4">
+                            <h3 className="font-extrabold text-sm text-gray-900 border-b border-gray-200/70 pb-2">{group}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {HOMEPAGE_COPY_FIELDS.filter((f) => f.group === group).map((field) => (
+                                    <div key={field.key} className={field.multiline ? 'md:col-span-2' : ''}>
+                                        <label className="block text-xs font-bold text-gray-700 mb-1">{field.label}</label>
+                                        {field.multiline ? (
+                                            <textarea
+                                                rows={3}
+                                                value={textForm[field.key] ?? ''}
+                                                onChange={(e) => setTextForm({ ...textForm, [field.key]: e.target.value })}
+                                                className="w-full px-3.5 py-2.5 text-xs border border-gray-200 rounded-xl bg-white"
+                                            />
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                value={textForm[field.key] ?? ''}
+                                                onChange={(e) => setTextForm({ ...textForm, [field.key]: e.target.value })}
+                                                className="w-full px-3.5 py-2.5 text-xs border border-gray-200 rounded-xl bg-white"
+                                            />
+                                        )}
+                                        {field.help && <p className="text-[10px] text-gray-400 mt-1">{field.help}</p>}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="pt-4 border-t border-gray-100 flex justify-end">
+                        <button
+                            type="submit"
+                            className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-2 cursor-pointer"
+                        >
+                            <Save size={16} /> Save Page Texts
+                        </button>
+                    </div>
+                </form>
+            )}
+
+            {/* ============================================================= */}
+            {/* TAB 4: BRANCHES & 4 ACTION BUTTONS                            */}
             {/* ============================================================= */}
             {activeTab === 'branches' && (
                 <div className="space-y-4">
@@ -874,7 +1024,7 @@ export default function HomeContentAdminIndex({
             )}
 
             {/* ============================================================= */}
-            {/* TAB 4: SPECIALIST DOCTORS REORDERING & EDIT                   */}
+            {/* TAB 5: SPECIALIST DOCTORS REORDERING & EDIT                   */}
             {/* ============================================================= */}
             {activeTab === 'doctors' && (
                 <div className="space-y-4">
@@ -954,7 +1104,7 @@ export default function HomeContentAdminIndex({
             )}
 
             {/* ============================================================= */}
-            {/* TAB 5: SERVICES & PRICING REORDERING & EDIT                   */}
+            {/* TAB 6: SERVICES & PRICING REORDERING & EDIT                   */}
             {/* ============================================================= */}
             {activeTab === 'services' && (
                 <div className="space-y-4">
@@ -1028,7 +1178,7 @@ export default function HomeContentAdminIndex({
             )}
 
             {/* ============================================================= */}
-            {/* TAB 6: ABOUT, SEO & FAQS                                      */}
+            {/* TAB 7: ABOUT, SEO & FAQS                                      */}
             {/* ============================================================= */}
             {activeTab === 'about_seo' && (
                 <form onSubmit={handleSaveSeo} className="bg-white rounded-2xl border border-gray-200 p-6 shadow-2xs space-y-6 max-w-4xl">
@@ -1596,6 +1746,92 @@ export default function HomeContentAdminIndex({
                     </div>
                 </div>
             )}
+            {/* ============================================================= */}
+            {/* MODAL: YOUTUBE VIDEO ADD / EDIT                               */}
+            {/* ============================================================= */}
+            {isVideoModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full border border-gray-200 overflow-hidden">
+                        <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/70">
+                            <h3 className="font-bold text-gray-900 text-sm">
+                                {editingVideoId ? 'Edit YouTube Video' : 'Add YouTube Video'}
+                            </h3>
+                            <button onClick={() => setIsVideoModalOpen(false)} className="text-gray-400 hover:text-gray-600 text-lg cursor-pointer">
+                                &times;
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveVideo} className="p-6 space-y-4 text-xs">
+                            <div>
+                                <label className="block font-bold text-gray-700 mb-1">YouTube URL *</label>
+                                <input
+                                    type="url"
+                                    required
+                                    value={videoForm.youtube_url}
+                                    onChange={(e) => setVideoForm({ ...videoForm, youtube_url: e.target.value })}
+                                    placeholder="https://www.youtube.com/watch?v=..."
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1">
+                                    Supports watch, share (youtu.be) and shorts links. Thumbnail is loaded automatically.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-gray-700 mb-1">Title</label>
+                                <input
+                                    type="text"
+                                    value={videoForm.title}
+                                    onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
+                                    placeholder="e.g. Painless Root Canal Treatment"
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-gray-700 mb-1">Branch (optional label)</label>
+                                <input
+                                    type="text"
+                                    value={videoForm.branch}
+                                    onChange={(e) => setVideoForm({ ...videoForm, branch: e.target.value })}
+                                    placeholder="Mirpur / Uttara / Badda / Jatrabari"
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <input
+                                    id="video_active_chk"
+                                    type="checkbox"
+                                    checked={videoForm.is_active}
+                                    onChange={(e) => setVideoForm({ ...videoForm, is_active: e.target.checked })}
+                                    className="rounded border-gray-300 text-[#800038] focus:ring-[#800038]"
+                                />
+                                <label htmlFor="video_active_chk" className="font-bold text-gray-700 cursor-pointer">
+                                    Show this video on the homepage
+                                </label>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsVideoModalOpen(false)}
+                                    className="px-4 py-2 border border-gray-200 rounded-xl font-semibold text-gray-600 hover:bg-gray-50 cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold transition flex items-center gap-2 cursor-pointer"
+                                >
+                                    <Save size={15} /> Save Video
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
         </AdminLayout>
     );
 }
