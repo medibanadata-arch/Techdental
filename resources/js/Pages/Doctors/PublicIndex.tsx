@@ -232,16 +232,18 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
         {/* More about Dentists Accordion (Controlled from Backend CMS) */}
         <section className="mt-6 mb-6 sm:mb-8 w-full">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <button
-              onClick={() => setMoreInfoOpen(!moreInfoOpen)}
-              className="w-full flex items-center justify-between p-4 sm:p-5 text-left text-slate-800 hover:bg-slate-50/75 transition cursor-pointer"
-              aria-expanded={moreInfoOpen}
-            >
-              <span className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
-                {settings?.seo_title || 'More about Dentists'}
-              </span>
-              <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${moreInfoOpen ? 'rotate-180' : ''}`} />
-            </button>
+            <h2 className="m-0">
+              <button
+                onClick={() => setMoreInfoOpen(!moreInfoOpen)}
+                className="w-full flex items-center justify-between p-4 sm:p-5 text-left text-slate-800 hover:bg-slate-50/75 transition cursor-pointer"
+                aria-expanded={moreInfoOpen}
+              >
+                <span className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+                  {settings?.seo_title || 'Best Dentists in Dhaka – Meet Our Specialist Dental Surgeons'}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${moreInfoOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </h2>
 
             {moreInfoOpen && (
               <div className="border-t border-slate-100 p-4 sm:p-6 text-slate-700 bg-white space-y-6">
@@ -249,12 +251,9 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
                   className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
                   dangerouslySetInnerHTML={{
                     __html: settings?.seo_content || `
-                      <h3>About Dr. Aysha Siddika – Senior Dental Specialist in Mirpur, Dhaka</h3>
-                      <p>Dr. Aysha Siddika is a Senior Dental Surgeon at Tech Dental Care (Mirpur Branch). With over 8+ years of dedicated clinical experience and more than 2,863+ successful patient treatments, she is widely recognized for her gentle, patient-first approach. She completed her Bachelor of Dental Surgery (BDS) from Shaheed Suhrawardy Medical College and Hospital, followed by advanced Post-Graduate Training (PGT) in Oral & Maxillofacial Surgery and Conservative Dentistry. Her BMDC Registration Number is 7897.</p>
-                      <h3>Advanced Dental Procedures & Clinical Excellence</h3>
-                      <p>Specializing in Aesthetic Dentistry and Painless Laser Root Canal Therapy (RCT), Dr. Aysha Siddika has completed 597+ single-visit root canals, cosmetic smile designing, porcelain veneers, and composite restorations. Utilizing modern rotary endodontic systems and digital apex locators, she ensures maximum tooth preservation and absolute comfort during dental interventions.</p>
-                      <h3>Comprehensive Dental Care Network Across Dhaka</h3>
-                      <p>Whether you require pediatric dental treatments, digital orthodontic aligners, painless wisdom tooth extractions, or permanent dental implants, our certified dental specialists across Mirpur, Uttara, Badda, and Jatrabari provide international-standard sterilization, digital OPG X-rays, and customized patient consultations.</p>
+                      <h3>Best Dentists in Dhaka, Bangladesh</h3>
+                      <p>Tech Dental Care is a network of four dental clinics in Mirpur, Uttara, Badda and Jatrabari, staffed by BMDC-registered dental surgeons and specialists. Our team handles routine check-ups, scaling, fillings and root canals as well as braces, dental implants, crowns and smile design.</p>
+                      <p>Call 09638-000505 or book online to see a dentist at the branch nearest you in Dhaka.</p>
                     `
                   }}
                 />
