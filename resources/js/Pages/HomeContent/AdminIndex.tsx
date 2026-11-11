@@ -117,6 +117,9 @@ interface DoctorItem {
 interface ServiceItem {
     id: number;
     title: string;
+    name?: string;
+    slug?: string;
+    image?: string;
     category?: string;
     price?: string;
     desc?: string;
@@ -483,6 +486,9 @@ export default function HomeContentAdminIndex({
         setEditingService(s);
         setServiceForm({
             title: s.title,
+            name: s.name || '',
+            slug: s.slug || '',
+            image: s.image || '',
             category: s.category || '',
             price: s.price || '0',
             desc: s.desc || '',
@@ -1672,7 +1678,15 @@ export default function HomeContentAdminIndex({
                             </button>
                         </div>
 
-                        <form onSubmit={handleSaveService} className="p-6 space-y-4 text-xs">
+                        <form onSubmit={handleSaveService} className="p-6 space-y-4 text-xs max-h-[80vh] overflow-y-auto">
+                            <MediaImagePicker
+                                label="Service Image"
+                                value={serviceForm.image || ''}
+                                onChange={(val) => setServiceForm({ ...serviceForm, image: val })}
+                                aspectRatio="4:3"
+                                helperText="Used on branch pages and service cards"
+                            />
+
                             <div>
                                 <label className="block font-bold text-gray-700 mb-1">Service Title</label>
                                 <input
@@ -1681,6 +1695,29 @@ export default function HomeContentAdminIndex({
                                     onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
                                     className="w-full px-3 py-2 border border-gray-200 rounded-xl font-bold"
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-gray-700 mb-1">Display Name (optional)</label>
+                                <input
+                                    type="text"
+                                    value={serviceForm.name || ''}
+                                    onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })}
+                                    placeholder="Short label shown on service cards"
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block font-bold text-gray-700 mb-1">URL Slug (optional)</label>
+                                <input
+                                    type="text"
+                                    value={serviceForm.slug || ''}
+                                    onChange={(e) => setServiceForm({ ...serviceForm, slug: e.target.value })}
+                                    placeholder="e.g. root-canal-treatment"
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl font-mono text-[11px]"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1">Used for the public /service/&lt;slug&gt; link on branch pages.</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">

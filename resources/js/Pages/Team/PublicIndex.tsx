@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
+import { getWebsiteTexts } from '@/data/websiteTexts';
 
 interface Member {
   id: number;
@@ -26,6 +27,8 @@ const SectionHeading: React.FC<{ children: React.ReactNode; className?: string }
 
 export default function TeamPublicIndex({ members = [], locations = [], nav_menu }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("");
+  const page = usePage();
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
 
   const management = members.filter((m) => m.section === 'management');
   const ceoAssistant = members.filter((m) => m.section === 'ceo_assistant');
@@ -37,8 +40,8 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
   return (
     <div className="min-h-screen font-sans text-gray-800 antialiased pb-5 sm:pb-6 w-full bg-slate-50" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Seo
-        title="Our Team — Management, Doctors & Support Staff"
-        description="Meet the management, digital marketing, call centre and clinical support team behind Tech Dental Care, Bangladesh's trusted dental chain."
+        title={copy.team_seo_title}
+        description={copy.team_seo_desc}
         path="/team"
       />
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
@@ -46,7 +49,7 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
       {/* 1. Management Team Section */}
       <section className="mb-12 w-full">
         <div className="w-full bg-[#8B0000] text-white text-center py-6 shadow-sm mb-10">
-          <h2 className="text-xl md:text-3xl tracking-wider font-semibold" style={{ fontFamily: "'Playfair Display', serif" }}>Meet Our Management Team</h2>
+          <h2 className="text-xl md:text-3xl tracking-wider font-semibold" style={{ fontFamily: "'Playfair Display', serif" }}>{copy.team_heading}</h2>
         </div>
 
         <div className="w-full px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 justify-center">
@@ -62,7 +65,7 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
               {/* See Details Link */}
               <div className="w-full mt-4 flex justify-end">
                 <Link href={`/team/${slugFor(m.name)}`} className="text-[10px] md:text-xs font-semibold text-[#8B0000] hover:underline flex items-center gap-1 transition-colors hover:text-[#9b2242]">
-                  See Details <span aria-hidden="true">&rarr;</span>
+                  {copy.team_details_label} <span aria-hidden="true">&rarr;</span>
                 </Link>
               </div>
             </div>
@@ -72,7 +75,7 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
 
       {/* 2. CEO Assistant Section */}
       <section className="mb-12 w-full mt-16 px-4 md:px-8">
-        <SectionHeading>CEO Assistant</SectionHeading>
+        <SectionHeading>{copy.team_ceo_heading}</SectionHeading>
         <div className="flex justify-center w-full">
           {ceoAssistant.map((m) => (
             <div key={m.id} className="w-1/2 md:w-full max-w-[280px] bg-white rounded-2xl p-4 shadow-sm border border-gray-100 transform hover:-translate-y-1 hover:shadow-lg transition duration-300 flex flex-col items-center text-center group">
@@ -88,7 +91,7 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
 
       {/* 3. Digital Marketing Team Section */}
       <section className="mb-12 w-full mt-16 px-4 md:px-8">
-        <SectionHeading>Digital Marketing Team</SectionHeading>
+        <SectionHeading>{copy.team_marketing_heading}</SectionHeading>
 
         <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
           {digital.map((m) => (
@@ -105,7 +108,7 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
 
       {/* 4. Call Center Team Section */}
       <section className="mb-12 w-full mt-16 px-4 md:px-8">
-        <SectionHeading>Call Center Team</SectionHeading>
+        <SectionHeading>{copy.team_call_heading}</SectionHeading>
 
         <div className="w-full grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6">
           {callCenter.map((m) => (

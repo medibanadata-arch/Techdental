@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { usePage } from "@inertiajs/react";
 import { TopHeader } from "@/Components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from "@inertiajs/core";
+import { getWebsiteTexts } from "@/data/websiteTexts";
 
 interface GalleryProps extends PageProps {
   locations?: any[];
@@ -16,6 +18,8 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
   const [activeTab, setActiveTab] = useState<"all" | "images" | "videos">("all");
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; index: number } | null>(null);
   const [previewVideo, setPreviewVideo] = useState<{ videoId: string; title?: string } | null>(null);
+  const page = usePage();
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
 
   // Check URL hash on mount (e.g. #videos)
   useEffect(() => {
@@ -70,8 +74,8 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-['Inter','Plus_Jakarta_Sans','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
       <Seo
-        title="Tech Dental Gallery — Photos & Videos"
-        description="Explore photos and videos of Tech Dental Care clinics, treatment rooms, sterilization protocols, doctors and happy patients across Dhaka."
+        title={copy.gallery_seo_title}
+        description={copy.gallery_seo_desc}
         path="/gallery"
       />
 
@@ -87,7 +91,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
       <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white py-12 md:py-16 text-center px-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight">
-            Tech Dental Gallery
+            {copy.gallery_h1}
           </h1>
         </div>
       </div>
@@ -108,7 +112,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                   : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
               }`}
             >
-              All
+              {copy.gallery_tab_all}
             </button>
           )}
           {imageItems.length > 0 && (
@@ -122,7 +126,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             }`}
           >
             <i className="fa-solid fa-images text-xs" />
-            <span>Images</span>
+            <span>{copy.gallery_tab_images}</span>
           </button>
           )}
           {videoItems.length > 0 && (
@@ -136,7 +140,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             }`}
           >
             <i className="fa-brands fa-youtube text-xs" />
-            <span>Videos</span>
+            <span>{copy.gallery_tab_videos}</span>
           </button>
           )}
         </div>
@@ -144,7 +148,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
 
         {imageItems.length === 0 && videoItems.length === 0 && (
           <div className="text-center py-20 text-sm font-medium text-slate-500">
-            Photos and videos will appear here soon.
+            {copy.gallery_empty}
           </div>
         )}
 
@@ -154,10 +158,10 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
                 <i className="fa-solid fa-images text-blue-600" />
-                <span>Image Gallery</span>
+                <span>{copy.gallery_images_heading}</span>
               </h2>
               <span className="text-xs text-slate-500 font-medium">
-                {imageItems.length} Photos
+                {imageItems.length} {copy.gallery_photos_suffix}
               </span>
             </div>
 
@@ -171,7 +175,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                     key={item.id || idx}
                     onClick={() => setPreviewImage({ src: imgSrc, title, index: idx })}
                     className="relative rounded-2xl overflow-hidden shadow-xs border border-slate-200/90 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                    title="Click to view image"
+                    title={copy.gallery_click_image}
                   >
                     <img
                       src={imgSrc}
@@ -200,10 +204,10 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
                 <i className="fa-brands fa-youtube text-red-600" />
-                <span>Video Gallery</span>
+                <span>{copy.gallery_videos_heading}</span>
               </h2>
               <span className="text-xs text-slate-500 font-medium">
-                {videoItems.length} Videos
+                {videoItems.length} {copy.gallery_videos_suffix}
               </span>
             </div>
 
@@ -213,7 +217,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
                   key={item.id || idx}
                   onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title })}
                   className="relative rounded-2xl overflow-hidden shadow-xs border border-slate-200/90 bg-slate-900 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                  title="Click to play video"
+                  title={copy.gallery_click_video}
                 >
                   <img
                     src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}

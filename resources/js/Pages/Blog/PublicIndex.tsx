@@ -5,6 +5,7 @@ import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import { useLanguage } from "@/utils/useLanguage";
+import { getWebsiteTexts } from '@/data/websiteTexts';
 
 interface PostItem {
   id: number;
@@ -45,6 +46,7 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
   const { language, isBn } = useLanguage();
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
   const currentPath = (page.url || '/blog').split('?')[0];
   const isOthers = /\/blog\/others\/?$/.test(currentPath);
   const isBnPage = Boolean(is_bn) || currentPath.startsWith('/bn/');
@@ -105,8 +107,8 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
         <div className="w-full px-4 sm:px-8 lg:px-12 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
             {isBnPage
-              ? (page_title_bn || (page_title ? page_title : "ডেন্টাল ব্লগ ও নির্দেশিকা"))
-              : (page_title || "Dental Blog & Guides")}
+              ? (page_title_bn || (page_title ? page_title : copy.blog_h1_bn))
+              : (page_title || copy.blog_h1)}
           </h1>
           {(isBnPage ? page_subtitle_bn : page_subtitle) && (
             <p className="text-sm text-gray-500 max-w-2xl mx-auto mb-3">

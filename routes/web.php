@@ -4,8 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PostController;
-use App\Http\Controllers\PricingController;
-use App\Http\Controllers\LocationController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\FeaturedImageController;
 use App\Http\Controllers\MediaController;
@@ -137,6 +135,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Resources
     Route::resource('featured-images', FeaturedImageController::class)->except(['show']);
+    Route::post('featured-images/reorder', [FeaturedImageController::class, 'reorder'])->name('featured-images.reorder');
     Route::get('media/{id}/download', [MediaController::class, 'download'])->name('media.download');
     Route::get('admin-api/media', [MediaController::class, 'apiIndex'])->name('admin.api.media');
     Route::post('admin-api/media/upload', [MediaController::class, 'apiUpload'])->name('admin.api.media.upload');
@@ -152,16 +151,18 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::resource('pages', PageController::class);
     Route::resource('posts', PostController::class);
-    Route::resource('pricing', PricingController::class)->except(['show']);
-    Route::resource('locations', LocationController::class)->except(['show']);
+    // Legacy screens: pricing now lives in Homepage CMS > Services, branches in Branches & clinics.
+    Route::get('pricing', fn () => redirect()->route('homepage.admin'))->name('pricing.index');
+    Route::get('locations', fn () => redirect()->route('branch.admin'))->name('locations.index');
     Route::resource('appointments', AppointmentController::class)->only(['update', 'destroy']);
     Route::resource('users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::get('settings-admin', [SettingController::class, 'index'])->name('settings.admin');
     Route::post('settings-admin', [SettingController::class, 'update'])->name('settings.admin.update');
     Route::get('settings/header-footer', [SettingController::class, 'headerFooter'])->name('settings.header-footer');
     Route::post('settings/header-footer', [SettingController::class, 'updateHeaderFooter'])->name('settings.header-footer.update');
+    Route::get('settings/website-texts', [SettingController::class, 'websiteTexts'])->name('settings.website-texts');
+    Route::post('settings/website-texts', [SettingController::class, 'saveWebsiteTexts'])->name('settings.website-texts.update');
     Route::resource('menus', \App\Http\Controllers\NavMenuController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::resource('templates', \App\Http\Controllers\TemplateController::class)->only(['index', 'store', 'update', 'destroy']);
 });
 
 // ============================================================
@@ -337,6 +338,7 @@ Route::post('medicines-admin', [MedicineController::class, 'store'])->name('medi
 Route::get('medicines-admin/{id}/edit', [MedicineController::class, 'edit'])->name('medicines.admin.edit');
 Route::put('medicines-admin/{id}', [MedicineController::class, 'update'])->name('medicines.admin.update');
 Route::delete('medicines-admin/{id}', [MedicineController::class, 'destroy'])->name('medicines.admin.destroy');
+Route::post('medicines-admin/reorder', [MedicineController::class, 'reorder'])->name('medicines.admin.reorder');
 
 // ---------- Services (admin) ----------
 Route::get('services-admin', [ServiceController::class, 'index'])->name('services.admin');
@@ -345,6 +347,7 @@ Route::post('services-admin', [ServiceController::class, 'store'])->name('servic
 Route::get('services-admin/{id}/edit', [ServiceController::class, 'edit'])->name('services.admin.edit');
 Route::put('services-admin/{id}', [ServiceController::class, 'update'])->name('services.admin.update');
 Route::delete('services-admin/{id}', [ServiceController::class, 'destroy'])->name('services.admin.destroy');
+Route::post('services-admin/reorder', [ServiceController::class, 'reorder'])->name('services.admin.reorder');
 
 // ---------- About (admin) ----------
 Route::get('about-cms', [AboutContentController::class, 'index'])->name('about.admin');
@@ -358,6 +361,7 @@ Route::get('team-admin/{id}/edit', [TeamMemberController::class, 'edit'])->name(
 Route::put('team-admin/{id}', [TeamMemberController::class, 'update'])->name('team.admin.update');
 Route::post('team-admin/{id}/toggle-active', [TeamMemberController::class, 'toggleActive'])->name('team.admin.toggle');
 Route::delete('team-admin/{id}', [TeamMemberController::class, 'destroy'])->name('team.admin.destroy');
+Route::post('team-admin/reorder', [TeamMemberController::class, 'reorder'])->name('team.admin.reorder');
 
 // ---------- Price List (admin) ----------
 Route::get('price-list-admin', [PriceListController::class, 'adminIndex'])->name('pricelist.admin');
@@ -368,6 +372,7 @@ Route::get('branch-admin', [BranchController::class, 'adminIndex'])->name('branc
 Route::post('branch-admin', [BranchController::class, 'adminStore'])->name('branch.admin.store');
 Route::put('branch-admin/{id}', [BranchController::class, 'adminUpdate'])->name('branch.admin.update');
 Route::delete('branch-admin/{id}', [BranchController::class, 'adminDestroy'])->name('branch.admin.destroy');
+Route::post('branch-admin/reorder', [BranchController::class, 'reorder'])->name('branch.admin.reorder');
 
 // ---------- Homepage CMS ----------
 Route::get('homepage-cms', [HomeContentController::class, 'index'])->name('homepage.admin');
@@ -414,9 +419,11 @@ Route::post('ai-assistant/fetch-models', [AiAssistantController::class, 'fetchMo
     Route::post('patient-rights-cms/rights', [PatientRightsController::class, 'storeRight'])->name('patient-rights.admin.rights.store');
     Route::put('patient-rights-cms/rights/{id}', [PatientRightsController::class, 'updateRight'])->name('patient-rights.admin.rights.update');
     Route::delete('patient-rights-cms/rights/{id}', [PatientRightsController::class, 'deleteRight'])->name('patient-rights.admin.rights.destroy');
+    Route::post('patient-rights-cms/rights/reorder', [PatientRightsController::class, 'reorderRights'])->name('patient-rights.admin.rights.reorder');
     Route::post('patient-rights-cms/responsibilities', [PatientRightsController::class, 'storeResponsibility'])->name('patient-rights.admin.responsibilities.store');
     Route::put('patient-rights-cms/responsibilities/{id}', [PatientRightsController::class, 'updateResponsibility'])->name('patient-rights.admin.responsibilities.update');
     Route::delete('patient-rights-cms/responsibilities/{id}', [PatientRightsController::class, 'deleteResponsibility'])->name('patient-rights.admin.responsibilities.destroy');
+    Route::post('patient-rights-cms/responsibilities/reorder', [PatientRightsController::class, 'reorderResponsibilities'])->name('patient-rights.admin.responsibilities.reorder');
 
     // ---------- How to Pay CMS (admin) ----------
     Route::get('how-to-pay-cms', [PaymentMethodsController::class, 'adminIndex'])->name('how-to-pay.admin');

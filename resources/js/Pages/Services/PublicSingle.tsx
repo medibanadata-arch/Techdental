@@ -8,6 +8,7 @@ import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
+import { getWebsiteTexts } from '@/data/websiteTexts';
 
 interface ServiceItem {
   id: number;
@@ -175,6 +176,7 @@ export default function ServicesPublicSingle({
 }: Props) {
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
   const isBn = Boolean(is_bn);
 
   const [selectedBranch, setSelectedBranch] = useState("");
@@ -695,8 +697,8 @@ export default function ServicesPublicSingle({
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1">{isBn ? 'সময়' : 'Time Slot'}</label>
                   <select className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-pink-600 focus:outline-none">
-                    <option>4:00 PM - 6:00 PM</option>
-                    <option>6:00 PM - 8:00 PM</option>
+                    <option>{copy.service_time_1}</option>
+                    <option>{copy.service_time_2}</option>
                   </select>
                 </div>
               </div>

@@ -55,6 +55,17 @@ class MedicineController extends Controller
         return back()->with('success', 'Medicine deleted.');
     }
 
+    public function reorder(Request $request)
+    {
+        $items = $request->input('items', []);
+        foreach ($items as $item) {
+            if (isset($item['id'], $item['sort_order'])) {
+                Medicine::whereKey($item['id'])->update(['sort_order' => (int) $item['sort_order']]);
+            }
+        }
+        return back()->with('success', 'Medicine order updated.');
+    }
+
     private function validateMedicine(Request $request): array
     {
         return $request->validate([

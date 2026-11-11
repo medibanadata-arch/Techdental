@@ -11,6 +11,7 @@ import {
     Sparkles, HeartHandshake, CheckCircle2
 } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
+import { getWebsiteTexts } from '@/data/websiteTexts';
 
 interface PageItem {
     id: number;
@@ -37,6 +38,7 @@ interface CustomPageShowProps extends PageProps {
 
 export default function CustomPageShow({ item, locations = [], nav_menu }: CustomPageShowProps) {
     const { auth } = usePage().props as any;
+    const copy = getWebsiteTexts(((usePage().props as any)?.site_settings?.website_texts));
     const [selectedBranch, setSelectedBranch] = useState("");
     const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
     const [isBranchPickerOpen, setIsBranchPickerOpen] = useState(false);
@@ -187,11 +189,11 @@ export default function CustomPageShow({ item, locations = [], nav_menu }: Custo
                     <div className="space-y-1.5 text-center sm:text-left">
                         <div className="flex items-center gap-2 justify-center sm:justify-start text-xs font-bold text-rose-200">
                             <HeartHandshake size={15} />
-                            <span>Painless Clinical Dentistry in Dhaka</span>
+                            <span>{copy.custom_cta_badge}</span>
                         </div>
-                        <h3 className="text-xl sm:text-2xl font-black">Ready to Restore Your Healthy Smile?</h3>
+                        <h3 className="text-xl sm:text-2xl font-black">{copy.custom_cta_title}</h3>
                         <p className="text-xs sm:text-sm text-rose-100 max-w-xl">
-                            Consult with our specialist oral surgeons across Mirpur, Uttara, Badda, and Jatrabari branches.
+                            {copy.custom_cta_subtext}
                         </p>
                     </div>
 
@@ -208,7 +210,7 @@ export default function CustomPageShow({ item, locations = [], nav_menu }: Custo
                             href="/appointment"
                             className="px-6 py-3 bg-white text-[#800038] hover:bg-rose-50 font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                         >
-                            <span>Make Appointment</span>
+                            <span>{copy.custom_cta_button}</span>
                             <ArrowRight size={14} />
                         </Link>
                     </div>

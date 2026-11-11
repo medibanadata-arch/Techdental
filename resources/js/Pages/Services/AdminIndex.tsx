@@ -12,7 +12,9 @@ import {
     DollarSign,
     CheckCircle,
     Eye,
-    Tag
+    Tag,
+    ChevronUp,
+    ChevronDown
 } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
 
@@ -52,6 +54,23 @@ export default function ServicesAdminIndex({ data = [] }: Props) {
         if (confirm('Are you sure you want to delete this service?')) {
             router.delete(route('services.admin.destroy', id));
         }
+    };
+
+    const move = (id: number, direction: -1 | 1) => {
+        const ordered = [...data].sort(
+            (a, b) => (a.rank_order ?? 0) - (b.rank_order ?? 0) || a.id - b.id
+        );
+        const index = ordered.findIndex((x) => x.id === id);
+        const target = index + direction;
+        if (index < 0 || target < 0 || target >= ordered.length) return;
+
+        [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+
+        router.post(
+            route('services.admin.reorder'),
+            { items: ordered.map((item, i) => ({ id: item.id, rank_order: i + 1 })) },
+            { preserveScroll: true }
+        );
     };
 
     return (
@@ -168,9 +187,27 @@ export default function ServicesAdminIndex({ data = [] }: Props) {
                                         {s.price || "৳ 1,000"}
                                     </td>
                                     <td className="p-4">
-                                        <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-bold">
-                                            {s.rank_order || 1}
-                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            <span className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs font-bold">
+                                                {s.rank_order || 1}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => move(s.id, -1)}
+                                                className="p-1 text-gray-400 hover:text-[#8f163b] hover:bg-rose-50 rounded transition cursor-pointer"
+                                                title="Move up"
+                                            >
+                                                <ChevronUp size={14} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => move(s.id, 1)}
+                                                className="p-1 text-gray-400 hover:text-[#8f163b] hover:bg-rose-50 rounded transition cursor-pointer"
+                                                title="Move down"
+                                            >
+                                                <ChevronDown size={14} />
+                                            </button>
+                                        </div>
                                     </td>
                                     <td className="p-4">
                                         <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${

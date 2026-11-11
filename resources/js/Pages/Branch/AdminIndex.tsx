@@ -19,7 +19,9 @@ import {
     MessageSquare,
     Calendar,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    ChevronUp,
+    ChevronDown
 } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
 import RichContentEditor from '@/Components/RichContentEditor';
@@ -61,6 +63,7 @@ interface BranchLocation {
     schema_json?: string;
     faqs?: any[];
     seo_content?: string;
+    sort_order?: number;
 }
 
 interface Props extends PageProps {
@@ -111,6 +114,23 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
                 alert(first);
             }
         });
+    };
+
+    const move = (id: number, direction: -1 | 1) => {
+        const ordered = [...branches].sort(
+            (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id
+        );
+        const index = ordered.findIndex((b) => b.id === id);
+        const target = index + direction;
+        if (index < 0 || target < 0 || target >= ordered.length) return;
+
+        [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+
+        router.post(
+            route('branch.admin.reorder'),
+            { items: ordered.map((b, i) => ({ id: b.id, sort_order: i + 1 })) },
+            { preserveScroll: true }
+        );
     };
 
     const handleDeleteBranch = (id: number, name: string) => {
@@ -296,18 +316,37 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
                     {branches.map((b) => {
                         const isSelected = b.id === selectedBranchId;
                         return (
-                            <button
-                                key={b.id}
-                                onClick={() => setSelectedBranchId(b.id)}
-                                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
-                                    isSelected
-                                        ? 'bg-[#800038] text-white shadow-xs'
-                                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                <MapPin size={14} className={isSelected ? 'text-white' : 'text-rose-600'} />
-                                {b.name}
-                            </button>
+                            <div key={b.id} className="flex items-center gap-0.5">
+                                <button
+                                    onClick={() => setSelectedBranchId(b.id)}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                                        isSelected
+                                            ? 'bg-[#800038] text-white shadow-xs'
+                                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    <MapPin size={14} className={isSelected ? 'text-white' : 'text-rose-600'} />
+                                    {b.name}
+                                </button>
+                                <div className="flex flex-col -space-y-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => move(b.id, -1)}
+                                        className="text-gray-300 hover:text-[#800038] transition cursor-pointer"
+                                        title="Move branch up"
+                                    >
+                                        <ChevronUp size={11} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => move(b.id, 1)}
+                                        className="text-gray-300 hover:text-[#800038] transition cursor-pointer"
+                                        title="Move branch down"
+                                    >
+                                        <ChevronDown size={11} />
+                                    </button>
+                                </div>
+                            </div>
                         );
                     })}
                     <button

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { TopHeader } from '@/components/TopHeader';
 import { GlobalFooter } from '@/Components/GlobalFooter';
 import Seo from '@/Components/Seo';
+import { getWebsiteTexts } from '@/data/websiteTexts';
 import {
   User,
   Mail,
@@ -25,6 +26,8 @@ interface Props {
 
 export default function ComplaintPublicShow({ locations = [], nav_menu }: Props) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const page = usePage();
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -56,8 +59,8 @@ export default function ComplaintPublicShow({ locations = [], nav_menu }: Props)
   return (
     <div className="bg-slate-50 flex flex-col min-h-screen text-slate-800 font-sans">
       <Seo
-        title="Patient Feedback & Complaint Box"
-        description="Submit confidential patient complaints, feedback and suggestions directly to Tech Dental Care management in Dhaka."
+        title={copy.complaint_seo_title}
+        description={copy.complaint_seo_desc}
         path="/complaint-box"
       />
 
@@ -76,13 +79,13 @@ export default function ComplaintPublicShow({ locations = [], nav_menu }: Props)
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center">
             <span className="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wide uppercase bg-teal-600/30 text-teal-100 rounded-full border border-teal-400/20">
-              Confidential Patient Voice
+              {copy.complaint_badge}
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">
-              Patient Feedback & Resolution Center
+              {copy.complaint_h1}
             </h1>
             <p className="text-teal-100 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed font-light">
-              Your experience matters to us. Whether you have a concern, a complaint, or a suggestion to improve our dental care services, please let us know.
+              {copy.complaint_subtitle}
             </p>
           </div>
         </div>
@@ -97,9 +100,9 @@ export default function ComplaintPublicShow({ locations = [], nav_menu }: Props)
                   <ClipboardList className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-800">Submit a Report</h2>
+                  <h2 className="text-2xl font-bold text-slate-800">{copy.complaint_form_title}</h2>
                   <p className="text-sm text-slate-500 mt-0.5">
-                    All submissions are kept strictly confidential and reviewed directly by our management team.
+                    {copy.complaint_form_subtitle}
                   </p>
                 </div>
               </div>

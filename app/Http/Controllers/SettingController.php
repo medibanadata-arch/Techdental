@@ -272,4 +272,47 @@ class SettingController extends Controller
 
         return back()->with('success', 'Header and Footer configurations saved successfully!');
     }
+
+    /**
+     * Public page texts (headings, labels, SEO copy) for pages that are not
+     * covered by a dedicated CMS screen.
+     */
+    public function websiteTexts()
+    {
+        $settings = HomeContent::first();
+        if (!$settings) {
+            $settings = HomeContent::create([
+                'company_name' => 'Tech Dental',
+                'brand_name_line1' => 'TECH',
+                'brand_name_line2' => 'DENTAL',
+            ]);
+        }
+
+        return Inertia::render('Settings/WebsiteTexts', [
+            'settings' => $settings,
+        ]);
+    }
+
+    public function saveWebsiteTexts(Request $request)
+    {
+        $validated = $request->validate([
+            'website_texts' => 'nullable|array',
+            'website_texts.*' => 'nullable|string',
+        ]);
+
+        $settings = HomeContent::first();
+        if (!$settings) {
+            $settings = new HomeContent();
+            $settings->company_name = 'Tech Dental';
+        }
+
+        $texts = $validated['website_texts'] ?? [];
+        // Drop empty values so the shared defaults keep working.
+        $texts = array_filter($texts, fn ($value) => is_string($value) && trim($value) !== '');
+
+        $settings->website_texts = $texts;
+        $settings->save();
+
+        return back()->with('success', 'Website texts saved successfully.');
+    }
 }

@@ -5,6 +5,7 @@ import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
+import { getWebsiteTexts } from '@/data/websiteTexts';
 
 interface DoctorItem {
   id: number;
@@ -57,6 +58,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
   const [filter, setFilter] = useState<'All' | string>('All');
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
   const [moreInfoOpen, setMoreInfoOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [apptDoctor, setApptDoctor] = useState<DoctorItem | null>(null);
@@ -151,7 +153,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
         {/* Compact Full-Width Title Section - Vertically Centered in the Gap */}
         <section className="text-center w-full py-5 sm:py-6">
           <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold text-pink-700 tracking-tight leading-snug w-full">
-            You Are Looking For Best Dentist in Dhaka, Bangladesh
+            {copy.doctors_h1}
           </h1>
         </section>
 

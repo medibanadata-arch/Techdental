@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
+import { getWebsiteTexts } from '@/data/websiteTexts';
 import {
   CheckCircle2,
   Calendar,
@@ -62,6 +63,8 @@ const EVENING_TIMES = [
 ];
 
 export default function BookAppointmentPublicIndex({ locations = [], nav_menu }: Props) {
+  const page = usePage();
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
   const [selectedBranch, setSelectedBranch] = useState("");
   const [form, setForm] = useState({
     name: '',
@@ -186,8 +189,8 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
   return (
     <div className="min-h-screen flex flex-col w-full" style={{ backgroundColor: '#8a214d' }}>
       <Seo
-        title="Book a Dental Appointment Online"
-        description="Book your dental appointment at Tech Dental Care in Dhaka. Choose your branch, treatment, preferred date and time — confirmation within minutes."
+        title={copy.appointment_seo_title}
+        description={copy.appointment_seo_desc}
         path="/appointment"
       />
       {/* Top Header Full Width */}
@@ -198,7 +201,7 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
         <div className="w-full max-w-2xl mx-auto bg-black/10 backdrop-blur-md p-6 sm:p-10 rounded-3xl border border-white/10 shadow-2xl my-6">
           {/* Heading */}
           <h1 className="text-white text-3xl md:text-4xl font-extrabold text-center mb-8 drop-shadow-md tracking-tight">
-            Book An Appointment
+            {copy.appointment_h1}
           </h1>
 
         {/* Form */}
@@ -209,7 +212,7 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Patient Name"
+              placeholder={copy.appointment_name_ph}
               required
               className="w-full px-5 py-4 rounded-xl bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-400/30 transition-all duration-300 shadow-sm text-base"
             />
@@ -217,7 +220,7 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
               type="tel"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="Phone"
+              placeholder={copy.appointment_phone_ph}
               required
               className="w-full px-5 py-4 rounded-xl bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-400/30 transition-all duration-300 shadow-sm text-base"
             />
@@ -231,7 +234,7 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
               required
               className="w-full px-5 py-4 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-400/30 transition-all duration-300 shadow-sm text-base cursor-pointer"
             >
-              <option value="" disabled>Treatment</option>
+              <option value="" disabled>{copy.appointment_treatment_label}</option>
               {TREATMENTS.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
@@ -249,7 +252,7 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
                 form.branch ? 'text-transparent' : 'text-gray-700'
               }`}
             >
-              <option value="" disabled style={{ color: '#6b7280' }}>Branch</option>
+              <option value="" disabled style={{ color: '#6b7280' }}>{copy.appointment_branch_label}</option>
               {branchOptions.map((b: any, i: number) => {
                 const rawName = b.short_name || b.name || '';
                 const cleanName = rawName.replace(/\s*branch\s*$/i, '').trim() + ' Branch';
@@ -312,7 +315,7 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
               type="text"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              placeholder="Your Address (Ex: Mirpur 10, Gazipur)"
+              placeholder={copy.appointment_address_ph}
               required
               className="w-full px-5 py-4 rounded-xl bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-400/30 transition-all duration-300 shadow-sm text-base"
             />
@@ -328,10 +331,10 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
               {isSubmitting ? (
                 <>
                   <Loader2 size={20} className="animate-spin text-white" />
-                  <span>Processing Appointment...</span>
+                  <span>{copy.appointment_processing}</span>
                 </>
               ) : (
-                <span>Book Now</span>
+                <span>{copy.appointment_book_btn}</span>
               )}
             </button>
           </div>
@@ -367,10 +370,10 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
 
             {/* Title */}
             <h3 className="text-2xl font-black text-gray-900 tracking-tight">
-              Appointment Request Received!
+              {copy.appointment_success_heading}
             </h3>
             <p className="text-xs sm:text-sm text-gray-500 mt-1 font-semibold">
-              Thank you for choosing Tech Dental
+              {copy.appointment_success_sub}
             </p>
 
             {/* Message */}
@@ -400,8 +403,8 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
       >
         <i className="fa-solid fa-circle-check text-lg"></i>
         <div>
-          <h4 className="font-bold text-xs">Appointment Requested!</h4>
-          <p className="text-[11px] text-emerald-100">We will confirm your appointment shortly.</p>
+          <h4 className="font-bold text-xs">{copy.appointment_success_title}</h4>
+          <p className="text-[11px] text-emerald-100">{copy.appointment_success_text}</p>
         </div>
       </div>
 

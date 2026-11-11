@@ -64,6 +64,17 @@ class TeamMemberController extends Controller
         return back()->with('success', 'Member deleted.');
     }
 
+    public function reorder(Request $request)
+    {
+        $items = $request->input('items', []);
+        foreach ($items as $item) {
+            if (isset($item['id'], $item['sort_order'])) {
+                TeamMember::whereKey($item['id'])->update(['sort_order' => (int) $item['sort_order']]);
+            }
+        }
+        return back()->with('success', 'Team order updated.');
+    }
+
     private function validateMember(Request $request): array
     {
         return $request->validate([

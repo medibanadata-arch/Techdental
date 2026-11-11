@@ -15,7 +15,9 @@ import {
     CheckCircle2,
     EyeOff,
     Check,
-    Eye
+    Eye,
+    ChevronUp,
+    ChevronDown
 } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
 
@@ -62,6 +64,26 @@ export default function TeamAdminIndex({ data = [] }: Props) {
         router.post(route('team.admin.toggle', id), {}, {
             preserveScroll: true,
         });
+    };
+
+    const move = (id: number, section: TeamMember['section'], direction: -1 | 1) => {
+        const ordered = [...data].sort(
+            (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id
+        );
+        const sectionItems = ordered.filter((m) => m.section === section);
+        const sIndex = sectionItems.findIndex((m) => m.id === id);
+        const target = sIndex + direction;
+        if (sIndex < 0 || target < 0 || target >= sectionItems.length) return;
+
+        const first = ordered.findIndex((m) => m.id === sectionItems[sIndex].id);
+        const second = ordered.findIndex((m) => m.id === sectionItems[target].id);
+        [ordered[first], ordered[second]] = [ordered[second], ordered[first]];
+
+        router.post(
+            route('team.admin.reorder'),
+            { items: ordered.map((m, i) => ({ id: m.id, sort_order: i + 1 })) },
+            { preserveScroll: true }
+        );
     };
 
     return (
@@ -170,9 +192,27 @@ export default function TeamAdminIndex({ data = [] }: Props) {
                                 <div className="space-y-3">
                                     {/* Top Row: Section & Publish Status */}
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                            {SECTION_CONFIG[member.section]?.label}
-                                        </span>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                                {SECTION_CONFIG[member.section]?.label}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => move(member.id, member.section, -1)}
+                                                className="text-gray-300 hover:text-[#800038] transition cursor-pointer"
+                                                title="Move up"
+                                            >
+                                                <ChevronUp size={13} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => move(member.id, member.section, 1)}
+                                                className="text-gray-300 hover:text-[#800038] transition cursor-pointer"
+                                                title="Move down"
+                                            >
+                                                <ChevronDown size={13} />
+                                            </button>
+                                        </div>
 
                                         {/* Publish / Draft Indicator Badge */}
                                         <button

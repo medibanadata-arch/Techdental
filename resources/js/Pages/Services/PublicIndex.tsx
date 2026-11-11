@@ -4,6 +4,7 @@ import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
+import { getWebsiteTexts } from '@/data/websiteTexts';
 
 interface ServiceItem {
   id: number;
@@ -31,13 +32,10 @@ export default function ServicesPublicIndex({ services = [], locations = [], nav
   const isBn = Boolean(is_bn);
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
 
-  const title = isBn
-    ? 'আমাদের ডেন্টাল সেবা ও চিকিৎসা'
-    : 'Dental Services & Treatments in Dhaka';
-  const description = isBn
-    ? 'টেক ডেন্টালের সব ডেন্টাল সেবা এক জায়গায়—ইমপ্লান্ট, ব্রেসেস, রুট ক্যানেল, ফিলিং, ক্যাপ, স্কেলিং ও আরও অনেক কিছু। ঢাকার মিরপুর, উত্তরা, বাদ্দা ও যাত্রাবাড়ীতে বিশেষজ্ঞ চিকিৎসা।'
-    : 'Explore every dental treatment at Tech Dental Care — implants, braces, root canal, fillings, crowns, scaling and more, across Mirpur, Uttara, Badda and Jatrabari in Dhaka.';
+  const title = isBn ? copy.services_seo_title_bn : copy.services_seo_title;
+  const description = isBn ? copy.services_seo_desc_bn : copy.services_seo_desc;
 
   const serviceLink = (s: ServiceItem) =>
     isBn ? `/bn/service/${s.slug_bn || s.slug}` : `/service/${s.slug}`;
@@ -80,7 +78,7 @@ export default function ServicesPublicIndex({ services = [], locations = [], nav
       <header className="bg-[#8f163b] text-white w-full py-4 shadow-md">
         <div className="w-full px-4 md:px-8 flex justify-center items-center">
           <h1 className="text-xl md:text-2xl font-bold tracking-wide uppercase">
-            {isBn ? 'আমাদের সেবাসমূহ' : 'Our Services'}
+            {isBn ? copy.services_h1_bn : copy.services_h1}
           </h1>
         </div>
       </header>

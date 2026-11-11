@@ -143,4 +143,15 @@ class FeaturedImageController extends Controller
 
         return redirect()->route('featured-images.index')->with('success', 'Featured image deleted successfully');
     }
+
+    public function reorder(Request $request)
+    {
+        $items = $request->input('items', []);
+        foreach ($items as $item) {
+            if (isset($item['id'], $item['sort_order'])) {
+                FeaturedImage::whereKey($item['id'])->update(['sort_order' => (int) $item['sort_order']]);
+            }
+        }
+        return back()->with('success', 'Slider order updated.');
+    }
 }

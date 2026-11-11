@@ -15,7 +15,9 @@ import {
     Search,
     CheckCircle2,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    ChevronUp,
+    ChevronDown
 } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
 
@@ -187,6 +189,28 @@ export default function PriceListAdminIndex({ categories: initialCategories = []
     const deleteTreatment = (idx: number) => {
         if (!selectedCategory) return;
         const updated = selectedCategory.treatments.filter((_, i) => i !== idx);
+        setCategories(
+            categories.map((c) =>
+                c.id === selectedCategoryId ? { ...c, treatments: updated } : c
+            )
+        );
+    };
+
+    const moveCategory = (id: string, direction: -1 | 1) => {
+        const index = categories.findIndex((c) => c.id === id);
+        const target = index + direction;
+        if (index < 0 || target < 0 || target >= categories.length) return;
+        const ordered = [...categories];
+        [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+        setCategories(ordered);
+    };
+
+    const moveTreatment = (idx: number, direction: -1 | 1) => {
+        if (!selectedCategory) return;
+        const target = idx + direction;
+        if (target < 0 || target >= selectedCategory.treatments.length) return;
+        const updated = [...selectedCategory.treatments];
+        [updated[idx], updated[target]] = [updated[target], updated[idx]];
         setCategories(
             categories.map((c) =>
                 c.id === selectedCategoryId ? { ...c, treatments: updated } : c
@@ -393,6 +417,28 @@ export default function PriceListAdminIndex({ categories: initialCategories = []
                                         <span className="px-2 py-0.5 rounded-full text-[10px] bg-white border border-gray-200 text-gray-600">
                                             {cat.treatments.length}
                                         </span>
+                                        <div className="flex flex-col -space-y-1">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    moveCategory(cat.id, -1);
+                                                }}
+                                                className="p-0.5 text-gray-400 hover:text-emerald-600 rounded"
+                                                title="Move category up"
+                                            >
+                                                <ChevronUp size={12} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    moveCategory(cat.id, 1);
+                                                }}
+                                                className="p-0.5 text-gray-400 hover:text-emerald-600 rounded"
+                                                title="Move category down"
+                                            >
+                                                <ChevronDown size={12} />
+                                            </button>
+                                        </div>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -482,13 +528,29 @@ export default function PriceListAdminIndex({ categories: initialCategories = []
                                                         />
                                                     </td>
                                                     <td className="py-2 px-3 text-right">
-                                                        <button
-                                                            onClick={() => deleteTreatment(idx)}
-                                                            className="p-1.5 text-gray-400 hover:text-red-500 rounded"
-                                                            title="Delete row"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
+                                                        <div className="inline-flex items-center gap-1">
+                                                            <button
+                                                                onClick={() => moveTreatment(idx, -1)}
+                                                                className="p-1 text-gray-400 hover:text-emerald-600 rounded"
+                                                                title="Move row up"
+                                                            >
+                                                                <ChevronUp size={14} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => moveTreatment(idx, 1)}
+                                                                className="p-1 text-gray-400 hover:text-emerald-600 rounded"
+                                                                title="Move row down"
+                                                            >
+                                                                <ChevronDown size={14} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => deleteTreatment(idx)}
+                                                                className="p-1.5 text-gray-400 hover:text-red-500 rounded"
+                                                                title="Delete row"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))

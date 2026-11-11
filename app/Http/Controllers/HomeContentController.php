@@ -251,6 +251,9 @@ class HomeContentController extends Controller
     {
         $validated = $request->validate([
             'title' => 'nullable|string',
+            'name' => 'nullable|string',
+            'slug' => 'nullable|string',
+            'image' => 'nullable|string',
             'category' => 'nullable|string',
             'price' => 'nullable|string',
             'desc' => 'nullable|string',

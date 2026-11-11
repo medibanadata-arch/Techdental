@@ -5,6 +5,7 @@ import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
+import { getWebsiteTexts } from '@/data/websiteTexts';
 
 interface Milestone {
   count: string;
@@ -115,6 +116,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
   const [seeMore, setSeeMore] = useState(false);
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
   const [infoOpen, setInfoOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
 
@@ -233,7 +235,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
             </div>
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white border border-slate-200/85 shadow-sm px-3.5 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap">
               <i className="fas fa-check-circle text-emerald-500 text-xs"></i>
-              <span className="text-[11px] font-semibold text-slate-700">BMDC Verified</span>
+              <span className="text-[11px] font-semibold text-slate-700">{copy.doctor_bmdc_verified}</span>
             </div>
           </div>
 
@@ -273,29 +275,29 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                 className="w-full sm:w-auto flex-1 sm:flex-initial py-3 px-6 bg-[#c81e62] hover:bg-[#a8184f] active:scale-[0.99] text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2.5 shadow-sm cursor-pointer"
               >
                 <i className="far fa-calendar-check text-base"></i>
-                <span>Book Now</span>
+                <span>{copy.doctor_book_now}</span>
               </Link>
               <a
                 href={`tel:${item.hotline || hotline}`}
                 className="w-full sm:w-auto flex-1 sm:flex-initial py-3 px-6 bg-[#059669] hover:bg-[#047857] active:scale-[0.99] text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2.5 shadow-sm"
               >
                 <i className="fas fa-phone-alt text-sm fa-flip-horizontal"></i>
-                <span>Call Now</span>
+                <span>{copy.doctor_call_now}</span>
               </a>
             </div>
 
             {/* 3 Clean Stat Boxes */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="bg-slate-50/90 border border-slate-100 rounded-xl px-3.5 py-3 text-center">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 block">Experience</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 block">{copy.doctor_experience}</span>
                 <span className="block text-base sm:text-lg font-extrabold text-slate-800">{item.experience_years}</span>
               </div>
               <div className="bg-slate-50/90 border border-slate-100 rounded-xl px-3.5 py-3 text-center">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 block">Patients Treated</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 block">{copy.doctor_patients}</span>
                 <span className="block text-base sm:text-lg font-extrabold text-slate-800">{item.patients_treated}</span>
               </div>
               <div className="bg-slate-50/90 border border-slate-100 rounded-xl px-3.5 py-3 text-center">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 block">BMDC Reg. No</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 block">{copy.doctor_bmdc_reg}</span>
                 <span className="block text-base sm:text-lg font-extrabold text-slate-800">{item.bmdc}</span>
               </div>
             </div>
@@ -334,7 +336,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                 <div className="w-8 h-8 rounded-lg bg-pink-50 text-[#c81e62] flex items-center justify-center text-sm">
                   <i className="fas fa-star-of-life"></i>
                 </div>
-                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Area of Expertise</h2>
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{copy.doctor_expertise}</h2>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
                 {(seeMore ? specs : visibleSpecs).map((s, i) => (
@@ -362,7 +364,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 text-[#059669] flex items-center justify-center text-sm">
                   <i className="fas fa-map-marker-alt"></i>
                 </div>
-                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Chamber Location</h2>
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{copy.doctor_chamber}</h2>
               </div>
               <div className="space-y-2.5 text-sm">
                 <p className="font-bold text-slate-900 text-base">{item.chamber_title}</p>
@@ -415,7 +417,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                         <div className="pt-5 border-t border-slate-100">
                           <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                             <span className="w-1.5 h-3.5 bg-pink-700 rounded-full" />
-                            Frequently Asked Questions (FAQs)
+                            {copy.doctor_faq_heading}
                           </h4>
                           <div className="space-y-2.5">
                             {faqs.map((f, i) => (
@@ -446,7 +448,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
 
                       {bioParas[1] && (
                         <div>
-                          <h3 className="text-sm font-bold text-slate-900 mb-1.5">Advanced Dental Procedures &amp; Clinical Excellence</h3>
+                          <h3 className="text-sm font-bold text-slate-900 mb-1.5">{copy.doctor_about_heading}</h3>
                           <p>{bioParas[1]}</p>
                         </div>
                       )}
@@ -472,7 +474,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
 
                       {faqs.length > 0 && (
                         <div className="pt-3 border-t border-slate-100">
-                          <h3 className="text-sm font-bold text-slate-900 mb-2.5">Frequently Asked Questions (FAQs)</h3>
+                          <h3 className="text-sm font-bold text-slate-900 mb-2.5">{copy.doctor_faq_heading}</h3>
                           <div className="space-y-2.5">
                             {faqs.map((f, i) => (
                               <div key={i}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Plus, Edit2, Trash2, Image as ImageIcon, MapPin, Home, Layers } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, MapPin, Home, Layers, ChevronUp, ChevronDown } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
 
 interface LocationItem {
@@ -37,6 +37,23 @@ export default function FeaturedImagesIndex({ images = [], locations = [], selec
 
     const handleTabChange = (branchKey: string) => {
         router.get(route('featured-images.index'), { branch: branchKey }, { preserveState: true });
+    };
+
+    const move = (id: number, direction: -1 | 1) => {
+        const ordered = [...images].sort(
+            (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id
+        );
+        const index = ordered.findIndex((img) => img.id === id);
+        const target = index + direction;
+        if (index < 0 || target < 0 || target >= ordered.length) return;
+
+        [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+
+        router.post(
+            route('featured-images.reorder'),
+            { items: ordered.map((img, i) => ({ id: img.id, sort_order: i + 1 })) },
+            { preserveScroll: true }
+        );
     };
 
     const getLocationBadge = (branch?: string) => {
@@ -156,6 +173,24 @@ export default function FeaturedImagesIndex({ images = [], locations = [], selec
                                     </div>
                                     <div className="absolute top-2.5 left-2.5">
                                         {getLocationBadge(img.branch)}
+                                    </div>
+                                    <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/50 backdrop-blur-xs rounded-lg p-0.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => move(img.id, -1)}
+                                            className="text-white/80 hover:text-white transition cursor-pointer"
+                                            title="Move earlier"
+                                        >
+                                            <ChevronUp size={14} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => move(img.id, 1)}
+                                            className="text-white/80 hover:text-white transition cursor-pointer"
+                                            title="Move later"
+                                        >
+                                            <ChevronDown size={14} />
+                                        </button>
                                     </div>
                                 </div>
 

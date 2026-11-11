@@ -12,7 +12,9 @@ import {
   CheckCircle,
   X,
   Save,
-  Globe
+  Globe,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 
 interface RightItem {
@@ -157,6 +159,32 @@ export default function PatientRightsAdminIndex({
     router.delete(route('patient-rights.admin.rights.destroy', id), {
       onSuccess: () => triggerFeedback('Right deleted successfully!'),
     });
+  };
+
+  const persistOrder = (routeName: string, items: { id: number; order: number }[]) => {
+    router.post(
+      route(routeName),
+      { items: items.map((item, index) => ({ id: item.id, order: index + 1 })) },
+      { preserveScroll: true }
+    );
+  };
+
+  const moveRight = (id: number, direction: -1 | 1) => {
+    const ordered = [...rights].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id - b.id);
+    const index = ordered.findIndex((item) => item.id === id);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= ordered.length) return;
+    [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+    persistOrder('patient-rights.admin.rights.reorder', ordered);
+  };
+
+  const moveResponsibility = (id: number, direction: -1 | 1) => {
+    const ordered = [...responsibilities].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.id - b.id);
+    const index = ordered.findIndex((item) => item.id === id);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= ordered.length) return;
+    [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+    persistOrder('patient-rights.admin.responsibilities.reorder', ordered);
   };
 
   // --- Responsibility Handlers ---
@@ -363,6 +391,22 @@ export default function PatientRightsAdminIndex({
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         type="button"
+                        onClick={() => moveRight(item.id, -1)}
+                        className="p-1.5 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition"
+                        title="Move up"
+                      >
+                        <ChevronUp size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveRight(item.id, 1)}
+                        className="p-1.5 text-gray-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition"
+                        title="Move down"
+                      >
+                        <ChevronDown size={15} />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => openEditRight(item)}
                         className="p-1.5 text-gray-500 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition"
                         title="Edit Right"
@@ -449,6 +493,22 @@ export default function PatientRightsAdminIndex({
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => moveResponsibility(item.id, -1)}
+                        className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                        title="Move up"
+                      >
+                        <ChevronUp size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveResponsibility(item.id, 1)}
+                        className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
+                        title="Move down"
+                      >
+                        <ChevronDown size={15} />
+                      </button>
                       <button
                         type="button"
                         onClick={() => openEditResp(item)}

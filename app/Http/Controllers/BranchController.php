@@ -121,6 +121,18 @@ class BranchController extends Controller
         return redirect()->route('branch.admin')->with('success', 'Branch removed successfully!');
     }
 
+    /** Persist branch display order — POST /branch-admin/reorder */
+    public function reorder(\Illuminate\Http\Request $request)
+    {
+        $items = $request->input('items', []);
+        foreach ($items as $item) {
+            if (isset($item['id'], $item['sort_order'])) {
+                Location::whereKey($item['id'])->update(['sort_order' => (int) $item['sort_order']]);
+            }
+        }
+        return back()->with('success', 'Branch order updated.');
+    }
+
     /** Update branch info — PUT /branch-admin/{id} */
     public function adminUpdate(\Illuminate\Http\Request $request, $id)
     {

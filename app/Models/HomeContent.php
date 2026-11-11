@@ -19,5 +19,6 @@ class HomeContent extends Model
         'footer_settings' => 'array',
         'sections_config' => 'array',
         'homepage_texts' => 'array',
+        'website_texts' => 'array',
     ];
 }

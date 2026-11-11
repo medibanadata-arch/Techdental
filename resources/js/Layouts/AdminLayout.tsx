@@ -72,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (currentRoute === 'homepage.admin' || currentRoute === 'about.admin' || currentRoute === 'patient-rights.admin' || currentRoute?.startsWith('team.') || currentRoute?.startsWith('pages.')) return 'Pages';
         if (currentRoute?.startsWith('media.') || currentRoute?.startsWith('featured-images.')) return 'Media';
         if (currentRoute?.startsWith('services.') || currentRoute === 'pricelist.admin') return 'Services';
-        if (currentRoute === 'settings.admin' || currentRoute === 'settings.header-footer' || currentRoute?.startsWith('menus.') || currentRoute?.startsWith('templates.') || currentRoute?.startsWith('users.') || currentRoute?.startsWith('redirects.')) return 'Settings';
+        if (currentRoute === 'settings.admin' || currentRoute === 'settings.header-footer' || currentRoute === 'settings.website-texts' || currentRoute?.startsWith('menus.') || currentRoute?.startsWith('users.') || currentRoute?.startsWith('redirects.')) return 'Settings';
         return null;
     });
 
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             setOpenSubmenu('Media');
         } else if (currentRoute?.startsWith('services.') || currentRoute === 'pricelist.admin') {
             setOpenSubmenu('Services');
-        } else if (currentRoute === 'settings.admin' || currentRoute === 'settings.header-footer' || currentRoute?.startsWith('menus.') || currentRoute?.startsWith('templates.') || currentRoute?.startsWith('users.') || currentRoute?.startsWith('redirects.')) {
+        } else if (currentRoute === 'settings.admin' || currentRoute === 'settings.header-footer' || currentRoute === 'settings.website-texts' || currentRoute?.startsWith('menus.') || currentRoute?.startsWith('users.') || currentRoute?.startsWith('redirects.')) {
             setOpenSubmenu('Settings');
         }
     }, [currentRoute]);
@@ -228,13 +228,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {
                     name: 'Settings',
                     icon: SettingsIcon,
-                    active: currentRoute === 'settings.admin' || currentRoute === 'settings.header-footer' || currentRoute?.startsWith('menus.') || currentRoute?.startsWith('templates.') || currentRoute?.startsWith('users.') || currentRoute?.startsWith('redirects.'),
+                    active: currentRoute === 'settings.admin' || currentRoute === 'settings.header-footer' || currentRoute === 'settings.website-texts' || currentRoute?.startsWith('menus.') || currentRoute?.startsWith('users.') || currentRoute?.startsWith('redirects.'),
                     submenu: [
                         { name: 'Site settings', href: route('settings.admin'), active: currentRoute === 'settings.admin' },
                         { name: 'Header & Footer', href: route('settings.header-footer'), active: currentRoute === 'settings.header-footer' },
+                        { name: 'Website Texts', href: route('settings.website-texts'), active: currentRoute === 'settings.website-texts' },
                         { name: '301 / 302 Redirects', href: route('redirects.index'), active: currentRoute?.startsWith('redirects.') },
                         { name: 'Navigation menus', href: route('menus.index'), active: currentRoute?.startsWith('menus.') },
-                        { name: 'Page templates', href: route('templates.index'), active: currentRoute?.startsWith('templates.') },
                         { name: 'Staff & users', href: route('users.index'), active: currentRoute?.startsWith('users.') },
                     ]
                 },

@@ -57,6 +57,17 @@ class ServiceController extends Controller
         return back()->with('success', 'Service deleted.');
     }
 
+    public function reorder(Request $request)
+    {
+        $items = $request->input('items', []);
+        foreach ($items as $item) {
+            if (isset($item['id'], $item['rank_order'])) {
+                Service::whereKey($item['id'])->update(['rank_order' => (int) $item['rank_order']]);
+            }
+        }
+        return back()->with('success', 'Service ranking updated.');
+    }
+
     private function validateService(Request $request): array
     {
         return $request->validate([

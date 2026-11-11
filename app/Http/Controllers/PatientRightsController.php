@@ -169,6 +169,32 @@ class PatientRightsController extends Controller
     }
 
     /**
+     * Persist the display order of patient rights.
+     */
+    public function reorderRights(Request $request)
+    {
+        foreach ($request->input('items', []) as $item) {
+            if (isset($item['id'], $item['order'])) {
+                PatientRight::whereKey($item['id'])->update(['order' => (int) $item['order']]);
+            }
+        }
+        return back()->with('success', 'Patient rights order updated.');
+    }
+
+    /**
+     * Persist the display order of patient responsibilities.
+     */
+    public function reorderResponsibilities(Request $request)
+    {
+        foreach ($request->input('items', []) as $item) {
+            if (isset($item['id'], $item['order'])) {
+                PatientResponsibility::whereKey($item['id'])->update(['order' => (int) $item['order']]);
+            }
+        }
+        return back()->with('success', 'Patient responsibilities order updated.');
+    }
+
+    /**
      * Store new Responsibility
      */
     public function storeResponsibility(Request $request)

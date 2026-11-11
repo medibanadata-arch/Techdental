@@ -16,6 +16,8 @@ import {
     Sparkles,
     CheckCircle2,
     ChevronRight,
+    ChevronUp,
+    ChevronDown,
     HelpCircle,
     ShieldCheck
 } from 'lucide-react';
@@ -84,6 +86,23 @@ export default function MedicinesAdminIndex({ data = [] }: Props) {
                 onSuccess: () => alert('Medicine deleted successfully.')
             });
         }
+    };
+
+    const move = (id: number, direction: -1 | 1) => {
+        const ordered = [...data].sort(
+            (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id
+        );
+        const index = ordered.findIndex((x) => x.id === id);
+        const target = index + direction;
+        if (index < 0 || target < 0 || target >= ordered.length) return;
+
+        [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+
+        router.post(
+            route('medicines.admin.reorder'),
+            { items: ordered.map((item, i) => ({ id: item.id, sort_order: i + 1 })) },
+            { preserveScroll: true }
+        );
     };
 
     return (
@@ -227,8 +246,26 @@ export default function MedicinesAdminIndex({ data = [] }: Props) {
                                 ) : (
                                     filteredMedicines.map((item, idx) => (
                                         <tr key={item.id} className="hover:bg-rose-50/20 transition group">
-                                            <td className="py-3.5 px-4 text-center font-mono text-gray-400">
-                                                {idx + 1}
+                                            <td className="py-3.5 px-2 text-center font-mono text-gray-400">
+                                                <div className="flex flex-col items-center gap-0.5">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => move(item.id, -1)}
+                                                        className="text-gray-300 hover:text-[#800038] transition cursor-pointer"
+                                                        title="Move up"
+                                                    >
+                                                        <ChevronUp size={13} />
+                                                    </button>
+                                                    <span className="text-[10px]">{idx + 1}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => move(item.id, 1)}
+                                                        className="text-gray-300 hover:text-[#800038] transition cursor-pointer"
+                                                        title="Move down"
+                                                    >
+                                                        <ChevronDown size={13} />
+                                                    </button>
+                                                </div>
                                             </td>
                                             <td className="py-3.5 px-4">
                                                 <div className="flex items-center gap-3">

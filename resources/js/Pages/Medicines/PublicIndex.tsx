@@ -6,6 +6,7 @@ import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import { useLanguage } from "@/utils/useLanguage";
+import { getWebsiteTexts } from '@/data/websiteTexts';
 
 interface MedicineItem {
   id: number;
@@ -72,6 +73,7 @@ export default function MedicinesPublicIndex({
   const { isBn } = useLanguage();
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
 
   const categories = useMemo(() => {
     const counts: Record<string, number> = { all: medicines.length };
@@ -107,10 +109,10 @@ export default function MedicinesPublicIndex({
   return (
     <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Seo
-        title={isBn ? 'ঔষধ ও প্রেসক্রিপশন নির্দেশিকা' : 'Medicines & Pharmacy Guides in Bangladesh'}
+        title={isBn ? copy.medicines_seo_title_bn : copy.medicines_seo_title}
         description={isBn
-          ? 'দাঁতের ব্যথা, ইনফেকশন ও মুখের স্বাস্থ্যের জন্য ব্যবহৃত ঔষধের ব্যবহারবিধি, মাত্রা, পার্শ্বপ্রতিক্রিয়া ও দাম জানুন।'
-          : 'Dental and general medicines used for tooth pain, infection and oral health — uses, dosage, side effects and prices in Bangladesh.'}
+          ? copy.medicines_seo_desc_bn
+          : copy.medicines_seo_desc}
         path="/medicines"
         noSuffix={isBn}
         schema={{
@@ -139,7 +141,7 @@ export default function MedicinesPublicIndex({
       <header className="bg-white shadow-sm border-b border-gray-100 py-10 mb-10">
         <div className="w-full px-4 sm:px-8 lg:px-12 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
-            {isBn ? "ঔষধ ও প্রেসক্রিপশন নির্দেশিকা" : "Medicines & Pharmacy Guides"}
+            {isBn ? copy.medicines_h1_bn : copy.medicines_h1}
           </h1>
 
           {/* Breadcrumbs */}
