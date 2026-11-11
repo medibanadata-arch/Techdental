@@ -4,7 +4,7 @@ import { TopHeader } from "@/Components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
-import { getBranchStatus, parseTimeToMinutes } from "@/utils/branchStatus";
+import { getBranchStatus, parseAllBranchShifts } from "@/utils/branchStatus";
 import {
   Phone,
   Send,
@@ -16,7 +16,6 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Eye,
   Building2,
   User,
   Award,
@@ -205,7 +204,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
   const branchStatus = React.useMemo(() => {
     return getBranchStatus({
       shortName: branch?.short_name || branch?.name,
-      time: branch?.hours_text || branch?.time,
+      time:
+        [branch?.morning_hours, branch?.evening_hours].filter(Boolean).join(' | ') ||
+        branch?.hours_text ||
+        branch?.time,
     });
   }, [branch]);
 
@@ -324,21 +326,40 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     { d: 5, label: 'Fri' },
   ];
   const todayDay = new Date().getDay();
-  const hoursTime = cleanTimeStr(eveningHours || branch?.hours_text || branch?.time || '3 PM – 9 PM');
-  const hoursMatch = hoursTime.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*[-–—]+\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);
-  let barLeft = 50;
-  let barWidth = 33;
-  if (hoursMatch) {
-    const startMin = parseTimeToMinutes(hoursMatch[1]);
-    const endMin = parseTimeToMinutes(hoursMatch[2]);
-    if (startMin !== null && endMin !== null) {
-      const scaleStart = 6 * 60;
-      const scaleEnd = 24 * 60;
-      barLeft = Math.max(0, Math.min(100, ((startMin - scaleStart) / (scaleEnd - scaleStart)) * 100));
-      barWidth = Math.max(4, Math.min(100 - barLeft, ((endMin - startMin) / (scaleEnd - scaleStart)) * 100));
-    }
-  }
-  const nowLeft = Math.max(0, Math.min(100, ((new Date().getHours() * 60 + new Date().getMinutes() - 6 * 60) / (24 * 60 - 6 * 60)) * 100));
+
+  // Shift schedule (supports split shifts such as Mirpur: 10 AM – 2 PM | 4 PM – 9 PM)
+  const scheduleString = [morningHours, eveningHours].filter(Boolean).join(' | ') || branch?.hours_text || branch?.time || '';
+  const { shifts: branchShifts } = useMemo(
+    () => parseAllBranchShifts(scheduleString, branch?.short_name || branch?.name || ''),
+    [scheduleString, branch]
+  );
+
+  const shiftLabelOf = (openMinutes: number) => {
+    if (openMinutes < 12 * 60) return 'Morning';
+    if (openMinutes < 16 * 60) return 'Afternoon';
+    return 'Evening';
+  };
+
+  // Opening-hours timeline spans 10 AM → 9 PM
+  const TIMELINE_START = 10 * 60;
+  const TIMELINE_END = 21 * 60;
+  const timelinePct = (minutes: number) =>
+    Math.max(0, Math.min(100, ((minutes - TIMELINE_START) / (TIMELINE_END - TIMELINE_START)) * 100));
+
+  const shiftBars = branchShifts
+    .map((s) => ({ left: timelinePct(s.openMinutes), right: timelinePct(s.closeMinutes) }))
+    .map((b) => ({ left: b.left, width: Math.max(2, b.right - b.left) }))
+    .filter((b) => b.width > 0);
+
+  const tickMarks = [600, 720, 840, 960, 1080, 1260].map((m) => {
+    const h24 = Math.floor(m / 60);
+    const meridian = h24 >= 12 ? 'PM' : 'AM';
+    const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+    return { label: `${h12} ${meridian}`, left: timelinePct(m) };
+  });
+
+  const nowLeft = timelinePct(new Date().getHours() * 60 + new Date().getMinutes());
+
   const statusPill = branchStatus.isOpenNow
     ? `Open now · ${branchStatus.subText || 'closes 9 PM'}`
     : branchStatus.isOpenSoon
@@ -466,23 +487,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             width: 20px;
             background: #fff;
           }
-          .bs-count {
-            position: absolute;
-            right: 14px;
-            bottom: 12px;
-            z-index: 3;
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            background: rgba(20,6,12,.62);
-            color: #fff;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 6px 10px;
-            border-radius: 99px;
-            pointer-events: none;
-            backdrop-filter: blur(6px);
-          }
           .bs-info {
             text-align: center;
             margin-top: 22px;
@@ -609,19 +613,36 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             font-size: 14px;
             margin-top: 2px;
           }
-          .bs-hh {
+          .bs-shifts {
             display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            gap: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
           }
-          .bs-time {
+          .bs-shift {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #FBF1F4;
+            border: 1px solid #F1DFE6;
+            border-radius: 12px;
+            padding: 6px 11px;
+          }
+          .bs-shift em {
+            font-style: normal;
+            font-size: 9.5px;
+            font-weight: 800;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: #A16B7E;
+          }
+          .bs-shift strong {
             font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
-            font-size: 22px;
+            font-size: 14px;
+            font-weight: 800;
             line-height: 1.2;
             white-space: nowrap;
             color: #1B1620;
-            font-weight: 800;
             letter-spacing: -.01em;
           }
           .bs-bar {
@@ -647,11 +668,16 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             background: #1B1620;
           }
           .bs-tick {
-            display: flex;
-            justify-content: space-between;
+            position: relative;
+            height: 16px;
             font-size: 11px;
             color: #6B6573;
             font-weight: 600;
+          }
+          .bs-tick span {
+            position: absolute;
+            top: 0;
+            white-space: nowrap;
           }
           .bs-week {
             display: flex;
@@ -705,19 +731,15 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           @media (max-width: 899px) {
             .bs-nav { display: none; }
             .bs-arch { border-radius: 24px; }
-            .bs-count {
-              right: 10px;
-              bottom: 10px;
-              font-size: 11px;
-              padding: 5px 9px;
-            }
           }
           @media (max-width: 480px) {
             .bs-info { margin-top: 20px; }
             .bs-acts { gap: 8px; }
             .bs-circ { width: 46px; height: 46px; }
             .bs-book { min-height: 46px; border-radius: 23px; font-size: 14px; }
-            .bs-time { font-size: 20px; }
+            .bs-shift { padding: 5px 9px; }
+            .bs-shift strong { font-size: 13px; }
+            .bs-tick { font-size: 10px; }
           }
         `}</style>
 
@@ -759,10 +781,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               {galleryImages.map((_, k) => (
                 <i key={k} className={k === activeSlide ? 'on' : ''} />
               ))}
-            </div>
-            <div className="bs-count">
-              <Eye size={14} />
-              <span>{activeSlide + 1} / {galleryImages.length}</span>
             </div>
           </div>
 
@@ -815,22 +833,36 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               <li>
                 <Clock size={22} className="bs-lead" />
                 <div className="bs-grow">
-                  <div className="bs-hh">
-                    <div>
-                      <div className="bs-lbl">Opening hours</div>
-                      <div className="bs-sub">{workingDays}</div>
-                    </div>
-                    <div className="bs-time">{hoursTime}</div>
+                  <div className="bs-lbl">Opening hours</div>
+                  <div className="bs-sub">{workingDays}</div>
+
+                  <div className="bs-shifts">
+                    {branchShifts.map((s, i) => (
+                      <span className="bs-shift" key={`${s.openMinutes}-${i}`}>
+                        <em>{shiftLabelOf(s.openMinutes)}</em>
+                        <strong>{s.displayStart} – {s.displayEnd}</strong>
+                      </span>
+                    ))}
                   </div>
+
                   <div className="bs-bar" aria-hidden="true">
-                    <b style={{ left: `${barLeft}%`, width: `${barWidth}%` }} />
+                    {shiftBars.map((b, i) => (
+                      <b key={i} style={{ left: `${b.left}%`, width: `${b.width}%` }} />
+                    ))}
                     {branchStatus.isOpenNow && <u style={{ left: `${nowLeft}%` }} />}
                   </div>
                   <div className="bs-tick" aria-hidden="true">
-                    <span>6 AM</span>
-                    <span>12 PM</span>
-                    <span>6 PM</span>
-                    <span>12 AM</span>
+                    {tickMarks.map((t, i) => (
+                      <span
+                        key={t.label}
+                        style={{
+                          left: `${t.left}%`,
+                          transform: i === 0 ? 'none' : i === tickMarks.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
+                        }}
+                      >
+                        {t.label}
+                      </span>
+                    ))}
                   </div>
                   <div className="bs-week">
                     {weekdayChips.map((day) => (
