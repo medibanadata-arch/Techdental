@@ -79,6 +79,7 @@ interface MedicineItem {
     seo_content?: string;
     seo_content_bn?: string;
     meta_desc?: string;
+    meta_desc_bn?: string;
     canonical_url?: string;
     robots_index?: boolean;
     robots_follow?: boolean;
@@ -162,6 +163,7 @@ export default function MedicinesAdminEdit({ item }: Props) {
         seo_content: item?.seo_content || '',
         seo_content_bn: item?.seo_content_bn || '',
         meta_desc: item?.meta_desc || '',
+        meta_desc_bn: item?.meta_desc_bn || '',
         canonical_url: item?.canonical_url || '',
         robots_index: item?.robots_index !== undefined ? item.robots_index : true,
         robots_follow: item?.robots_follow !== undefined ? item.robots_follow : true,
@@ -1651,19 +1653,36 @@ export default function MedicinesAdminEdit({ item }: Props) {
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-[#800038] mb-1">
-                                বিস্তারিত সেকশন শিরোনাম / ড্রয়ার বাটন (বাংলা)
+                                Bangla SEO Title Suffix (after the medicine name)
                             </label>
                             <input
                                 type="text"
                                 value={form.seo_title_bn}
                                 onChange={(e) => setForm({ ...form, seo_title_bn: e.target.value })}
-                                placeholder={`${form.name_bn || form.name || 'ঔষধ'} সম্পর্কিত বিস্তারিত তথ্য`}
+                                placeholder="ব্যবহার, ডোজ, পার্শ্বপ্রতিক্রিয়া ও দাম"
                                 className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl font-bold bg-rose-50/20"
                             />
                             <p className="text-[10px] text-gray-400 mt-1">
-                                বাংলায় নিচের বিস্তারিত ড্রয়ার বাটনের টেক্সট নির্ধারণ করুন।
+                                Appended to the Bangla medicine name in the page title.
                             </p>
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-[#800038] mb-1">
+                            Bangla Meta Description (SEO)
+                        </label>
+                        <textarea
+                            value={form.meta_desc_bn}
+                            onChange={(e) => setForm({ ...form, meta_desc_bn: e.target.value })}
+                            rows={2}
+                            maxLength={160}
+                            placeholder="বাংলা মেটা ডেসক্রিপশন (১৫৫–১৬০ অক্ষর)..."
+                            className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl bg-rose-50/20"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1">
+                            Used as the meta description on the Bangla medicine page. {form.meta_desc_bn.length}/160
+                        </p>
                     </div>
 
                     <div className="space-y-4">

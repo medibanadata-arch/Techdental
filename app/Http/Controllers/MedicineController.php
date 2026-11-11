@@ -97,6 +97,7 @@ class MedicineController extends Controller
             'seo_content' => 'nullable|string',
             'seo_content_bn' => 'nullable|string',
             'meta_desc' => 'nullable|string',
+            'meta_desc_bn' => 'nullable|string',
             'canonical_url' => 'nullable|string',
             'robots_index' => 'nullable|boolean',
             'robots_follow' => 'nullable|boolean',

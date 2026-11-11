@@ -40,6 +40,7 @@ export const WEBSITE_TEXTS_DEFAULTS: Record<string, string> = {
     team_seo_title: 'Our Dental Team in Dhaka — Management, Doctors & Support Staff',
     team_seo_desc: "Meet the management, digital marketing, call centre and clinical support team behind Tech Dental Care, Bangladesh's trusted dental chain.",
     team_heading: 'Meet Our Management Team',
+    team_subtitle: 'The people behind every smile at Tech Dental',
     team_ceo_heading: 'CEO Assistant',
     team_marketing_heading: 'Digital Marketing Team',
     team_call_heading: 'Call Center Team',
@@ -129,6 +130,7 @@ export const WEBSITE_TEXT_FIELDS: WebsiteTextField[] = [
     { key: 'blog_h1_bn', label: 'Blog page H1 (Bangla fallback)', group: 'Blog List' },
 
     { key: 'team_heading', label: 'Management section heading', group: 'Team Page' },
+    { key: 'team_subtitle', label: 'Hero subtitle', group: 'Team Page' },
     { key: 'team_ceo_heading', label: 'CEO Assistant section heading', group: 'Team Page' },
     { key: 'team_marketing_heading', label: 'Digital Marketing section heading', group: 'Team Page' },
     { key: 'team_call_heading', label: 'Call Center section heading', group: 'Team Page' },

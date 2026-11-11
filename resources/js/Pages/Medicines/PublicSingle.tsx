@@ -59,6 +59,7 @@ interface MedicineItem {
   seo_content?: string;
   seo_content_bn?: string;
   meta_desc?: string;
+  meta_desc_bn?: string;
   canonical_url?: string;
   robots_index?: boolean;
   robots_follow?: boolean;
@@ -281,12 +282,17 @@ export default function MedicinesPublicSingle({
     : (sec.toc || 'Table of Contents');
 
   const displaySeoTitle = isBn
-    ? `${displayName || cleanMedicineName} সম্পর্কে আরো`
+    ? `${cleanMedicineName}: ব্যবহার, ডোজ ও পার্শ্বপ্রতিক্রিয়া`
     : `More about ${cleanMedicineName}`;
 
   const displaySeoContent = isBn
     ? (item.seo_content_bn || '')
     : (item.seo_content || '');
+
+  // Bangla pages must never fall back to the English meta description.
+  const pageDescription = isBn
+    ? (item.meta_desc_bn || displayIntro || '')
+    : (item.meta_desc || displaySubtitle || displayIntro || '');
 
   const seoSections = splitSeoByH2(displaySeoContent);
 
@@ -346,7 +352,7 @@ export default function MedicinesPublicSingle({
     : (item.author?.disclaimer || 'Disclaimer: Educational information only. Not a substitute for professional medical advice.');
 
   const seoTitleSuffix = isBn
-    ? 'ব্যবহার, সেবনবিধি, পার্শ্বপ্রতিক্রিয়া ও মূল্য'
+    ? (item.seo_title_bn?.trim() || 'ব্যবহার, ডোজ ও পার্শ্বপ্রতিক্রিয়া')
     : (item.seo_title && !/^more about\b/i.test(item.seo_title.trim())
         ? item.seo_title
         : 'Uses, Dosage, Side Effects & Price in Bangladesh');
@@ -364,7 +370,7 @@ export default function MedicinesPublicSingle({
       '@type': 'Drug',
       name: displayName || item.name,
       alternateName: displayGeneric || undefined,
-      description: item.meta_desc || displaySubtitle || displayIntro || undefined,
+      description: pageDescription || undefined,
       image: medImage,
       url: medCanonical,
       inLanguage: isBn ? 'bn' : 'en',
@@ -411,7 +417,7 @@ export default function MedicinesPublicSingle({
     <div className="min-h-screen bg-slate-50 text-slate-800 antialiased" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Seo
         title={displayName ? `${displayName} – ${seoTitleSuffix}` : cleanMedicineName}
-        description={item.meta_desc || displaySubtitle || displayIntro}
+        description={pageDescription}
         canonical={medCanonical}
         image={medImage || '/images/og-default.jpg'}
         type="article"
