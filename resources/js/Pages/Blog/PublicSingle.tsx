@@ -76,6 +76,30 @@ const extractToc = (html: string, hasFaqs: boolean = false) => {
   return matches;
 };
 
+/** True when HTML still carries readable text or a visible media block. */
+const hasVisibleContent = (html: string): boolean =>
+  /<(img|figure|iframe|video|table|hr|blockquote|ul|ol)\b/i.test(html || '') || htmlToText(html).length > 0;
+
+/**
+ * Split the article at every H2 so each SEO section gets its own clean card.
+ * Heading ids injected by `injectTocIds` stay on the H2, keeping TOC anchors working.
+ */
+const splitSectionsByH2 = (
+  html: string,
+): { intro: string; sections: { id: string; title: string; body: string }[] } => {
+  const source = html || '';
+  const chunks = source.split(/(?=<h2[\s>])/i);
+  const startsWithHeading = /^<h2[\s>]/i.test(chunks[0] || '');
+  const intro = startsWithHeading ? '' : (chunks.shift() || '');
+  const sections = chunks.map((chunk) => {
+    const match = chunk.match(/^<h2([^>]*)>([\s\S]*?)<\/h2>/i);
+    if (!match) return { id: '', title: '', body: chunk };
+    const id = (match[1].match(/\bid=["']([^"']+)["']/i) || [])[1] || '';
+    return { id, title: match[2], body: chunk.slice(match[0].length) };
+  });
+  return { intro, sections };
+};
+
 /** Inject ids into h2 tags so TOC links scroll to them */
 const injectTocIds = (html: string): string => {
   let i = 0;
@@ -225,6 +249,7 @@ export default function BlogPublicSingle({
 
   const preparedHtml = useMemo(() => injectTocIds(bodyHtml), [bodyHtml]);
   const tocItems = useMemo(() => extractToc(bodyHtml, hasFaqs), [bodyHtml, hasFaqs]);
+  const articleSections = useMemo(() => splitSectionsByH2(preparedHtml), [preparedHtml]);
 
   const blogPath = `/blog/${post?.slug || ''}`;
   const bnBlogPath = `/bn/blog/${post?.slug || ''}`;
@@ -452,9 +477,40 @@ export default function BlogPublicSingle({
             )}
           </div>
 
-          {/* Article Body (Prose) */}
-          <div className="rich-content-view wp-editor-content prose max-w-none text-gray-700 text-[15px] sm:text-[16px] leading-relaxed blog-content-body">
-            <div dangerouslySetInnerHTML={{ __html: preparedHtml }} />
+          {/* Article Body — one clean card per H2 SEO section */}
+          <div className="space-y-4 sm:space-y-5">
+            {hasVisibleContent(articleSections.intro) && (
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+                <div
+                  className="rich-content-view wp-editor-content blog-content-body max-w-none text-gray-700 text-[15px] sm:text-[16px] leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: articleSections.intro }}
+                />
+              </div>
+            )}
+
+            {articleSections.sections.map((section, i) => (
+              <section
+                key={`article-section-${i}`}
+                className="scroll-mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+              >
+                {section.title && (
+                  <h2
+                    id={section.id || undefined}
+                    className="mb-3 flex items-start gap-2.5 text-[20px] sm:text-[22px] font-extrabold leading-snug text-slate-900 scroll-mt-6"
+                  >
+                    <span className="mt-[6px] h-4 w-1 shrink-0 rounded-full bg-[#8b1d41]" />
+                    <span dangerouslySetInnerHTML={{ __html: section.title }} />
+                  </h2>
+                )}
+
+                {hasVisibleContent(section.body) && (
+                  <div
+                    className="rich-content-view wp-editor-content blog-content-body max-w-none text-gray-700 text-[15px] sm:text-[16px] leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: section.body }}
+                  />
+                )}
+              </section>
+            ))}
           </div>
 
           {/* FAQ Accordion Section (if post has faqs) */}
