@@ -536,18 +536,15 @@ export default function MedicinesPublicSingle({
             {/* Top Overview Box */}
             <div className="bg-white p-5 sm:p-7 rounded-2xl border border-slate-200/90 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-start">
               <div className="md:col-span-5 flex flex-col items-center justify-center space-y-3 w-full mx-auto">
-                <div className="aspect-square w-48 sm:w-56 lg:w-64 bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-center justify-center overflow-hidden relative group">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-[#fdf2f4] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <img
-                    src={item.image?.replace(/^\/public\//, '/')}
-                    alt={`${displayName} Packaging`}
-                    className="max-h-full max-w-full object-contain relative z-10 hover:scale-105 transition-transform duration-300"
-                    onError={(e: any) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/64748b?text=' + encodeURIComponent(displayName);
-                    }}
-                  />
-                </div>
+                <img
+                  src={item.image?.replace(/^\/public\//, '/')}
+                  alt={`${displayName} Packaging`}
+                  className="w-full h-auto max-h-[360px] object-contain hover:scale-[1.03] transition-transform duration-300"
+                  onError={(e: any) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://placehold.co/600x400/f1f5f9/64748b?text=' + encodeURIComponent(displayName);
+                  }}
+                />
                 <p className="text-[11px] text-slate-500 font-medium text-center">
                   {item.gallery?.[0]?.caption || `${displayName} ${isBn ? 'প্যাকেজিং রেফারেন্স।' : 'packaging.'}`}
                 </p>
