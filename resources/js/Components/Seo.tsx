@@ -26,6 +26,8 @@ interface SeoProps {
     modifiedTime?: string;
     author?: string;
     section?: string;
+    /** Comma-separated focus keywords (per active language). */
+    keywords?: string;
     /** Set true when `title` is already a complete title. */
     noSuffix?: boolean;
 }
@@ -66,6 +68,7 @@ export default function Seo({
     modifiedTime,
     author,
     section,
+    keywords,
     noSuffix = false,
 }: SeoProps) {
     const page = usePage();
@@ -88,6 +91,7 @@ export default function Seo({
         <Head>
             <title>{fullTitle}</title>
             <meta name="description" content={desc} />
+            {keywords && <meta name="keywords" content={keywords} />}
             <link rel="canonical" href={canonicalUrl} />
             <meta name="robots" content={robots} />
 

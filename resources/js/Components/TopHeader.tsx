@@ -295,8 +295,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     const isPatientRights = cleanPath.match(/^(?:\/bn)?\/patient-rights(?:\/.*)?$/i);
     const isServiceList = cleanPath === '/services' || cleanPath === '/bn/services';
     const singleServiceMatch = cleanPath.match(/^(?:\/bn)?\/services?\/([^\/]+)$/i);
+    const isBlogList = pathWithoutBn === '/blog';
+    const isBlogOthers = pathWithoutBn === '/blog/others';
 
-    if (isServiceList) {
+    if (isBlogList) {
+      router.visit(targetLang === 'bn' ? '/bn/blog' : '/blog');
+    } else if (isBlogOthers) {
+      router.visit(targetLang === 'bn' ? '/bn/blog/others' : '/blog/others');
+    } else if (isServiceList) {
       router.visit(targetLang === 'bn' ? '/bn/services' : '/services');
     } else if (singleServiceMatch) {
       if (languageUrls) {

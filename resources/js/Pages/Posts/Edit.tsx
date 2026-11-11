@@ -48,6 +48,9 @@ interface Post {
     focus_keyword?: string;
     seo_title?: string;
     meta_desc?: string;
+    focus_keyword_bn?: string;
+    seo_title_bn?: string;
+    meta_desc_bn?: string;
     canonical_url?: string;
     breadcrumb_title?: string;
     robots_index?: boolean;
@@ -115,6 +118,9 @@ export default function Edit({ post: postData, mediaList = [] }: Props) {
         focus_keyword: postData.focus_keyword || '',
         seo_title: postData.seo_title || '',
         meta_desc: postData.meta_desc || '',
+        focus_keyword_bn: postData.focus_keyword_bn || '',
+        seo_title_bn: postData.seo_title_bn || '',
+        meta_desc_bn: postData.meta_desc_bn || '',
         canonical_url: postData.canonical_url || '',
         breadcrumb_title: postData.breadcrumb_title || '',
         robots_index: postData.robots_index !== undefined ? Boolean(postData.robots_index) : true,
@@ -1492,6 +1498,61 @@ export default function Edit({ post: postData, mediaList = [] }: Props) {
                                         }`}>
                                             {seoMetrics.score} / 100
                                         </span>
+                                    </div>
+
+                                    {/* Bangla SEO (separate from English) */}
+                                    <div className="pt-5 mt-2 border-t border-slate-100 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
+                                                <span>🇧🇩</span> বাংলা এসইও (Bangla SEO)
+                                            </span>
+                                            <span className="text-[10px] text-slate-400">শুধু /bn/blog পেজে ব্যবহৃত হয়</span>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                                                <span>বাংলা ফোকাস কিওয়ার্ড</span>
+                                                <span className="text-slate-400 font-mono">{data.focus_keyword_bn.length} / 100</span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={data.focus_keyword_bn}
+                                                onChange={e => setData('focus_keyword_bn', e.target.value)}
+                                                placeholder="যেমন: সেরা ডেন্টিস্ট ঢাকা"
+                                                className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400 font-medium"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                                                <span>বাংলা এসইও শিরোনাম (SEO Title)</span>
+                                                <span className={`font-mono ${data.seo_title_bn.length > 60 ? 'text-rose-500' : 'text-slate-400'}`}>{data.seo_title_bn.length} / 60</span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={data.seo_title_bn}
+                                                onChange={e => setData('seo_title_bn', e.target.value)}
+                                                placeholder="বাংলা টাইটেল — কীওয়ার্ড আগে রাখুন..."
+                                                className="w-full border border-slate-200 rounded-xl px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400 font-medium"
+                                            />
+                                            <p className="text-[11px] text-slate-500 truncate">
+                                                {data.seo_title_bn || 'বাংলা টাইটেল প্রিভিউ'}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                                                <span>বাংলা মেটা ডেসক্রিপশন</span>
+                                                <span className={`font-mono ${data.meta_desc_bn.length > 160 ? 'text-rose-500' : 'text-slate-400'}`}>{data.meta_desc_bn.length} / 160</span>
+                                            </div>
+                                            <textarea
+                                                rows={3}
+                                                value={data.meta_desc_bn}
+                                                onChange={e => setData('meta_desc_bn', e.target.value)}
+                                                placeholder="১৫০–১৬০ অক্ষরে বাংলা বর্ণনা — কীওয়ার্ড, শহর ও CTA সহ..."
+                                                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             ) : (

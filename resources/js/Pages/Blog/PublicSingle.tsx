@@ -190,7 +190,16 @@ export default function BlogPublicSingle({
     : (post?.author_bio || 'Dr. Ayesha Siddika is the Assistant Medical Director and Senior Dental Surgeon at Tech Dental\'s Mirpur branch, with over 8 years of clinical experience. She earned her BDS from Shaheed Suhrawardy Medical College and completed PGT in Oral Surgery and Conservative Dentistry. Specializing in Aesthetic Dentistry, BMDC registered (No. 7897).');
 
   const contentHtml = rawContent;
-  const metaDescription = (!isBn && post?.meta_desc) ? post.meta_desc : activeExcerpt;
+  // Per-language SEO: Bangla pages use the Bangla meta fields and never fall back to English copy.
+  const seoTitle = isBn
+    ? (post?.seo_title_bn || post?.title_bn || activeTitle || 'ডেন্টাল ব্লগ')
+    : (post?.seo_title || activeTitle || 'Dental Blog');
+  const metaDescription = isBn
+    ? (post?.meta_desc_bn || post?.excerpt_bn || activeExcerpt || post?.meta_desc || '')
+    : (post?.meta_desc || activeExcerpt || '');
+  const focusKeyword = isBn
+    ? (post?.focus_keyword_bn || post?.focus_keyword || '')
+    : (post?.focus_keyword || '');
   const authorAvatar = post?.author_avatar || "https://ui-avatars.com/api/?name=Dr.+Aysha+Siddika&background=881337&color=fff&size=160";
 
   const sec = post?.section_titles || {};
@@ -271,6 +280,7 @@ export default function BlogPublicSingle({
         ...(published ? { datePublished: published, dateModified: published } : {}),
         inLanguage: isBn ? 'bn-BD' : 'en-US',
         ...(post?.category ? { articleSection: isBn ? (post.category_bn || post.category) : post.category } : {}),
+        ...(focusKeyword ? { keywords: focusKeyword.split(',').map((k: string) => k.trim()).filter(Boolean) } : {}),
         author: {
           '@type': 'Person',
           name: authorName,
@@ -316,7 +326,7 @@ export default function BlogPublicSingle({
     }
 
     return { '@context': 'https://schema.org', '@graph': graph };
-  }, [activeTitle, authorBio, authorName, canonicalUrl, faqList, hasFaqs, isBn, metaDescription, post, seoImage, siteUrl]);
+  }, [activeTitle, authorBio, authorName, canonicalUrl, faqList, hasFaqs, isBn, metaDescription, post, seoImage, siteUrl, focusKeyword]);
 
   if (!post) return null;
 
@@ -348,8 +358,9 @@ export default function BlogPublicSingle({
   return (
     <div className="min-h-screen text-gray-800 antialiased overflow-x-hidden bg-[#f3f4f6]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
       <Seo
-        title={activeTitle || 'Dental Blog'}
+        title={seoTitle}
         description={metaDescription}
+        keywords={focusKeyword}
         path={seoPath}
         image={seoImage}
         type="article"
