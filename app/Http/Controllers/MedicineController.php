@@ -156,6 +156,22 @@ class MedicineController extends Controller
         }
 
         $item = Medicine::where('slug', $slug)->orWhere('id', $slug)->firstOrFail();
+
+        // Deactivated duplicates stay in the database for history but must not
+        // render. Send visitors to the canonical medicine when one is set.
+        if (!$item->is_active) {
+            $canonical = (string) $item->canonical_url;
+            $path = $canonical !== '' ? parse_url($canonical, PHP_URL_PATH) : null;
+
+            if ($path && $path !== "/medicines/{$item->slug}" && $path !== "/bn/medicines/{$item->slug}") {
+                $target = $isBn && str_starts_with($path, '/medicines/') ? '/bn' . $path : $path;
+
+                return redirect($target, 301);
+            }
+
+            return redirect('/medicines', 301);
+        }
+
         $postSlugs = \App\Models\Post::whereNotNull('slug')->pluck('slug')->all();
         $related = Medicine::active()
             ->where('id', '!=', $item->id)
