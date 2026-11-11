@@ -35,6 +35,17 @@ interface RichContentEditorProps {
     minHeight?: string;
 }
 
+/** Legacy plain-text values keep their line breaks when opened in the visual editor. */
+const toEditorHtml = (value?: string): string => {
+    if (!value) return '';
+    if (/<[a-z][\s\S]*>/i.test(value)) return value;
+    return value
+        .replace(/\r\n/g, '\n')
+        .split(/\n{2,}/)
+        .map((block) => `<p>${block.replace(/\n/g, '<br>')}</p>`)
+        .join('');
+};
+
 export default function RichContentEditor({
     label = 'WRITE CONTENT',
     value = '',
@@ -102,9 +113,10 @@ export default function RichContentEditor({
     // Synchronize visual editor HTML when value changes externally
     useEffect(() => {
         if (editorRef.current && editorMode === 'visual') {
-            if (editorRef.current.innerHTML !== (value || '')) {
+            const html = toEditorHtml(value);
+            if (editorRef.current.innerHTML !== html) {
                 if (document.activeElement !== editorRef.current) {
-                    editorRef.current.innerHTML = value || '';
+                    editorRef.current.innerHTML = html;
                 }
             }
         }
@@ -127,7 +139,7 @@ export default function RichContentEditor({
             setSelectedImgRect(null);
         } else {
             if (editorRef.current) {
-                editorRef.current.innerHTML = value || '';
+                editorRef.current.innerHTML = toEditorHtml(value);
             }
         }
         setEditorMode(mode);
