@@ -390,19 +390,21 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
           {/* Additional Information Accordion (Bottom SEO Box) */}
           {(item.bio || item.seo_content || faqs.length > 0) && (
             <div className="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden mb-6 sm:mb-8">
-              <button
-                type="button"
-                onClick={() => setInfoOpen(!infoOpen)}
-                aria-expanded={infoOpen}
-                className="w-full px-5 py-3.5 flex items-center justify-between text-left focus:outline-none cursor-pointer hover:bg-slate-50/70 transition-colors"
-              >
-                <span className="text-sm sm:text-[15px] text-slate-700 font-medium leading-none">
-                  {item.seo_title && /^more about\b/i.test(item.seo_title.trim())
-                    ? item.seo_title
-                    : `More About ${item.name}`}
-                </span>
-                <ChevronDown className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 flex-shrink-0 ${infoOpen ? 'rotate-180' : ''}`} />
-              </button>
+              <h2 className="m-0">
+                <button
+                  type="button"
+                  onClick={() => setInfoOpen(!infoOpen)}
+                  aria-expanded={infoOpen}
+                  className="w-full px-5 py-3.5 flex items-center justify-between text-left focus:outline-none cursor-pointer hover:bg-slate-50/70 transition-colors"
+                >
+                  <span className="text-sm sm:text-[15px] text-slate-700 font-medium leading-none">
+                    {item.seo_title && /^more about\b/i.test(item.seo_title.trim())
+                      ? item.seo_title
+                      : `More About ${item.name}`}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 flex-shrink-0 ${infoOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </h2>
 
               {infoOpen && (
                 <div className="border-t border-slate-100 px-5 py-5 bg-white">

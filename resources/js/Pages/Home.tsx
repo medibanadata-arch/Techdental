@@ -894,7 +894,16 @@ export default function Home({
                 "target": `${siteUrl}/medicines?search={search_term_string}`,
                 "query-input": "required name=search_term_string"
               }
-            }
+            },
+            ...(safeFaqs.filter((f: any) => f && f.q).length > 0 ? [{
+              "@type": "FAQPage",
+              "@id": `${siteUrl}#faq`,
+              "mainEntity": safeFaqs.filter((f: any) => f && f.q).map((f: any) => ({
+                "@type": "Question",
+                "name": f.q,
+                "acceptedAnswer": { "@type": "Answer", "text": f.a || "" }
+              }))
+            }] : [])
           ]
         }}
       />
@@ -1330,17 +1339,19 @@ export default function Home({
             <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 overflow-hidden transition-all duration-300">
 
               {/* Toggle Header Button */}
-              <button
-                type="button"
-                onClick={() => setIsMoreOpen(!isMoreOpen)}
-                className="w-full px-6 py-4 flex items-center justify-between text-slate-800 font-semibold text-base md:text-lg hover:bg-slate-50 transition cursor-pointer"
-              >
-                <span>{home_content?.about_caption || "More about Tech Dental"}</span>
-                <i
-                  className={`fa-solid fa-chevron-down text-slate-500 transition-transform duration-300 ${isMoreOpen ? "rotate-180" : ""
-                    }`}
-                />
-              </button>
+              <h2 className="m-0">
+                <button
+                  type="button"
+                  onClick={() => setIsMoreOpen(!isMoreOpen)}
+                  className="w-full px-6 py-4 flex items-center justify-between text-slate-800 font-semibold text-base md:text-lg hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <span>{home_content?.about_caption || "More About Tech Dental Care — Dental Clinic in Dhaka"}</span>
+                  <i
+                    className={`fa-solid fa-chevron-down text-slate-500 transition-transform duration-300 ${isMoreOpen ? "rotate-180" : ""
+                      }`}
+                  />
+                </button>
+              </h2>
 
               {/* Collapsible Content Box */}
               {isMoreOpen && (

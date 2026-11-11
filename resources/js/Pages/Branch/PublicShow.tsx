@@ -315,18 +315,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     return schema;
   }, [branch, pageCanonical, metaDescription, branchName, hotline, safeFaqs]);
 
-  // Real-time weekday chips + opening-hours bar for the hero/address design
-  const weekdayChips = [
-    { d: 6, label: 'Sat' },
-    { d: 0, label: 'Sun' },
-    { d: 1, label: 'Mon' },
-    { d: 2, label: 'Tue' },
-    { d: 3, label: 'Wed' },
-    { d: 4, label: 'Thu' },
-    { d: 5, label: 'Fri' },
-  ];
-  const todayDay = new Date().getDay();
-
   // Shift schedule (supports split shifts such as Mirpur: 10 AM – 2 PM | 4 PM – 9 PM)
   const scheduleString = [morningHours, eveningHours].filter(Boolean).join(' | ') || branch?.hours_text || branch?.time || '';
   const { shifts: branchShifts } = useMemo(
@@ -339,26 +327,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     if (openMinutes < 16 * 60) return 'Afternoon';
     return 'Evening';
   };
-
-  // Opening-hours timeline spans 10 AM → 9 PM
-  const TIMELINE_START = 10 * 60;
-  const TIMELINE_END = 21 * 60;
-  const timelinePct = (minutes: number) =>
-    Math.max(0, Math.min(100, ((minutes - TIMELINE_START) / (TIMELINE_END - TIMELINE_START)) * 100));
-
-  const shiftBars = branchShifts
-    .map((s) => ({ left: timelinePct(s.openMinutes), right: timelinePct(s.closeMinutes) }))
-    .map((b) => ({ left: b.left, width: Math.max(2, b.right - b.left) }))
-    .filter((b) => b.width > 0);
-
-  const tickMarks = [600, 720, 840, 960, 1080, 1260].map((m) => {
-    const h24 = Math.floor(m / 60);
-    const meridian = h24 >= 12 ? 'PM' : 'AM';
-    const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
-    return { label: `${h12} ${meridian}`, left: timelinePct(m) };
-  });
-
-  const nowLeft = timelinePct(new Date().getHours() * 60 + new Date().getMinutes());
 
   const statusPill = branchStatus.isOpenNow
     ? `Open now · ${branchStatus.subText || 'closes 9 PM'}`
@@ -645,65 +613,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             color: #1B1620;
             letter-spacing: -.01em;
           }
-          .bs-bar {
-            position: relative;
-            height: 8px;
-            border-radius: 5px;
-            background: #F3F1F5;
-            margin: 16px 0 8px;
-          }
-          .bs-bar b {
-            position: absolute;
-            top: 0;
-            height: 8px;
-            border-radius: 5px;
-            background: #8A1538;
-          }
-          .bs-bar u {
-            position: absolute;
-            top: -5px;
-            width: 3px;
-            height: 18px;
-            border-radius: 2px;
-            background: #1B1620;
-          }
-          .bs-tick {
-            position: relative;
-            height: 16px;
-            font-size: 11px;
-            color: #6B6573;
-            font-weight: 600;
-          }
-          .bs-tick span {
-            position: absolute;
-            top: 0;
-            white-space: nowrap;
-          }
-          .bs-week {
-            display: flex;
-            gap: 5px;
-            margin-top: 14px;
-          }
-          .bs-week span {
-            flex: 1;
-            text-align: center;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 7px 0;
-            border-radius: 10px;
-            background: #F8E9EE;
-            color: #8A1538;
-          }
-          .bs-week span.t {
-            background: #8A1538;
-            color: #fff;
-          }
-          .bs-week span.off {
-            background: transparent;
-            border: 1px dashed #E8E6EC;
-            color: #9A949F;
-            text-decoration: line-through;
-          }
           @media (min-width: 900px) {
             .bs-page {
               grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
@@ -739,7 +648,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             .bs-book { min-height: 46px; border-radius: 23px; font-size: 14px; }
             .bs-shift { padding: 5px 9px; }
             .bs-shift strong { font-size: 13px; }
-            .bs-tick { font-size: 10px; }
           }
         `}</style>
 
@@ -790,7 +698,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               <span>{statusPill}</span>
             </span>
 
-            <h1 className="bs-h1">{branchName}</h1>
+            <h1 className="bs-h1">{branch?.short_name || branch?.name || `${cleanBranch} Branch`}</h1>
 
             <div className="bs-acts">
               <a className="bs-circ" href={`tel:${hotline}`} aria-label={callLabel} title={callLabel}>
@@ -841,36 +749,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                       <span className="bs-shift" key={`${s.openMinutes}-${i}`}>
                         <em>{shiftLabelOf(s.openMinutes)}</em>
                         <strong>{s.displayStart} – {s.displayEnd}</strong>
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="bs-bar" aria-hidden="true">
-                    {shiftBars.map((b, i) => (
-                      <b key={i} style={{ left: `${b.left}%`, width: `${b.width}%` }} />
-                    ))}
-                    {branchStatus.isOpenNow && <u style={{ left: `${nowLeft}%` }} />}
-                  </div>
-                  <div className="bs-tick" aria-hidden="true">
-                    {tickMarks.map((t, i) => (
-                      <span
-                        key={t.label}
-                        style={{
-                          left: `${t.left}%`,
-                          transform: i === 0 ? 'none' : i === tickMarks.length - 1 ? 'translateX(-100%)' : 'translateX(-50%)',
-                        }}
-                      >
-                        {t.label}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="bs-week">
-                    {weekdayChips.map((day) => (
-                      <span
-                        key={day.d}
-                        className={`${day.d === todayDay ? 't' : ''} ${day.d === 5 ? 'off' : ''}`.trim()}
-                      >
-                        {day.label}
                       </span>
                     ))}
                   </div>
@@ -1109,19 +987,21 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             </Link>
 
             <div className="w-full border border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
-              <button
-                type="button"
-                onClick={() => setIsMoreAboutOpen(!isMoreAboutOpen)}
-                className="w-full py-4 px-5 sm:px-6 bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm sm:text-base transition-all flex items-center justify-between text-left cursor-pointer active:scale-[0.99]"
-              >
-                <span className="text-left font-bold text-slate-800 text-sm sm:text-base">
-                  {branch.more_about_title || `More About ${(branch.short_name || branch.name || '').replace(/\s*branch\s*$/i, '').trim()}`}
-                </span>
-                <ChevronDown
-                  size={20}
-                  className={`text-slate-500 transition-transform duration-300 shrink-0 ${isMoreAboutOpen ? 'rotate-180 text-rose-700' : ''}`}
-                />
-              </button>
+              <h2 className="m-0">
+                <button
+                  type="button"
+                  onClick={() => setIsMoreAboutOpen(!isMoreAboutOpen)}
+                  className="w-full py-4 px-5 sm:px-6 bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm sm:text-base transition-all flex items-center justify-between text-left cursor-pointer active:scale-[0.99]"
+                >
+                  <span className="text-left font-bold text-slate-800 text-sm sm:text-base">
+                    {branch.more_about_title || `More About ${(branch.short_name || branch.name || '').replace(/\s*branch\s*$/i, '').trim()}`}
+                  </span>
+                  <ChevronDown
+                    size={20}
+                    className={`text-slate-500 transition-transform duration-300 shrink-0 ${isMoreAboutOpen ? 'rotate-180 text-rose-700' : ''}`}
+                  />
+                </button>
+              </h2>
 
               {isMoreAboutOpen && (
                 <div className="px-5 pb-6 border-t border-slate-100 animate-fade-in space-y-4">

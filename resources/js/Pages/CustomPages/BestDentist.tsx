@@ -190,7 +190,7 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
 
   // SEO fields from item (Page model)
   const textContent = item?.content ? item.content.replace(/<[^>]+>/g, '') : '';
-  const pageCanonical = item?.canonical_url || `https://techdentalbd.com/page/${item?.slug || 'best-dentist-in-dhaka'}`;
+  const pageCanonical = item?.canonical_url || `https://techdentalcare.com/page/${item?.slug || 'best-dentist-in-dhaka'}`;
   const pageTitle = item?.seo_title || (item?.title ? `${item.title} — Tech Dental` : 'Best Dentist in Dhaka, Bangladesh — Tech Dental');
   const pageDesc = item?.meta_desc || (textContent ? textContent.substring(0, 155) + '...' : 'Looking for the best dentist in Dhaka? Consult with verified specialist dental surgeons in Mirpur, Uttara, Badda & Jatrabari at Tech Dental.');
   const pageRobots = `${item?.robots_index !== false ? 'index' : 'noindex'}, ${item?.robots_follow !== false ? 'follow' : 'nofollow'}`;

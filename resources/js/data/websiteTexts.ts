@@ -17,7 +17,7 @@ export const WEBSITE_TEXTS_DEFAULTS: Record<string, string> = {
     doctors_h1: 'Best Dentists in Dhaka, Bangladesh',
 
     // Services page
-    services_h1: 'Our Services',
+    services_h1: 'Dental Services & Treatments in Dhaka',
     services_h1_bn: 'আমাদের সেবাসমূহ',
     services_seo_title: 'Dental Services & Treatments in Dhaka',
     services_seo_title_bn: 'আমাদের ডেন্টাল সেবা ও চিকিৎসা',
@@ -33,11 +33,11 @@ export const WEBSITE_TEXTS_DEFAULTS: Record<string, string> = {
     medicines_seo_desc_bn: 'দাঁতের ব্যথা, ইনফেকশন ও মুখের স্বাস্থ্যের জন্য ব্যবহৃত ঔষধের ব্যবহারবিধি, মাত্রা, পার্শ্বপ্রতিক্রিয়া ও দাম জানুন।',
 
     // Blog list
-    blog_h1: 'Dental Blog & Guides',
+    blog_h1: 'Dental Blog & Oral Health Guides in Dhaka',
     blog_h1_bn: 'ডেন্টাল ব্লগ ও গাইড',
 
     // Team page
-    team_seo_title: 'Our Team — Management, Doctors & Support Staff',
+    team_seo_title: 'Our Dental Team in Dhaka — Management, Doctors & Support Staff',
     team_seo_desc: "Meet the management, digital marketing, call centre and clinical support team behind Tech Dental Care, Bangladesh's trusted dental chain.",
     team_heading: 'Meet Our Management Team',
     team_ceo_heading: 'CEO Assistant',

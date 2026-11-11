@@ -52,15 +52,19 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
   const isBnPage = Boolean(is_bn) || currentPath.startsWith('/bn/');
 
   const seoTitle = isOthers
-    ? (isBnPage ? 'অন্যান্য স্বাস্থ্য নিবন্ধ ও গাইড' : 'Other Health Articles & Guides')
-    : (isBnPage ? 'ডেন্টাল ব্লগ ও নির্দেশিকা' : 'Dental Blog & Guides');
+    ? (isBnPage
+        ? 'ডেন্টাল কেস স্টাডি, ক্লিনিক আপডেট ও রোগীর গাইড (২০২৬)'
+        : 'Dental Case Studies, Clinic Updates & Patient Guides (2026)')
+    : (isBnPage
+        ? 'ডেন্টাল ব্লগ ও মুখের স্বাস্থ্য গাইড (২০২৬) | টেক ডেন্টাল'
+        : 'Dental Blog & Oral Health Guides in Dhaka (2026)');
   const seoDescription = isOthers
     ? (isBnPage
-        ? 'টেক ডেন্টাল কেয়ারের স্বাস্থ্য সংবাদ, কেস স্টাডি, ক্লিনিক আপডেট ও রোগীর নির্দেশিকা এক জায়গায়।'
-        : 'Health news, case studies, clinic updates and patient guides from Tech Dental Care in Dhaka.')
+        ? 'টেক ডেন্টাল কেয়ারের ডেন্টাল কেস স্টাডি, চিকিৎসা রিপোর্ট, ক্লিনিক আপডেট ও রোগীর নির্দেশিকা—ঢাকার ডেন্টিস্টদের অভিজ্ঞতা থেকে লেখা।'
+        : 'Real dental case studies, treatment reports, clinic updates and patient guides from the dentists at Tech Dental Care in Mirpur, Uttara, Badda and Jatrabari, Dhaka.')
     : (isBnPage
-        ? 'দাঁত, মাড়ি ও মুখের স্বাস্থ্য নিয়ে বিশেষজ্ঞ ডেন্টিস্টদের লেখা নির্ভরযোগ্য বাংলা নিবন্ধ ও চিকিৎসা গাইড পড়ুন।'
-        : 'Expert dental articles and treatment guides from Tech Dental Care — oral health tips, procedures and costs in Bangladesh.');
+        ? 'দাঁত ব্যথা, রুট ক্যানেল, ইমপ্লান্ট, ব্রেসেস, মাড়ির রোগ ও মুখের স্বাস্থ্য নিয়ে ঢাকার বিশেষজ্ঞ ডেন্টিস্টদের লেখা নির্ভরযোগ্য বাংলা নিবন্ধ ও চিকিৎসা গাইড পড়ুন।'
+        : 'Expert dental articles from the BDS dentists at Tech Dental Care, Dhaka — tooth pain relief, root canal, implants, braces, gum disease and daily oral hygiene guides.');
 
   const enPath = isOthers ? '/blog/others' : '/blog';
   const bnPath = isOthers ? '/bn/blog/others' : '/bn/blog';

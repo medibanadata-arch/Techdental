@@ -196,23 +196,25 @@ export default function PriceListPublicIndex({ categories = [], settings, locati
 
         {/* Additional Information SEO Accordion */}
         <div className="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden mb-6 sm:mb-8">
-          <button
-            type="button"
-            onClick={() => setSeoOpen(!seoOpen)}
-            className="w-full px-5 py-3.5 flex items-center justify-between text-left focus:outline-none cursor-pointer hover:bg-slate-50/70 transition-colors"
-          >
-            <span className="text-sm sm:text-[15px] text-slate-700 font-medium leading-none">
-              {settings?.seo_title || 'More About Pricing & Warranty'}
-            </span>
-            <svg
-              className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 flex-shrink-0 ${seoOpen ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <h2 className="m-0">
+            <button
+              type="button"
+              onClick={() => setSeoOpen(!seoOpen)}
+              className="w-full px-5 py-3.5 flex items-center justify-between text-left focus:outline-none cursor-pointer hover:bg-slate-50/70 transition-colors"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+              <span className="text-sm sm:text-[15px] text-slate-700 font-medium leading-none">
+                Dental Treatment Costs in Dhaka — Full Cost Guide
+              </span>
+              <svg
+                className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 flex-shrink-0 ${seoOpen ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </h2>
           {seoOpen && (
             <div className="border-t border-slate-100 px-5 py-5 text-slate-600 text-xs sm:text-sm leading-relaxed space-y-4 bg-white">
               <div

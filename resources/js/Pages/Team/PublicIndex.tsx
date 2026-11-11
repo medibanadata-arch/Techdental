@@ -49,14 +49,14 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
       {/* 1. Management Team Section */}
       <section className="mb-12 w-full">
         <div className="w-full bg-[#8B0000] text-white text-center py-6 shadow-sm mb-10">
-          <h2 className="text-xl md:text-3xl tracking-wider font-semibold" style={{ fontFamily: "'Playfair Display', serif" }}>{copy.team_heading}</h2>
+          <h1 className="text-xl md:text-3xl tracking-wider font-semibold" style={{ fontFamily: "'Playfair Display', serif" }}>{copy.team_heading}</h1>
         </div>
 
         <div className="w-full px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 justify-center">
           {management.map((m) => (
             <div key={m.id} className="w-full max-w-sm mx-auto bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 transform hover:-translate-y-1 hover:shadow-lg transition duration-300 flex flex-col group h-fit">
-              <div className="w-full aspect-square mb-4 bg-slate-50 rounded-xl overflow-hidden">
-                <img src={m.image} alt={m.name} className="w-full h-full object-cover object-top group-hover:scale-105 transition duration-500" />
+              <div className="mx-auto w-32 h-32 md:w-44 md:h-44 aspect-square mb-4 bg-slate-50 rounded-full overflow-hidden ring-4 ring-rose-50 shadow-sm">
+                <img src={m.image} alt={m.name} className="w-full h-full object-cover object-top rounded-full group-hover:scale-105 transition duration-500" />
               </div>
               <div className="text-center">
                 <h3 className="text-sm md:text-xl font-semibold text-gray-800">{m.name}</h3>
@@ -79,8 +79,8 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
         <div className="flex justify-center w-full">
           {ceoAssistant.map((m) => (
             <div key={m.id} className="w-1/2 md:w-full max-w-[280px] bg-white rounded-2xl p-4 shadow-sm border border-gray-100 transform hover:-translate-y-1 hover:shadow-lg transition duration-300 flex flex-col items-center text-center group">
-              <div className="w-full aspect-square mb-3 p-2 bg-slate-50 rounded-xl overflow-hidden">
-                <img src={m.image} alt={m.name} className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition duration-500" />
+              <div className="mx-auto w-24 h-24 md:w-32 md:h-32 aspect-square mb-3 bg-slate-50 rounded-full overflow-hidden ring-4 ring-rose-50 shadow-sm">
+                <img src={m.image} alt={m.name} className="w-full h-full object-cover rounded-full group-hover:scale-105 transition duration-500" />
               </div>
               <h4 className="text-sm md:text-lg font-semibold text-gray-800">{m.name}</h4>
               <p className="text-[10px] md:text-xs font-bold text-[#8B0000] uppercase mt-1">{m.role}</p>
@@ -96,8 +96,8 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
         <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
           {digital.map((m) => (
             <div key={m.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 transform hover:-translate-y-1 hover:shadow-lg transition duration-300 flex flex-col items-center text-center group">
-              <div className="w-full aspect-square mb-3 p-2 bg-slate-50 rounded-xl overflow-hidden">
-                <img src={m.image} alt={m.name} className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition duration-500" />
+              <div className="mx-auto w-24 h-24 md:w-32 md:h-32 aspect-square mb-3 bg-slate-50 rounded-full overflow-hidden ring-4 ring-rose-50 shadow-sm">
+                <img src={m.image} alt={m.name} className="w-full h-full object-cover rounded-full group-hover:scale-105 transition duration-500" />
               </div>
               <h4 className="text-sm md:text-base font-semibold text-gray-800">{m.name}</h4>
               <p className="text-[10px] md:text-xs font-bold text-[#8B0000] uppercase mt-1">{m.role}</p>
@@ -113,8 +113,8 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
         <div className="w-full grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6">
           {callCenter.map((m) => (
             <div key={m.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 transform hover:-translate-y-1 hover:shadow-lg transition duration-300 flex flex-col items-center text-center group">
-              <div className="w-full aspect-square mb-3 p-2 bg-slate-50 rounded-xl overflow-hidden">
-                <img src={m.image} alt={m.name} className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition duration-500" />
+              <div className="mx-auto w-24 h-24 md:w-32 md:h-32 aspect-square mb-3 bg-slate-50 rounded-full overflow-hidden ring-4 ring-rose-50 shadow-sm">
+                <img src={m.image} alt={m.name} className="w-full h-full object-cover rounded-full group-hover:scale-105 transition duration-500" />
               </div>
               <h4 className="text-sm font-semibold text-gray-800">{m.name}</h4>
               <p className="text-[10px] font-bold text-[#8B0000] uppercase mt-1">{m.role}</p>
