@@ -156,14 +156,15 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
       <section className="bg-[#FAF5EF] pb-14 pt-[60px] md:pb-[84px] md:pt-24">
         <div className="mx-auto w-full max-w-[1432px] px-3.5 md:px-14">
           <h2 className="sr-only">Leadership</h2>
-          <div className="grid grid-cols-1 justify-center gap-y-[60px] lg:grid-cols-3 lg:gap-x-12 lg:gap-y-16">
+          <div className="flex flex-wrap justify-center gap-y-[60px] lg:gap-x-12 lg:gap-y-16">
             {management.map((m) => (
-              <ProfileCard
-                key={m.id}
-                member={m}
-                size="lead"
-                detailsLabel={copy.team_details_label}
-              />
+              <div key={m.id} className="w-full lg:w-[calc(33.333%_-_2.05rem)]">
+                <ProfileCard
+                  member={m}
+                  size="lead"
+                  detailsLabel={copy.team_details_label}
+                />
+              </div>
             ))}
           </div>
         </div>
@@ -185,9 +186,11 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
       <section className="bg-[#FAF5EF] py-14 md:py-[84px]">
         <div className="mx-auto w-full max-w-[1432px] px-3.5 md:px-14">
           <SectionHeading>{copy.team_marketing_heading}</SectionHeading>
-          <div className="grid grid-cols-2 justify-center gap-x-2 gap-y-12 lg:grid-cols-4 lg:gap-x-8 lg:gap-y-16">
+          <div className="flex flex-wrap justify-center gap-x-2 gap-y-12 lg:gap-x-8 lg:gap-y-16">
             {digital.map((m) => (
-              <ProfileCard key={m.id} member={m} size="medium" />
+              <div key={m.id} className="w-[calc(50%_-_0.25rem)] lg:w-[calc(25%_-_1.55rem)]">
+                <ProfileCard member={m} size="medium" />
+              </div>
             ))}
           </div>
         </div>
@@ -197,9 +200,11 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
       <section className="bg-white py-14 md:py-[84px]">
         <div className="mx-auto w-full max-w-[1432px] px-3.5 md:px-14">
           <SectionHeading>{copy.team_call_heading}</SectionHeading>
-          <div className="grid grid-cols-2 justify-center gap-x-2 gap-y-12 lg:grid-cols-4 lg:gap-x-4 lg:gap-y-16 xl:grid-cols-6">
+          <div className="flex flex-wrap justify-center gap-x-2 gap-y-12 lg:gap-x-4 lg:gap-y-16">
             {callCenter.map((m) => (
-              <ProfileCard key={m.id} member={m} size="small" />
+              <div key={m.id} className="w-[calc(50%_-_0.25rem)] lg:w-[calc(25%_-_0.8rem)] xl:w-[calc(16.666%_-_0.9rem)]">
+                <ProfileCard member={m} size="small" />
+              </div>
             ))}
           </div>
         </div>
