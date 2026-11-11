@@ -1278,13 +1278,6 @@ export default function Home({
                       <i className="fa-solid fa-play text-sm translate-x-0.5" />
                     </div>
                   </div>
-
-                  {/* Top Video Title Badge */}
-                  <div className="absolute top-2.5 left-2.5 right-2.5 pointer-events-none">
-                    <div className="bg-black/65 backdrop-blur-xs text-white text-xs font-medium px-2.5 py-1 rounded-md line-clamp-1">
-                      {item.title}
-                    </div>
-                  </div>
                 </div>
               );
             })}
