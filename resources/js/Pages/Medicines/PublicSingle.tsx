@@ -129,6 +129,63 @@ const toBnDigit = (num: number | string): string => {
 const cleanQuestion = (text?: string): string =>
   (text || '').replace(/^\s*(?:\d+|[০-৯]+)[.)।]\s*/, '').trim();
 
+/** True when an admin field contains HTML markup (links, headings, images, lists...). */
+const hasRichHtml = (value?: string): boolean => !!value && /<[a-z][\s\S]*>/i.test(value);
+
+const stripHtmlTags = (value: string): string =>
+  value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim();
+
+/** Renders admin-authored rich HTML; plain text keeps its line breaks. */
+const RichBody: React.FC<{ value?: string; className?: string }> = ({ value, className = '' }) => {
+  if (!value) return null;
+  if (hasRichHtml(value)) {
+    return (
+      <div
+        className={`rich-content-view ${className}`}
+        dangerouslySetInnerHTML={{ __html: value }}
+      />
+    );
+  }
+  return <p className={`whitespace-pre-line ${className}`}>{value}</p>;
+};
+
+interface SeoSection {
+  title: string;
+  html: string;
+}
+
+/** Split rich SEO content into one clean card per H2 section. */
+const splitSeoByH2 = (html?: string): SeoSection[] => {
+  if (!html || !html.trim()) return [];
+  let matches = Array.from(html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/gi));
+  if (matches.length === 0) {
+    // Many medicine write-ups only use H3 subheadings.
+    matches = Array.from(html.matchAll(/<h3\b[^>]*>([\s\S]*?)<\/h3>/gi));
+  }
+  if (matches.length === 0) {
+    return [{ title: '', html: html.trim() }];
+  }
+
+  const sections: SeoSection[] = [];
+  const firstIndex = matches[0].index ?? 0;
+  const intro = html.slice(0, firstIndex).trim();
+  if (stripHtmlTags(intro)) {
+    sections.push({ title: '', html: intro });
+  }
+
+  matches.forEach((match, i) => {
+    const start = (match.index ?? 0) + match[0].length;
+    const end = i + 1 < matches.length ? (matches[i + 1].index ?? html.length) : html.length;
+    const body = html.slice(start, end).trim();
+    const title = stripHtmlTags(match[1]);
+    if (title || stripHtmlTags(body)) {
+      sections.push({ title, html: body });
+    }
+  });
+
+  return sections;
+};
+
 export default function MedicinesPublicSingle({
   item,
   related = [],
@@ -230,6 +287,8 @@ export default function MedicinesPublicSingle({
   const displaySeoContent = isBn
     ? (item.seo_content_bn || '')
     : (item.seo_content || '');
+
+  const seoSections = splitSeoByH2(displaySeoContent);
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)');
@@ -504,7 +563,7 @@ export default function MedicinesPublicSingle({
                   </div>
                 )}
                 {displayIntro && (
-                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{displayIntro}</p>
+                  <RichBody value={displayIntro} className="text-sm text-slate-700 leading-relaxed" />
                 )}
               </div>
             </div>
@@ -516,7 +575,7 @@ export default function MedicinesPublicSingle({
                 <span>{titleUses}</span>
               </h2>
               {displayUsesText && (
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">{displayUsesText}</p>
+                <RichBody value={displayUsesText} className="text-xs sm:text-sm text-slate-600 leading-relaxed" />
               )}
 
               {Array.isArray(item.uses_items) && item.uses_items.length > 0 && (
@@ -544,7 +603,7 @@ export default function MedicinesPublicSingle({
                 <span>{titleDosage}</span>
               </h2>
               {displayDosage && (
-                <p className="text-xs sm:text-sm text-slate-700 font-medium whitespace-pre-line">{displayDosage}</p>
+                <RichBody value={displayDosage} className="text-xs sm:text-sm text-slate-700 font-medium" />
               )}
               {(displayDosageAdmin || displayDosageTiming) && (
                 <div className="space-y-3 text-xs sm:text-sm pt-1">
@@ -553,7 +612,7 @@ export default function MedicinesPublicSingle({
                       <strong className="text-slate-900 block mb-0.5 flex items-center gap-1.5">
                         <i className="fa-solid fa-glass-water text-[#8b1d41]" /> {isBn ? 'সেবন নির্দেশিকা:' : 'Administration:'}
                       </strong>
-                      <p className="text-slate-600 leading-relaxed">{displayDosageAdmin}</p>
+                      <RichBody value={displayDosageAdmin} className="text-slate-600 leading-relaxed" />
                     </div>
                   )}
                   {displayDosageTiming && (
@@ -561,7 +620,7 @@ export default function MedicinesPublicSingle({
                       <strong className="text-slate-900 block mb-0.5 flex items-center gap-1.5">
                         <i className="fa-solid fa-clock text-[#8b1d41]" /> {isBn ? 'উপযুক্ত সময়:' : 'Optimal Timing:'}
                       </strong>
-                      <p className="text-slate-600 leading-relaxed">{displayDosageTiming}</p>
+                      <RichBody value={displayDosageTiming} className="text-slate-600 leading-relaxed" />
                     </div>
                   )}
                 </div>
@@ -575,7 +634,7 @@ export default function MedicinesPublicSingle({
                 <span>{titleSideEffects}</span>
               </h2>
               {displaySideEffects && (
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line">{displaySideEffects}</p>
+                <RichBody value={displaySideEffects} className="text-xs sm:text-sm text-slate-600 leading-relaxed" />
               )}
               {Array.isArray(item.side_effects_items) && item.side_effects_items.length > 0 && (
                 <div className="space-y-2 text-xs sm:text-sm pt-1">
@@ -612,7 +671,14 @@ export default function MedicinesPublicSingle({
                     return (
                       <div key={i} className="flex items-start gap-2.5 py-1">
                         <WarningIcon icon={w.icon} />
-                        <span>{label && <strong>{label}: </strong>}{text}</span>
+                        <div className="flex-1 min-w-0">
+                        {label && <strong>{label}: </strong>}
+                        {hasRichHtml(text) ? (
+                          <div className="rich-content-view text-xs sm:text-sm text-slate-700" dangerouslySetInnerHTML={{ __html: text }} />
+                        ) : (
+                          <span>{text}</span>
+                        )}
+                      </div>
                       </div>
                     );
                   })}
@@ -734,52 +800,64 @@ export default function MedicinesPublicSingle({
 
             {/* Additional Information Accordion (Bottom SEO Box) */}
             {hasMoreAbout && (
-            <div id="more-about" className="border border-slate-200 rounded-xl bg-white shadow-xs overflow-hidden scroll-mt-6 mb-6">
+            <div id="more-about" className="border border-slate-200 rounded-2xl bg-white shadow-xs overflow-hidden scroll-mt-6 mb-6">
               <button
                 type="button"
                 onClick={() => setInfoOpen(!infoOpen)}
                 aria-expanded={infoOpen}
-                className="w-full px-5 py-4 flex items-center justify-between text-left focus:outline-none cursor-pointer hover:bg-slate-50/70 transition-colors"
+                className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left focus:outline-none cursor-pointer hover:bg-slate-50/70 transition-colors"
               >
-                <span className="text-sm sm:text-[15px] text-slate-800 font-bold leading-none">
-                  {displaySeoTitle}
+                <span className="flex items-center gap-2.5 text-sm sm:text-[15px] text-slate-900 font-bold leading-tight">
+                  <span className="h-4 w-1 rounded-full bg-[#8b1d41] inline-block shrink-0" />
+                  <span>{displaySeoTitle}</span>
                 </span>
                 <ChevronDown className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 flex-shrink-0 ${infoOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {infoOpen && (
-                <div className="border-t border-slate-100 px-5 py-5 bg-white space-y-6">
-                  {/* SEO Content / Rich Content View */}
-                  {displaySeoContent && (
-                    <div
-                      className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed text-xs sm:text-sm"
-                      dangerouslySetInnerHTML={{ __html: displaySeoContent }}
-                    />
-                  )}
+                <div className="border-t border-slate-100 px-4 sm:px-5 py-5 bg-slate-50/50 space-y-4">
+                  {/* One minimal card per H2 SEO section */}
+                  {seoSections.map((section, i) => (
+                    <section
+                      key={`seo-${i}`}
+                      className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+                    >
+                      {section.title && (
+                        <h3 className="mb-3 flex items-start gap-2.5 text-[15px] sm:text-base font-extrabold leading-snug text-slate-900">
+                          <span className="mt-[5px] h-3.5 w-1 shrink-0 rounded-full bg-[#8b1d41]" />
+                          <span>{section.title}</span>
+                        </h3>
+                      )}
+                      {section.html && (
+                        <div
+                          className="rich-content-view seo-content-view text-xs sm:text-sm text-slate-600 leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: section.html }}
+                        />
+                      )}
+                    </section>
+                  ))}
 
-                  {/* Frequently Asked Questions */}
+                  {/* Frequently Asked Questions — its own clean card */}
                   {faqList.length > 0 && (
-                    <div className="space-y-5">
-                      <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                        <span className="w-2 h-4 bg-[#8b1d41] rounded-full inline-block" />
+                    <section className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+                      <h3 className="flex items-center gap-2.5 text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                        <span className="w-1 h-4 bg-[#8b1d41] rounded-full inline-block" />
                         <span>{titleFaq}</span>
                       </h3>
 
-                      <div className="space-y-4 pt-1 divide-y divide-slate-100">
+                      <div className="divide-y divide-slate-100">
                         {faqList.map((f, i) => {
                           const qText = cleanQuestion(isBn ? f.q_bn : f.q);
                           const aText = isBn ? (f.a_bn || '') : f.a;
                           if (!qText) return null;
                           return (
-                            <div key={i} id={`faq-${i + 1}`} className="space-y-1.5 pt-3.5 first:pt-0 scroll-mt-6">
-                              <h3 className="font-bold text-sm sm:text-[15px] text-slate-900 leading-snug">
+                            <div key={i} id={`faq-${i + 1}`} className="space-y-1.5 py-3.5 first:pt-0 last:pb-0 scroll-mt-6">
+                              <h4 className="font-bold text-sm sm:text-[15px] text-slate-900 leading-snug">
                                 <span className="text-[#8b1d41] font-extrabold mr-1.5">{isBn ? 'প্রশ্ন:' : 'Q:'}</span>
                                 <span>{qText}</span>
-                              </h3>
+                              </h4>
                               {aText && (
-                                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line pl-0.5">
-                                  {aText}
-                                </p>
+                                <RichBody value={aText} className="text-xs sm:text-sm text-slate-600 leading-relaxed pl-0.5" />
                               )}
                             </div>
                           );
@@ -793,7 +871,7 @@ export default function MedicinesPublicSingle({
                           </p>
                         </div>
                       )}
-                    </div>
+                    </section>
                   )}
                 </div>
               )}

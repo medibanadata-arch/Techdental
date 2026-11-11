@@ -4,7 +4,7 @@ import { TopHeader } from "@/Components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
-import { getBranchStatus } from "@/utils/branchStatus";
+import { getBranchStatus, parseTimeToMinutes } from "@/utils/branchStatus";
 import {
   Phone,
   Send,
@@ -313,6 +313,50 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     return schema;
   }, [branch, pageCanonical, metaDescription, branchName, hotline, safeFaqs]);
 
+  // Real-time weekday chips + opening-hours bar for the hero/address design
+  const weekdayChips = [
+    { d: 6, label: 'Sat' },
+    { d: 0, label: 'Sun' },
+    { d: 1, label: 'Mon' },
+    { d: 2, label: 'Tue' },
+    { d: 3, label: 'Wed' },
+    { d: 4, label: 'Thu' },
+    { d: 5, label: 'Fri' },
+  ];
+  const todayDay = new Date().getDay();
+  const hoursTime = cleanTimeStr(eveningHours || branch?.hours_text || branch?.time || '3 PM – 9 PM');
+  const hoursMatch = hoursTime.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)\s*[-–—]+\s*(\d{1,2}(?::\d{2})?\s*(?:AM|PM)?)/i);
+  let barLeft = 50;
+  let barWidth = 33;
+  if (hoursMatch) {
+    const startMin = parseTimeToMinutes(hoursMatch[1]);
+    const endMin = parseTimeToMinutes(hoursMatch[2]);
+    if (startMin !== null && endMin !== null) {
+      const scaleStart = 6 * 60;
+      const scaleEnd = 24 * 60;
+      barLeft = Math.max(0, Math.min(100, ((startMin - scaleStart) / (scaleEnd - scaleStart)) * 100));
+      barWidth = Math.max(4, Math.min(100 - barLeft, ((endMin - startMin) / (scaleEnd - scaleStart)) * 100));
+    }
+  }
+  const nowLeft = Math.max(0, Math.min(100, ((new Date().getHours() * 60 + new Date().getMinutes() - 6 * 60) / (24 * 60 - 6 * 60)) * 100));
+  const statusPill = branchStatus.isOpenNow
+    ? `Open now · ${branchStatus.subText || 'closes 9 PM'}`
+    : branchStatus.isOpenSoon
+      ? `Opening soon · ${branchStatus.subText || 'opens 3 PM'}`
+      : branchStatus.isFriday
+        ? 'Closed today · opens Saturday'
+        : `Closed · ${branchStatus.subText || 'opens 3 PM'}`;
+
+  // Auto-advance the photo carousel unless the lightbox is open
+  useEffect(() => {
+    if (lightboxOpen || galleryImages.length < 2) return;
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % galleryImages.length);
+    }, 4500);
+    return () => window.clearInterval(timer);
+  }, [lightboxOpen, galleryImages.length]);
+
   return (
     <div
       className="min-h-screen antialiased w-full"
@@ -340,771 +384,466 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
       {/* Main Full Width Responsive Content */}
       <main className="w-full px-3.5 sm:px-6 md:px-8 lg:px-12 xl:px-16 mt-4 sm:mt-6 pb-6 sm:pb-8">
 
-        {/* Scoped CSS from branch-mirpur (1).html */}
+                {/* Scoped CSS — branch hero & address (from supplied Jatrabari design) */}
         <style>{`
-          .hero-mirpur {
-            display: flex;
-            gap: 16px;
+          .bs-page {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
             width: 100%;
+            margin-bottom: 4px;
           }
-          .hero-stage {
-            flex: 3 1 0;
-            min-width: 0;
-            height: 560px;
+          .bs-arch {
             position: relative;
-            border-radius: 32px;
             overflow: hidden;
-            background: #EBC3D0;
-            cursor: pointer;
+            aspect-ratio: 1 / 1;
+            background: #F8E9EE;
+            border-radius: 28px;
           }
-          .hero-stage-bg {
-            position: absolute;
-            inset: 0;
-            background-size: cover;
-            background-position: center;
-            transition: background-image 0.25s ease;
-          }
-          .hero-chips-top {
-            position: absolute;
-            left: 24px;
-            right: 24px;
-            top: 24px;
+          .bs-track {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            z-index: 2;
-            pointer-events: auto;
+            height: 100%;
+            transition: transform .5s cubic-bezier(.22, 1, .36, 1);
+            will-change: transform;
           }
-          .hero-chip {
-            height: 36px;
-            padding: 0 14px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+          .bs-slide {
+            flex: 0 0 100%;
+            height: 100%;
+            padding: 0;
+            border: 0;
+            background: none;
+            cursor: zoom-in;
+            display: block;
           }
-          .hero-chip-open {
-            background: #fff;
-            color: #146C43;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          .bs-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
           }
-          .hero-chip-open i {
-            width: 8px;
-            height: 8px;
+          .bs-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            background: #1E9E62;
-            box-shadow: 0 0 0 4px rgba(30,158,98,.2);
+            display: grid;
+            place-items: center;
+            background: rgba(255,255,255,.94);
+            color: #1B1620;
+            z-index: 3;
+            border: 0;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(20,6,12,.16);
+            transition: transform .15s, background .15s;
           }
-          .hero-chip-open span {
-            color: #6B6065;
-            font-weight: 600;
+          .bs-nav:hover {
+            background: #fff;
+            transform: translateY(-50%) scale(1.06);
           }
-          .hero-chip-dark {
-            background: rgba(33,26,29,.55);
-            backdrop-filter: blur(8px);
-            color: #fff;
-          }
-          .hero-stage-body {
+          .bs-nav.p { left: 14px; }
+          .bs-nav.n { right: 14px; }
+          .bs-dots {
             position: absolute;
-            left: 36px;
-            right: 36px;
-            bottom: 84px;
+            left: 50%;
+            bottom: 16px;
+            transform: translateX(-50%);
             display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 24px;
-            flex-wrap: wrap;
+            gap: 6px;
+            z-index: 3;
+            pointer-events: none;
+          }
+          .bs-dots i {
+            width: 7px;
+            height: 7px;
+            border-radius: 9px;
+            background: rgba(255,255,255,.6);
+            transition: width .25s, background .25s;
+          }
+          .bs-dots i.on {
+            width: 20px;
+            background: #fff;
+          }
+          .bs-count {
+            position: absolute;
+            right: 14px;
+            bottom: 12px;
+            z-index: 3;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            background: rgba(20,6,12,.62);
             color: #fff;
-            z-index: 2;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 99px;
             pointer-events: none;
+            backdrop-filter: blur(6px);
           }
-          .hero-stage-info {
-            min-width: 0;
-            flex: 1 1 360px;
-            pointer-events: none;
+          .bs-info {
+            text-align: center;
+            margin-top: 22px;
           }
-          .hero-rating {
+          .bs-status {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            height: 34px;
-            padding: 0 14px;
-            border-radius: 999px;
-            background: rgba(16,12,14,.68);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,.3);
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-          }
-          .hero-stage h1 {
-            margin: 12px 0 0;
-            font-size: 46px;
-            line-height: 1.05;
-            font-weight: 800;
-            letter-spacing: -.025em;
-            color: #fff;
-            text-shadow: 0 2px 14px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.95);
-          }
-          .hero-stage-ctrl {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            pointer-events: auto;
-          }
-          .hero-counter {
-            font-size: 14px;
+            background: #E3F5EC;
+            color: #1E8E5A;
             font-weight: 700;
-            margin-right: 6px;
-            color: #fff;
+            font-size: 13px;
+            padding: 7px 13px;
+            border-radius: 99px;
           }
-          .hero-counter span {
-            opacity: .6;
-          }
-          .hero-round {
-            width: 48px;
-            height: 48px;
+          .bs-status i {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: rgba(255,255,255,.2);
-            border: 1px solid rgba(255,255,255,.35);
+            background: currentColor;
+            box-shadow: 0 0 0 4px rgba(30,142,90,.14);
+          }
+          .bs-status.closed {
+            background: #FBF0D9;
+            color: #8A5A00;
+          }
+          .bs-status.closed i {
+            box-shadow: 0 0 0 4px rgba(138,90,0,.12);
+          }
+          .bs-h1 {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-weight: 600;
+            font-size: clamp(34px, 8.5vw, 58px);
+            line-height: 1.06;
+            margin: 12px 0 0;
+            letter-spacing: -.01em;
+            color: #1B1620;
+          }
+          .bs-acts {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            align-items: center;
+          }
+          .bs-circ {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #F3F1F5;
             display: grid;
             place-items: center;
-            color: #fff;
-            cursor: pointer;
-            transition: background .15s, transform .15s;
+            flex: none;
+            color: #1B1620;
+            transition: transform .15s, background .15s;
           }
-          .hero-round:hover {
-            background: rgba(255,255,255,.34);
-            transform: scale(1.05);
+          .bs-circ:hover {
+            background: #EAE6EE;
+            transform: translateY(-1px);
           }
-          .hero-dots {
-            display: none;
+          .bs-circ.w {
+            background: #E3F5EC;
+            color: #1E8E5A;
           }
-          .hero-thumbs {
-            flex: 1 1 0;
-            min-width: 0;
-            max-width: 340px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-          }
-          .hero-thumb {
+          .bs-book {
             flex: 1;
-            min-height: 0;
-            position: relative;
-            border-radius: 28px;
-            overflow: hidden;
-            padding: 0;
-            text-align: left;
-            border: 0;
-            cursor: pointer;
-            background-size: cover;
-            background-position: center;
-            transition: transform .15s, filter .15s;
-          }
-          .hero-thumb:hover {
-            transform: translateY(-2px);
-            filter: brightness(.98);
-          }
-          .hero-thumb-label {
-            position: absolute;
-            left: 14px;
-            bottom: 14px;
-            height: 32px;
-            padding: 0 12px;
-            border-radius: 999px;
-            background: rgba(255,255,255,.92);
-            backdrop-filter: blur(4px);
-            font-size: 12.5px;
-            font-weight: 700;
-            color: #211A1D;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-          }
-
-          /* Actions */
-          .hero-actions {
-            position: relative;
-            margin: -38px 40px 0;
-            background: #fff;
-            border-radius: 28px;
-            padding: 12px;
-            box-shadow: 0 18px 40px -18px rgba(70,20,40,.28), 0 0 0 1px #EFE6E9;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1.6fr;
-            gap: 10px;
-            z-index: 10;
-          }
-          .hero-act {
-            height: 56px;
-            border-radius: 18px;
-            background: #F8F2F4;
-            font-size: 15px;
-            font-weight: 700;
+            min-height: 50px;
+            border-radius: 25px;
+            background: #8A1538;
+            color: #fff;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            color: #211A1D;
-            transition: transform .15s, filter .15s;
-            text-decoration: none;
-          }
-          .hero-act:hover {
-            transform: translateY(-1px);
-            filter: brightness(.97);
-          }
-          .hero-act svg {
-            color: #861A3D;
-          }
-          .hero-act-wa {
-            background: #E6F5EC;
-            color: #0F6A41;
-          }
-          .hero-act-wa svg {
-            color: currentColor;
-          }
-          .hero-act-book {
-            background: #861A3D !important;
-            color: #fff !important;
+            gap: 9px;
             font-weight: 800;
-            box-shadow: 0 10px 22px -10px #861A3D;
-          }
-          .hero-act-book svg {
-            color: #fff !important;
-            stroke: #fff !important;
-          }
-          .hero-act-book span {
-            color: #fff !important;
-          }
-
-          /* Branch Info Section */
-          .branch-info-sec {
-            margin-top: 28px;
-            margin-bottom: 24px;
-          }
-          .branch-info-card {
-            background: #fff;
-            border-radius: 32px;
-            border: 1px solid #EFE6E9;
-            padding: 28px 36px 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            box-shadow: 0 4px 24px -10px rgba(70,20,40,.06);
-          }
-          .branch-eyebrow {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .16em;
-            color: #861A3D;
-            text-transform: uppercase;
-          }
-          .branch-info-card h2 {
-            margin: 0;
-            font-size: 40px;
-            line-height: 1.1;
-            font-weight: 800;
-            letter-spacing: -.025em;
-            color: #211A1D;
-          }
-          .branch-cols {
-            display: flex;
-            gap: 64px;
-          }
-          .branch-col {
-            flex: 1 1 0;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-          }
-          .branch-divider {
-            width: 1px;
-            flex: none;
-            background: #F0E6E9;
-          }
-          .branch-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .14em;
-            color: #6B6065;
-            text-transform: uppercase;
-          }
-          .branch-label svg {
-            color: #861A3D;
-          }
-          .branch-addr {
-            font-size: 22px;
-            line-height: 1.4;
-            font-weight: 700;
-            color: #211A1D;
-          }
-          .branch-addr-sub {
-            margin-top: 6px;
-            font-size: 16px;
-            color: #6B6065;
-            font-weight: 500;
-          }
-          .branch-landmark {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            color: #6B6065;
-            font-weight: 500;
-          }
-          .branch-landmark svg {
-            width: 18px;
-            height: 18px;
-            color: #861A3D;
-            flex-shrink: 0;
-          }
-          .branch-shifts {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-          }
-          .branch-shift {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 20px 24px;
-            border-radius: 20px;
-            background: #F8F2F4;
-          }
-          .branch-shift small {
             font-size: 15px;
+            box-shadow: 0 12px 24px -12px #8A1538;
+            transition: transform .15s, opacity .15s;
+          }
+          .bs-book:hover {
+            opacity: .95;
+            transform: translateY(-1px);
+          }
+          .bs-circ:active,
+          .bs-book:active {
+            transform: scale(.98);
+          }
+          .bs-list {
+            list-style: none;
+            padding: 0;
+            margin: 22px 0 0;
+            border-top: 1px solid #E8E6EC;
+            text-align: left;
+          }
+          .bs-list > li {
+            display: flex;
+            gap: 14px;
+            padding: 18px 0;
+            border-bottom: 1px solid #E8E6EC;
+          }
+          .bs-lead {
+            color: #8A1538;
+            width: 22px;
+            height: 22px;
+            margin-top: 2px;
+            flex: none;
+          }
+          .bs-grow {
+            flex: 1;
+            min-width: 0;
+          }
+          .bs-lbl {
+            color: #6B6573;
+            font-size: 13px;
             font-weight: 600;
-            color: #6B6065;
           }
-          .branch-shift b {
-            font-size: 22px;
-            font-weight: 800;
-            letter-spacing: -.02em;
-            color: #211A1D;
+          .bs-addr {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1B1620;
+            line-height: 1.4;
           }
-          .branch-shift-eve {
-            background: #861A3D;
-            color: #fff;
-          }
-          .branch-shift-eve small {
-            color: #fff;
-            opacity: .85;
-          }
-          .branch-shift-eve b {
-            color: #fff;
-          }
-          .branch-note {
+          .bs-sub {
+            color: #6B6573;
             font-size: 14px;
-            color: #6B6065;
-            font-weight: 500;
+            margin-top: 2px;
           }
-          .branch-note b {
-            color: #211A1D;
+          .bs-hh {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
           }
-
-          /* Mobile responsive rules matching branch-mirpur (1).html */
-          @media (max-width: 760px) {
-            .hero-mirpur {
-              display: block;
-            }
-            .hero-thumbs {
-              display: none;
-            }
-            .hero-stage {
-              height: 340px;
-              border-radius: 24px;
-            }
-            .hero-chips-top {
-              left: 14px;
-              right: 14px;
-              top: 14px;
-            }
-            .hero-chip {
-              height: 32px;
-              padding: 0 10px;
-              font-size: 11.5px;
-            }
-            .hero-chip-views {
-              display: none;
-            }
-            .hero-stage-body {
-              left: 16px;
-              right: 16px;
-              bottom: 14px;
-              display: block;
-            }
-            .hero-rating {
-              height: 28px;
-              padding: 0 10px;
-              font-size: 11.5px;
-            }
-            .hero-stage h1 {
-              font-size: 26px;
-              margin: 6px 0 0;
-              line-height: 1.15;
-            }
-            .hero-stage-ctrl {
-              margin-top: 8px;
-              justify-content: space-between;
-            }
-            .hero-counter {
-              display: none;
-            }
-            .hero-round {
-              width: 38px;
-              height: 38px;
-            }
-            .hero-dots {
-              display: flex;
-              gap: 6px;
+          .bs-time {
+            font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
+            font-size: 22px;
+            line-height: 1.2;
+            white-space: nowrap;
+            color: #1B1620;
+            font-weight: 800;
+            letter-spacing: -.01em;
+          }
+          .bs-bar {
+            position: relative;
+            height: 8px;
+            border-radius: 5px;
+            background: #F3F1F5;
+            margin: 16px 0 8px;
+          }
+          .bs-bar b {
+            position: absolute;
+            top: 0;
+            height: 8px;
+            border-radius: 5px;
+            background: #8A1538;
+          }
+          .bs-bar u {
+            position: absolute;
+            top: -5px;
+            width: 3px;
+            height: 18px;
+            border-radius: 2px;
+            background: #1B1620;
+          }
+          .bs-tick {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #6B6573;
+            font-weight: 600;
+          }
+          .bs-week {
+            display: flex;
+            gap: 5px;
+            margin-top: 14px;
+          }
+          .bs-week span {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 7px 0;
+            border-radius: 10px;
+            background: #F8E9EE;
+            color: #8A1538;
+          }
+          .bs-week span.t {
+            background: #8A1538;
+            color: #fff;
+          }
+          .bs-week span.off {
+            background: transparent;
+            border: 1px dashed #E8E6EC;
+            color: #9A949F;
+            text-decoration: line-through;
+          }
+          @media (min-width: 900px) {
+            .bs-page {
+              grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+              gap: 56px;
               align-items: center;
-              order: -1;
+              margin-top: 6px;
             }
-            .hero-dot {
-              height: 28px;
-              width: 14px;
-              padding: 0;
-              background: transparent;
-              border: 0;
-              cursor: pointer;
-              display: grid;
-              place-items: center;
+            .bs-arch {
+              position: sticky;
+              top: 24px;
             }
-            .hero-dot::after {
-              content: "";
-              display: block;
-              height: 6px;
-              width: 6px;
-              border-radius: 999px;
-              background: rgba(255,255,255,.5);
-              transition: width .2s;
-            }
-            .hero-dot.on {
-              width: 30px;
-            }
-            .hero-dot.on::after {
-              width: 22px;
-              background: #fff;
-            }
-            .hero-actions {
-              margin: 14px 0 0;
-              padding: 0;
-              background: none;
-              box-shadow: none;
-              border-radius: 0;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 10px;
-            }
-            .hero-act {
-              height: 54px;
-              border-radius: 18px;
-              background: #fff;
-              border: 1px solid #EFE6E9;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .hero-act:not(.hero-act-book) span {
-              display: none;
-            }
-            .hero-act svg {
-              width: 22px;
-              height: 22px;
-            }
-            .hero-act-wa {
-              background: #E6F5EC;
-              border-color: #CFEBDB;
-            }
-            .hero-act-book {
-              grid-column: 1 / -1;
-              height: 58px;
-              flex-direction: row;
-              gap: 10px;
-              font-size: 16px;
-              border: 0;
-              border-radius: 20px;
-              background: #861A3D !important;
-              color: #ffffff !important;
-              box-shadow: 0 10px 22px -10px #861A3D;
-            }
-            .hero-act-book span {
-              color: #ffffff !important;
-              font-weight: 800;
-            }
-            .hero-act-book svg {
-              color: #ffffff !important;
-              stroke: #ffffff !important;
-            }
-            .branch-info-sec {
-              margin-top: 22px;
-              margin-bottom: 24px;
-            }
-            .branch-info-card {
-              border-radius: 28px;
-              padding: 20px 18px 24px;
-              gap: 18px;
-            }
-            .branch-info-card h2 {
-              font-size: 30px;
+            .bs-info {
+              text-align: left;
               margin-top: 0;
+              max-width: 560px;
+              justify-self: start;
             }
-            .branch-cols {
-              flex-direction: column;
-              gap: 32px;
+            .bs-acts {
+              margin-top: 26px;
             }
-            .branch-divider {
-              width: auto;
-              height: 1px;
+            .bs-nav.p { left: 18px; }
+            .bs-nav.n { right: 18px; }
+          }
+          @media (max-width: 899px) {
+            .bs-nav { display: none; }
+            .bs-arch { border-radius: 24px; }
+            .bs-count {
+              right: 10px;
+              bottom: 10px;
+              font-size: 11px;
+              padding: 5px 9px;
             }
-            .branch-col {
-              gap: 16px;
-            }
-            .branch-label {
-              font-size: 11.5px;
-              gap: 8px;
-            }
-            .branch-addr {
-              font-size: 18px;
-            }
-            .branch-addr-sub {
-              font-size: 14.5px;
-              margin-top: 4px;
-            }
-            .branch-landmark {
-              font-size: 13.5px;
-              gap: 8px;
-            }
-            .branch-shifts {
-              gap: 12px;
-            }
-            .branch-shift {
-              padding: 18px 20px;
-              border-radius: 18px;
-              gap: 12px;
-            }
-            .branch-shift small {
-              font-size: 14px;
-            }
-            .branch-shift b {
-              font-size: 18px;
-            }
-            .branch-note {
-              font-size: 13.5px;
-            }
+          }
+          @media (max-width: 480px) {
+            .bs-info { margin-top: 20px; }
+            .bs-acts { gap: 8px; }
+            .bs-circ { width: 46px; height: 46px; }
+            .bs-book { min-height: 46px; border-radius: 23px; font-size: 14px; }
+            .bs-time { font-size: 20px; }
           }
         `}</style>
 
-        {/* 1. HERO SLIDER */}
-        <section className="hero-mirpur" aria-label="Branch photos">
-          <div
-            className="hero-stage group/stage"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            onClick={() => openLightbox(activeSlide)}
-            title="Click to view full photo"
-          >
+                {/* 1. HERO + BRANCH ADDRESS (Jatrabari design, DB-driven for all branches) */}
+        <section className="bs-page" aria-label={`${branchName} photos and details`}>
+          <div className="bs-arch">
             <div
-              className="hero-stage-bg"
-              style={{
-                backgroundImage: `url('${galleryImages[activeSlide]}')`,
-                backgroundColor: '#EBC3D0',
-              }}
-            />
-
-            {/* Top Status & Views Chips */}
-            <div className="hero-chips-top" onClick={(e) => e.stopPropagation()}>
-              <div className="hero-chip hero-chip-open">
-                <i />
-                <span>
-                  {branchStatus.isOpenNow
-                    ? `Open now · ${branchStatus.subText || 'closes 9 PM'}`
-                    : branchStatus.isOpenSoon
-                      ? `Opening soon · ${branchStatus.subText || 'opens 10 AM'}`
-                      : `Closed · ${branchStatus.subText || 'opens 10 AM'}`}
-                </span>
-              </div>
-              <div className="hero-chip hero-chip-dark hero-chip-views">
-                <Eye size={16} className="text-white" />
-                <span>{(1800 + activeSlide * 340).toLocaleString()}</span>
-              </div>
-            </div>
-
-            {/* Stage Body */}
-            <div className="hero-stage-body">
-              <div className="hero-stage-info">
-                <div className="hero-rating">
-                  <Star size={14} className="fill-[#FFB547] stroke-none text-[#FFB547]" />
-                  <b>4.9</b>
-                  <span>· {branch?.reviews_text || '2,500+ verified reviews'}</span>
-                </div>
-                <h1>{branchName}</h1>
-              </div>
-
-              {/* Controls */}
-              <div className="hero-stage-ctrl" onClick={(e) => e.stopPropagation()}>
-                <div className="hero-counter">
-                  <b>{activeSlide + 1}</b> <span>/ {galleryImages.length}</span>
-                </div>
-                <div className="hero-dots">
-                  {galleryImages.map((_, k) => (
-                    <button
-                      key={k}
-                      type="button"
-                      className={`hero-dot ${k === activeSlide ? 'on' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveSlide(k);
-                      }}
-                      aria-label={`Slide ${k + 1}`}
-                    />
-                  ))}
-                </div>
-                <div className="flex gap-2.5">
-                  <button
-                    type="button"
-                    className="hero-round"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      prevSlide();
-                    }}
-                    aria-label="Previous photo"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    type="button"
-                    className="hero-round"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      nextSlide();
-                    }}
-                    aria-label="Next photo"
-                  >
-                    <ChevronRight size={20} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop Right Side Thumbnails */}
-          <div className="hero-thumbs">
-            {[1, 2].map((offset) => {
-              const k = (activeSlide + offset) % galleryImages.length;
-              const imgUrl = galleryImages[k];
-              const label =
-                (gallery[k] as any)?.alt ||
-                (gallery[k] as any)?.label ||
-                slideLabels[k % slideLabels.length];
-              return (
+              className="bs-track"
+              style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              {galleryImages.map((src, i) => (
                 <button
-                  key={offset}
                   type="button"
-                  className="hero-thumb"
-                  onClick={() => setActiveSlide(k)}
-                  style={{ backgroundImage: `url('${imgUrl}')`, backgroundColor: '#FAF7F5' }}
-                  aria-label={`Show photo: ${label}`}
-                />
-              );
-            })}
-          </div>
-        </section>
-
-        {/* 2. ACTIONS BAR */}
-        <nav className="hero-actions" aria-label="Quick actions">
-          <a href={`tel:${hotline}`} className="hero-act">
-            <Phone size={18} />
-            <span>{callLabel}</span>
-          </a>
-          <a href={mapUrl} target="_blank" rel="noreferrer" className="hero-act">
-            <Send size={18} />
-            <span>{directionsLabel}</span>
-          </a>
-          <a href={`https://wa.me/${waNumber}`} target="_blank" rel="noreferrer" className="hero-act hero-act-wa">
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.983zm11.455-7.394c-.068-.113-.25-.181-.524-.318-.274-.137-1.62-.8-1.871-.891-.25-.092-.432-.137-.614.137-.182.274-.707.891-.866 1.073-.16.182-.319.205-.593.068-.274-.137-1.157-.426-2.203-1.359-.815-.726-1.365-1.623-1.524-1.897-.16-.274-.017-.422.12-.559.123-.122.274-.319.41-.478.137-.16.182-.274.274-.457.091-.182.046-.342-.023-.478-.068-.137-.614-1.482-.841-2.031-.222-.535-.447-.462-.614-.471l-.524-.01c-.182 0-.478.068-.729.342-.25.274-.956.935-.956 2.28 0 1.345.979 2.645 1.116 2.828.137.182 1.928 2.943 4.671 4.128 2.743 1.185 2.743.79 3.245.744.502-.046 1.62-.662 1.848-1.3.228-.639.228-1.186.16-1.301z" />
-            </svg>
-            <span>{whatsappLabel}</span>
-          </a>
-          <Link
-            href={bookingUrl}
-            className="hero-act hero-act-book !bg-[#861A3D] !text-white hover:opacity-95"
-          >
-            <CalendarCheck size={18} className="text-white shrink-0" />
-            <span className="text-white font-extrabold">{bookLabel} appointment</span>
-          </Link>
-        </nav>
-
-        {/* 3. BRANCH INFO CARD */}
-        <section className="branch-info-sec">
-          <div className="branch-info-card">
-            <div>
-              <h2>{branchName}</h2>
+                  key={`${src}-${i}`}
+                  className="bs-slide"
+                  onClick={() => openLightbox(i)}
+                  aria-label={`Open photo ${i + 1} of ${galleryImages.length}`}
+                  tabIndex={i === activeSlide ? 0 : -1}
+                >
+                  <img
+                    src={src}
+                    alt={(gallery[i] as any)?.alt || `${branchName} photo ${i + 1}`}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                  />
+                </button>
+              ))}
             </div>
 
-            <div className="branch-cols">
-              {/* Location Column */}
-              <div className="branch-col">
-                <div className="branch-label">
-                  <MapPin size={18} />
-                  <span>LOCATION</span>
-                </div>
-                <div>
-                  <div className="branch-addr">{addressMain}</div>
-                  <div className="branch-addr-sub">
-                    {addressSub || `${cleanBranch}, Dhaka`}
-                  </div>
-                </div>
-                {landmarkText && (
-                  <div className="branch-landmark">
-                    <svg className="w-4.5 h-4.5 text-[#861A3D] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="5" y="3" width="14" height="14" rx="3" />
-                      <path d="M5 11h14M9 21l2-4M15 21l-2-4" />
-                    </svg>
-                    <span>Landmark: {landmarkText}</span>
-                  </div>
-                )}
-              </div>
+            <button type="button" className="bs-nav p" onClick={prevSlide} aria-label="Previous photo">
+              <ChevronLeft size={20} />
+            </button>
+            <button type="button" className="bs-nav n" onClick={nextSlide} aria-label="Next photo">
+              <ChevronRight size={20} />
+            </button>
 
-              <div className="branch-divider" role="presentation" />
+            <div className="bs-dots" aria-hidden="true">
+              {galleryImages.map((_, k) => (
+                <i key={k} className={k === activeSlide ? 'on' : ''} />
+              ))}
+            </div>
+            <div className="bs-count">
+              <Eye size={14} />
+              <span>{activeSlide + 1} / {galleryImages.length}</span>
+            </div>
+          </div>
 
-              {/* Opening Hours Column */}
-              <div className="branch-col">
-                <div className="branch-label">
-                  <Clock size={18} />
-                  <span>OPENING HOURS</span>
+          <section className="bs-info" aria-label="Branch address and opening hours">
+            <span className={`bs-status ${branchStatus.isOpenNow ? '' : 'closed'}`}>
+              <i />
+              <span>{statusPill}</span>
+            </span>
+
+            <h1 className="bs-h1">{branchName}</h1>
+
+            <div className="bs-acts">
+              <a className="bs-circ" href={`tel:${hotline}`} aria-label={callLabel} title={callLabel}>
+                <Phone size={20} />
+              </a>
+              <a className="bs-circ" href={mapUrl} target="_blank" rel="noopener noreferrer" aria-label={directionsLabel} title={directionsLabel}>
+                <Send size={20} />
+              </a>
+              <a className="bs-circ w" href={`https://wa.me/${waNumber}`} target="_blank" rel="noopener noreferrer" aria-label={whatsappLabel} title={whatsappLabel}>
+                <svg className="w-[22px] h-[22px] fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.983zm11.455-7.394c-.068-.113-.25-.181-.524-.318-.274-.137-1.62-.8-1.871-.891-.25-.092-.432-.137-.614.137-.182.274-.707.891-.866 1.073-.16.182-.319.205-.593.068-.274-.137-1.157-.426-2.203-1.359-.815-.726-1.365-1.623-1.524-1.897-.16-.274-.017-.422.12-.559.123-.122.274-.319.41-.478.137-.16.182-.274.274-.457.091-.182.046-.342-.023-.478-.068-.137-.614-1.482-.841-2.031-.222-.535-.447-.462-.614-.471l-.524-.01c-.182 0-.478.068-.729.342-.25.274-.956.935-.956 2.28 0 1.345.979 2.645 1.116 2.828.137.182 1.928 2.943 4.671 4.128 2.743 1.185 2.743.79 3.245.744.502-.046 1.62-.662 1.848-1.3.228-.639.228-1.186.16-1.301z" />
+                </svg>
+              </a>
+              <Link href={bookingUrl} className="bs-book">
+                <CalendarCheck size={20} />
+                <span>{bookLabel}</span>
+              </Link>
+            </div>
+
+            <ul className="bs-list">
+              <li>
+                <MapPin size={22} className="bs-lead" />
+                <div className="bs-grow">
+                  <div className="bs-lbl">Location</div>
+                  <div className="bs-addr">{addressMain}</div>
+                  {addressSub && <div className="bs-sub">{addressSub}</div>}
                 </div>
-                <div className="branch-shifts">
-                  {morningHours && (
-                    <div className="branch-shift">
-                      <small>Morning</small>
-                      <b>{morningHours}</b>
+              </li>
+
+              {landmarkText && (
+                <li>
+                  <Building2 size={22} className="bs-lead" />
+                  <div className="bs-grow">
+                    <div className="bs-lbl">Landmark</div>
+                    <div className="bs-addr">{landmarkText}</div>
+                  </div>
+                </li>
+              )}
+
+              <li>
+                <Clock size={22} className="bs-lead" />
+                <div className="bs-grow">
+                  <div className="bs-hh">
+                    <div>
+                      <div className="bs-lbl">Opening hours</div>
+                      <div className="bs-sub">{workingDays}</div>
                     </div>
-                  )}
-                  <div className="branch-shift branch-shift-eve">
-                    <small>{morningHours ? 'Evening' : 'Operating Hours'}</small>
-                    <b>{eveningHours}</b>
+                    <div className="bs-time">{hoursTime}</div>
+                  </div>
+                  <div className="bs-bar" aria-hidden="true">
+                    <b style={{ left: `${barLeft}%`, width: `${barWidth}%` }} />
+                    {branchStatus.isOpenNow && <u style={{ left: `${nowLeft}%` }} />}
+                  </div>
+                  <div className="bs-tick" aria-hidden="true">
+                    <span>6 AM</span>
+                    <span>12 PM</span>
+                    <span>6 PM</span>
+                    <span>12 AM</span>
+                  </div>
+                  <div className="bs-week">
+                    {weekdayChips.map((day) => (
+                      <span
+                        key={day.d}
+                        className={`${day.d === todayDay ? 't' : ''} ${day.d === 5 ? 'off' : ''}`.trim()}
+                      >
+                        {day.label}
+                      </span>
+                    ))}
                   </div>
                 </div>
-                <div className="branch-note">
-                  {workingDays} · <b>{offDays}</b>
-                </div>
-              </div>
-            </div>
-          </div>
+              </li>
+            </ul>
+          </section>
         </section>
 
         {/* 4. Main Body Content (Doctors, Services, Reviews) */}

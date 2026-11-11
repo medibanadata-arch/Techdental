@@ -962,23 +962,21 @@ export default function MedicinesAdminEdit({ item }: Props) {
                     {/* Detailed Overview */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">Detailed Overview / Intro Paragraph (English)</label>
-                            <textarea
-                                rows={3}
+                            <RichContentEditor
+                                label="Detailed Overview / Intro Paragraph (English)"
                                 value={form.intro}
-                                onChange={(e) => setForm({ ...form, intro: e.target.value })}
+                                onChange={(val) => setForm({ ...form, intro: val })}
                                 placeholder="Detailed medical introduction and clinical context..."
-                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl"
+                                minHeight="150px"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-[#800038] mb-1">বিস্তারিত পরিচিতি অনুচ্ছেদ (বাংলা)</label>
-                            <textarea
-                                rows={3}
+                            <RichContentEditor
+                                label="বিস্তারিত পরিচিতি অনুচ্ছেদ (বাংলা)"
                                 value={form.intro_bn}
-                                onChange={(e) => setForm({ ...form, intro_bn: e.target.value })}
+                                onChange={(val) => setForm({ ...form, intro_bn: val })}
                                 placeholder="ঔষধটির মূল পরিচয় ও চিকিৎসা প্রেক্ষাপট বাংলায় লিখুন..."
-                                className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl bg-rose-50/20 font-medium"
+                                minHeight="150px"
                             />
                         </div>
                     </div>
@@ -1011,23 +1009,21 @@ export default function MedicinesAdminEdit({ item }: Props) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">Uses Overview Description (English)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="Uses Overview Description (English)"
                                 value={form.uses_text}
-                                onChange={(e) => setForm({ ...form, uses_text: e.target.value })}
+                                onChange={(val) => setForm({ ...form, uses_text: val })}
                                 placeholder="Overview paragraph of indications..."
-                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl"
+                                minHeight="150px"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-[#800038] mb-1">ব্যবহারের মূল বিবরণ (বাংলা)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="ব্যবহারের মূল বিবরণ (বাংলা)"
                                 value={form.uses_text_bn}
-                                onChange={(e) => setForm({ ...form, uses_text_bn: e.target.value })}
+                                onChange={(val) => setForm({ ...form, uses_text_bn: val })}
                                 placeholder="ব্যবহার নির্দেশিকা বাংলায় লিখুন..."
-                                className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl bg-rose-50/20"
+                                minHeight="150px"
                             />
                         </div>
                     </div>
@@ -1116,23 +1112,21 @@ export default function MedicinesAdminEdit({ item }: Props) {
                     {/* Standard Dosage */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">Standard Dosage (English)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="Standard Dosage (English)"
                                 value={form.dosage}
-                                onChange={(e) => setForm({ ...form, dosage: e.target.value })}
+                                onChange={(val) => setForm({ ...form, dosage: val })}
                                 placeholder="e.g. 10 mg once daily, or as advised by the registered doctor"
-                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl"
+                                minHeight="150px"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-[#800038] mb-1">সেবনমাত্রা ও নিয়ম (বাংলা)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="সেবনমাত্রা ও নিয়ম (বাংলা)"
                                 value={form.dosage_bn}
-                                onChange={(e) => setForm({ ...form, dosage_bn: e.target.value })}
+                                onChange={(val) => setForm({ ...form, dosage_bn: val })}
                                 placeholder="যেমন: দৈনিক ১টি ট্যাবলেট চিকিৎসকের পরামর্শ অনুযায়ী সেব্য"
-                                className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl bg-rose-50/20"
+                                minHeight="150px"
                             />
                         </div>
                     </div>
@@ -1140,23 +1134,21 @@ export default function MedicinesAdminEdit({ item }: Props) {
                     {/* Administration Guidance */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">Administration Guidance (English)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="Administration Guidance (English)"
                                 value={form.dosage_admin}
-                                onChange={(e) => setForm({ ...form, dosage_admin: e.target.value })}
+                                onChange={(val) => setForm({ ...form, dosage_admin: val })}
                                 placeholder="e.g. Swallow whole with a glass of water. Do not crush."
-                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl"
+                                minHeight="150px"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-[#800038] mb-1">সেবন নির্দেশিকা / Administration (বাংলা)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="সেবন নির্দেশিকা / Administration (বাংলা)"
                                 value={form.dosage_admin_bn}
-                                onChange={(e) => setForm({ ...form, dosage_admin_bn: e.target.value })}
+                                onChange={(val) => setForm({ ...form, dosage_admin_bn: val })}
                                 placeholder="যেমন: এক গ্লাস পানির সাথে সম্পূর্ণ ট্যাবলেট গিলে ফেলুন।"
-                                className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl bg-rose-50/20"
+                                minHeight="150px"
                             />
                         </div>
                     </div>
@@ -1164,23 +1156,21 @@ export default function MedicinesAdminEdit({ item }: Props) {
                     {/* Optimal Timing */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">Optimal Timing (English)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="Optimal Timing (English)"
                                 value={form.dosage_timing}
-                                onChange={(e) => setForm({ ...form, dosage_timing: e.target.value })}
+                                onChange={(val) => setForm({ ...form, dosage_timing: val })}
                                 placeholder="e.g. Best taken at night before sleep or with meals."
-                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl"
+                                minHeight="150px"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-[#800038] mb-1">উপযুক্ত সময় / Optimal Timing (বাংলা)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="উপযুক্ত সময় / Optimal Timing (বাংলা)"
                                 value={form.dosage_timing_bn}
-                                onChange={(e) => setForm({ ...form, dosage_timing_bn: e.target.value })}
+                                onChange={(val) => setForm({ ...form, dosage_timing_bn: val })}
                                 placeholder="যেমন: প্রতিদিন নির্দিষ্ট সময়ে ভরা পেটে বা খাবারের পর সেবন করুন।"
-                                className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl bg-rose-50/20"
+                                minHeight="150px"
                             />
                         </div>
                     </div>
@@ -1213,23 +1203,21 @@ export default function MedicinesAdminEdit({ item }: Props) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">Side Effects Overview (English)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="Side Effects Overview (English)"
                                 value={form.side_effects}
-                                onChange={(e) => setForm({ ...form, side_effects: e.target.value })}
+                                onChange={(val) => setForm({ ...form, side_effects: val })}
                                 placeholder="Overview text about tolerability..."
-                                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl"
+                                minHeight="150px"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-[#800038] mb-1">পার্শ্বপ্রতিক্রিয়ার সংক্ষিপ্ত বিবরণ (বাংলা)</label>
-                            <textarea
-                                rows={2}
+                            <RichContentEditor
+                                label="পার্শ্বপ্রতিক্রিয়ার সংক্ষিপ্ত বিবরণ (বাংলা)"
                                 value={form.side_effects_bn}
-                                onChange={(e) => setForm({ ...form, side_effects_bn: e.target.value })}
+                                onChange={(val) => setForm({ ...form, side_effects_bn: val })}
                                 placeholder="পার্শ্বপ্রতিক্রিয়ার বিবরণ বাংলায় লিখুন..."
-                                className="w-full px-3 py-2 text-xs border border-rose-200 rounded-xl bg-rose-50/20"
+                                minHeight="150px"
                             />
                         </div>
                     </div>
