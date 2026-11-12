@@ -122,18 +122,7 @@ class AiAssistantController extends Controller
 
         // Handle Starter questions (appearing sequentially before chat starts)
         if ($request->has('starter_questions')) {
-            $starterQuestions = $request->input('starter_questions');
-            if (is_string($starterQuestions)) {
-                if (str_starts_with(trim($starterQuestions), '[')) {
-                    $starterQuestions = json_decode($starterQuestions, true);
-                } else {
-                    $lines = preg_split('/[\r\n]+/', $starterQuestions);
-                    if (count($lines) <= 1 && str_contains($starterQuestions, ',')) {
-                        $lines = explode(',', $starterQuestions);
-                    }
-                    $starterQuestions = array_values(array_filter(array_map('trim', $lines)));
-                }
-            }
+            $starterQuestions = $this->normalizeStringList($request->input('starter_questions'));
             $updateData['starter_questions'] = json_encode($starterQuestions ?: [
                 'ফিলিং চিকিৎসার খরচ কত?',
                 'দাঁতে গর্ত হলে কি করা উচিৎ?',
@@ -143,10 +132,7 @@ class AiAssistantController extends Controller
         }
 
         if ($request->has('chips')) {
-            $chips = $request->input('chips');
-            if (is_string($chips)) {
-                $chips = array_values(array_filter(array_map('trim', explode(',', $chips))));
-            }
+            $chips = $this->normalizeStringList($request->input('chips'));
             $updateData['chips'] = json_encode($chips ?: ["শাখার ঠিকানা কোথায়?", "ফাঁকা দাঁতের চিকিৎসা", "দাঁত ব্যথার চিকিৎসা"], JSON_UNESCAPED_UNICODE);
         }
 
@@ -156,6 +142,49 @@ class AiAssistantController extends Controller
         );
 
         return back()->with('success', 'AI Assistant সেটিংস ও ব্র্যান্ডিং সফলভাবে সংরক্ষিত হয়েছে।');
+    }
+
+    /**
+     * Turn a submitted chips / starter-questions value into a clean list of labels.
+     *
+     * The admin form sends JSON, older forms sent comma/newline separated text, and
+     * previously-saved rows may contain JSON fragments with stray quotes or brackets.
+     */
+    private function normalizeStringList(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = trim($value);
+            if (str_starts_with($value, '[')) {
+                $decoded = json_decode($value, true);
+                $value = is_array($decoded) ? $decoded : explode(',', $value);
+            } else {
+                $value = preg_split('/[\r\n,]+/', $value) ?: [];
+            }
+        }
+
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $clean = [];
+        foreach ($value as $item) {
+            if (!is_scalar($item)) {
+                continue;
+            }
+            $item = trim((string) $item);
+            // Remove leftover JSON punctuation from previously corrupted rows.
+            do {
+                $previous = $item;
+                $item = trim($item, " \t\n\r\0\x0B\"'");
+                $item = trim($item, '[]');
+                $item = trim($item);
+            } while ($item !== $previous);
+            if ($item !== '') {
+                $clean[] = $item;
+            }
+        }
+
+        return array_values(array_unique($clean));
     }
 
     /**
