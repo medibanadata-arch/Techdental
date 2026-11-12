@@ -99,18 +99,14 @@ body {
 }
 
 /* User Defined Book Button */
+/* Sizing (height / padding / radius / text) comes from Tailwind classes on the element
+   so the header can match it with the language switcher at every breakpoint. */
 .book-btn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 44px;
-  padding: 0 16px;
-  border-radius: 22px;
+  border-radius: 9999px;
   background: #8B1D41;
   color: #fff;
-  font-size: 15px;
-  font-weight: 500;
-  font-family: Arial, sans-serif;
   text-decoration: none;
   transition: background 0.2s, transform 0.1s;
   cursor: pointer;

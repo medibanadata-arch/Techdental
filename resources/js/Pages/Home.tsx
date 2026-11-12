@@ -173,7 +173,6 @@ export default function Home({
   // Gallery & Video Preview State
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
   const [previewVideo, setPreviewVideo] = useState<{ videoId: string; title?: string; branch?: string } | null>(null);
-  const [isImagesExpanded, setIsImagesExpanded] = useState(false);
   const [isVideosExpanded, setIsVideosExpanded] = useState(false);
 
   // Modal State for external actions
@@ -315,7 +314,8 @@ export default function Home({
     [featured_images]
   );
 
-  const displayedImages = isImagesExpanded ? galleryItems.slice(0, 8) : galleryItems.slice(0, 4);
+  // Homepage always shows the first 8 gallery images; "See More" opens the full /gallery page.
+  const displayedImages = galleryItems.slice(0, 8);
 
   // Video gallery items are fully managed in Homepage CMS → Video Gallery
   const videoGalleryItems = useMemo(
@@ -331,7 +331,8 @@ export default function Home({
     [videos]
   );
 
-  const displayedVideos = isVideosExpanded ? videoGalleryItems.slice(0, 6) : videoGalleryItems.slice(0, 3);
+  // 3 videos collapsed, "See More" adds 4 more (7 total), "See Less" collapses back.
+  const displayedVideos = isVideosExpanded ? videoGalleryItems.slice(0, 7) : videoGalleryItems.slice(0, 3);
 
   // Keyboard navigation for image lightbox
   useEffect(() => {
@@ -1163,7 +1164,7 @@ export default function Home({
 
         {/* ========================================== */}
         {/* IMAGE GALLERY */}
-        {/* Initial: 4 on desktop, 2 on mobile. Expand: 8 images, then See Less & See More (/gallery) */}
+        {/* Always 8 images (2 cols mobile, 4 cols desktop), single See More -> /gallery */}
         {/* ========================================== */}
         {galleryItems.length > 0 && (
         <section id="image-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
@@ -1174,12 +1175,11 @@ export default function Home({
             </h2>
           </div>
 
-          {/* 4 in desktop, 2 in mobile (collapsed) -> 8 images when expanded */}
+          {/* 8 images on every breakpoint: 2 columns on mobile, 4 on desktop */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {displayedImages.map((item: any, idx: number) => {
               const titleBadge = item.badge || item.title || copy.gallery_alt_fallback;
               const imgSrc = item.src || item.image || item.url || "";
-              const isHiddenOnMobile = !isImagesExpanded && idx >= 2;
 
               return (
                 <div
@@ -1191,9 +1191,7 @@ export default function Home({
                       index: idx,
                     });
                   }}
-                  className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
-                    isHiddenOnMobile ? "hidden md:block" : ""
-                  }`}
+                  className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
                   title={copy.image_click_title}
                 >
                   <img
@@ -1208,48 +1206,22 @@ export default function Home({
             })}
           </div>
 
-          {/* Button(s) Area */}
+          {/* Button Area: only "See More" (opens the full gallery page) */}
           <div className="mt-5 flex items-center justify-center gap-3">
-            {!isImagesExpanded ? (
-              <button
-                type="button"
-                onClick={() => setIsImagesExpanded(true)}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
-              >
-                <span>{copy.see_more_label}</span>
-                <i className="fa-solid fa-chevron-down text-xs" />
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsImagesExpanded(false);
-                    setTimeout(() => {
-                      document.getElementById('image-gallery-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 50);
-                  }}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
-                >
-                  <i className="fa-solid fa-chevron-up text-xs" />
-                  <span>{copy.see_less_label}</span>
-                </button>
-                <Link
-                  href="/gallery"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-md transition active:scale-95 cursor-pointer"
-                >
-                  <span>{copy.see_more_label}</span>
-                  <i className="fa-solid fa-arrow-right text-xs" />
-                </Link>
-              </>
-            )}
+            <Link
+              href="/gallery"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+            >
+              <span>{copy.see_more_label}</span>
+              <i className="fa-solid fa-arrow-right text-xs" />
+            </Link>
           </div>
         </section>
         )}
 
         {/* ========================================== */}
         {/* VIDEO GALLERY */}
-        {/* Mobile: 1 column stacked (not side by side), Desktop: 3 columns. Expand: 6 videos, then See Less & See More (/gallery#videos) */}
+        {/* 3 videos collapsed (all breakpoints), See More adds 4 more (7 total) */}
         {/* ========================================== */}
         {videoGalleryItems.length > 0 && (
         <section id="video-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
@@ -1260,36 +1232,30 @@ export default function Home({
             </h2>
           </div>
 
-          {/* 1 column on mobile (stacked), 2 on sm, 3 on md -> 6 videos when expanded */}
+          {/* 3 videos initially on every breakpoint (1 col mobile, 2 sm, 3 md) -> 7 when expanded */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4">
-            {displayedVideos.map((item, idx) => {
-              const isHiddenOnMobile = !isVideosExpanded && idx >= 1;
+            {displayedVideos.map((item, idx) => (
+              <div
+                key={item.id || idx}
+                onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title, branch: item.branch })}
+                className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-video group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+                title={copy.video_click_title}
+              >
+                <img
+                  src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100 pointer-events-none"
+                  loading="lazy"
+                />
 
-              return (
-                <div
-                  key={item.id || idx}
-                  onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title, branch: item.branch })}
-                  className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-video group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 ${
-                    isHiddenOnMobile ? "hidden md:block" : ""
-                  }`}
-                  title={copy.video_click_title}
-                >
-                  <img
-                    src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100 pointer-events-none"
-                    loading="lazy"
-                  />
-
-                  {/* Center Red Play Button */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-red-600/95 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-600 transition-all">
-                      <i className="fa-solid fa-play text-sm translate-x-0.5" />
-                    </div>
+                {/* Center Red Play Button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-red-600/95 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-600 transition-all">
+                    <i className="fa-solid fa-play text-sm translate-x-0.5" />
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
 
           {/* Button(s) Area */}
