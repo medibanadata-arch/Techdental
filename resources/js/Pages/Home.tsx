@@ -306,10 +306,17 @@ export default function Home({
   }, [aiInputValue, isAiFocused, searchQuestions]);
 
   // Gallery items are fully managed in Homepage CMS → Hero Slider & Gallery
-  const galleryItems = useMemo(
-    () => (Array.isArray(featured_images) ? featured_images : []),
-    [featured_images]
-  );
+  // Show each photo once even if the same image is attached to several branches.
+  const galleryItems = useMemo(() => {
+    const seen = new Set<string>();
+    return (Array.isArray(featured_images) ? featured_images : []).filter((img: any) => {
+      const raw = String(img?.src || img?.image || img?.url || '').trim();
+      const key = raw.replace(/^https?:\/\/[^/]+/i, '').replace(/\/+$/, '').toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [featured_images]);
 
   // Homepage always shows the first 8 gallery images; "See More" opens the full /gallery page.
   const displayedImages = galleryItems.slice(0, 8);

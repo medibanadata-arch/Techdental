@@ -53,7 +53,9 @@ $homeHandler = function () {
                   ->orWhere('branch', '');
             })
             ->orderBy('sort_order')
-            ->get(),
+            ->get()
+            ->unique('src')
+            ->values(),
         'nav_menu' => \App\Models\NavMenu::first(),
         'videos' => \Illuminate\Support\Facades\DB::table('home_videos')
             ->where('is_active', 1)
@@ -285,7 +287,9 @@ Route::get('/gallery', function () {
         'featured_images' => \Illuminate\Support\Facades\DB::table('featured_images')
             ->where('is_active', 1)
             ->orderBy('sort_order')
-            ->get(),
+            ->get()
+            ->unique('src')
+            ->values(),
         'videos' => \App\Models\HomeVideo::query()
             ->where('is_active', true)
             ->orderBy('sort_order')

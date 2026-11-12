@@ -34,7 +34,9 @@ class BranchController extends Controller
                   ->orWhere('branch', 'all');
             })
             ->orderBy('sort_order')
-            ->get();
+            ->get()
+            ->unique('src')
+            ->values();
 
         $doctors = Doctor::where('branch', 'LIKE', '%' . ($branch->short_name ?? $branch->name) . '%')
             ->orWhere('branch_location', ($branch->short_name ?? $branch->name))

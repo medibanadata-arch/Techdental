@@ -119,8 +119,15 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
   const [servicesExpanded, setServicesExpanded] = useState(false);
   const [isMoreAboutOpen, setIsMoreAboutOpen] = useState(false);
 
-  // Safe gallery images extraction
-  const safeGallery = Array.isArray(gallery) ? gallery : [];
+  // Safe gallery images extraction — show each photo once even if it is attached twice.
+  const seenGallery = new Set<string>();
+  const safeGallery = (Array.isArray(gallery) ? gallery : []).filter((g: any) => {
+    const raw = typeof g === 'string' ? g : g?.src || g?.image || g?.url || '';
+    const key = String(raw).trim().replace(/^https?:\/\/[^/]+/i, '').replace(/\/+$/, '').toLowerCase();
+    if (!key || seenGallery.has(key)) return false;
+    seenGallery.add(key);
+    return true;
+  });
   const mappedGallery = safeGallery
     .map((g: any) => (typeof g === 'string' ? g : g?.src || g?.image || g?.url || ''))
     .filter(Boolean);

@@ -29,9 +29,17 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
   }, []);
 
   // Images come from Featured Sliders in the backend (no hardcoded fallbacks).
-  const imageItems = useMemo(() => (
-    Array.isArray(featured_images) ? featured_images : []
-  ), [featured_images]);
+  // The same photo can be attached to more than one branch, so show each image only once.
+  const imageItems = useMemo(() => {
+    const seen = new Set<string>();
+    return (Array.isArray(featured_images) ? featured_images : []).filter((img: any) => {
+      const raw = String(img?.src || img?.image || img?.url || '').trim();
+      const key = raw.replace(/^https?:\/\/[^/]+/i, '').replace(/\/+$/, '').toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [featured_images]);
 
   // Videos come from Homepage CMS > Video Gallery (home_videos table).
   const videoItems = useMemo(() => (
