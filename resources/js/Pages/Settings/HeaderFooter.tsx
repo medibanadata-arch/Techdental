@@ -1182,7 +1182,7 @@ export default function HeaderFooterAdmin({
                       type="text"
                       value={footerForm.hotline || ''}
                       onChange={(e) => handleFooterChange('hotline', e.target.value)}
-                      placeholder="01400786162"
+                      placeholder="09638-000505"
                       className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl font-bold font-mono"
                     />
                   </div>

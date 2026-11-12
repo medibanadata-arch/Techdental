@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "@inertiajs/react";
 import { BranchInfo } from "@/data/dentalData";
+import { HOTLINE, WHATSAPP, buildWhatsAppUrl } from "@/utils/contact";
 
 interface QuickActionsProps {
   currentBranch: BranchInfo;
@@ -22,15 +23,12 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   const rawBranchName = currentBranch.shortName || currentBranch.name || 'Mirpur';
   const branchShort = rawBranchName.replace(/branch/gi, '').trim();
 
-  const rawPhone = currentBranch.phone || '01400786162';
-  const rawWa = currentBranch.whatsapp || rawPhone;
-  let cleanWa = rawWa.replace(/[^0-9]/g, '');
-  if (cleanWa.startsWith('01')) {
-    cleanWa = '88' + cleanWa;
-  }
-  const waUrl = rawWa.startsWith('http')
-    ? rawWa
-    : `https://wa.me/${cleanWa}?text=Hello%20Tech%20Dental,%20I%20would%20like%20to%20know%20more%20about%20your%20services.`;
+  const rawPhone = currentBranch.phone || HOTLINE;
+  const rawWa = currentBranch.whatsapp || WHATSAPP;
+  const waUrl = buildWhatsAppUrl(
+    rawWa,
+    "Hello Tech Dental, I would like to know more about your services."
+  );
 
   const isDirectMap = Boolean(currentBranch.mapUrl && currentBranch.mapUrl !== '#' && currentBranch.mapUrl.startsWith('http'));
 

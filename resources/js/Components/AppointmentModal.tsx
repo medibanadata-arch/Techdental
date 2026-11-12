@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { X, CalendarCheck, CheckCircle2, Loader2 } from "lucide-react";
+import { HOTLINE_DISPLAY } from "@/utils/contact";
 
 interface AppointmentModalProps {
   locations: any[];
@@ -85,7 +86,7 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
       );
     } catch (err) {
       setErrorMessage(
-        "দুঃখিত, রিকোয়েস্টটি পাঠানো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন অথবা সরাসরি কল করুন: 01400786162"
+        `দুঃখিত, রিকোয়েস্টটি পাঠানো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন অথবা সরাসরি কল করুন: ${HOTLINE_DISPLAY}`
       );
     } finally {
       setIsSubmitting(false);

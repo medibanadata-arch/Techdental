@@ -92,7 +92,7 @@ class SettingController extends Controller
                 'company_name' => 'Tech Dental',
                 'brand_name_line1' => 'TECH',
                 'brand_name_line2' => 'DENTAL',
-                'contact_phone' => '01400786162',
+                'contact_phone' => '09638000505',
                 'contact_email' => 'info@techdentalcare.com',
                 'address' => 'Dhaka, Bangladesh',
             ]);
@@ -213,7 +213,7 @@ class SettingController extends Controller
             'brand_badge' => 'ORAL HEALTHCARE',
             'tagline' => 'Painless Clinical Dentistry & Modern Maxillofacial Care in Dhaka',
             'about_text' => 'Tech Dental is a leading multi-branch dental care provider in Dhaka, dedicated to painless digital procedures, expert orthodontic solutions, and modern implant dentistry.',
-            'hotline' => '01400786162',
+            'hotline' => '09638-000505',
             'whatsapp' => '+8801400786162',
             'whatsapp_label' => 'WhatsApp Direct Help',
             'email' => 'info@techdentalcare.com',

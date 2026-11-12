@@ -6,6 +6,7 @@ import {
     Sliders, AlertCircle, Quote, ArrowRight, CheckCircle2, SplitSquareVertical,
     BarChart3, MapPin, DollarSign, ListOrdered, Minus, Search, X
 } from 'lucide-react';
+import { HOTLINE, HOTLINE_DISPLAY } from '@/utils/contact';
 
 export type BlockType = 
     | 'hero' 
@@ -241,8 +242,8 @@ export function compileBlocksToHtml(blocks: BlockItem[]): string {
         <p class="text-xs sm:text-sm text-rose-100 max-w-xl">${block.data.subheading || 'Call our direct dental helpline for immediate specialist support.'}</p>
     </div>
     <div class="flex items-center gap-3 shrink-0">
-        <a href="tel:${block.data.phone || '01700000000'}" class="px-5 py-3 bg-white text-rose-900 hover:bg-rose-50 font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
-            📞 ${block.data.phone || '01700000000'}
+        <a href="tel:${(block.data.phone || HOTLINE).replace(/[^0-9+]/g, '')}" class="px-5 py-3 bg-white text-rose-900 hover:bg-rose-50 font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2">
+            📞 ${block.data.phone || HOTLINE_DISPLAY}
         </a>
         <a href="${block.data.button_url || '#appointment'}" class="px-5 py-3 bg-rose-950/60 hover:bg-rose-950 text-white font-extrabold text-xs rounded-xl border border-white/20 transition-all">
             ${block.data.button_label || 'Book Online'}
@@ -662,7 +663,7 @@ export default function CustomBlockBuilder({ blocks, onChange }: Props) {
             defaultData: {
                 heading: 'Need Urgent Dental Relief?',
                 subheading: 'Call our central dental helpline or book your consultation online.',
-                phone: '01700000000',
+                phone: HOTLINE_DISPLAY,
                 button_label: 'Book Online',
                 button_url: '#appointment'
             }

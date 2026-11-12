@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import { HOTLINE, WHATSAPP } from '@/utils/contact';
 import {
     MapPin,
     Clock,
@@ -85,8 +86,8 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
     const [newBranch, setNewBranch] = useState({
         name: '',
         address: '',
-        phone: '01400786162',
-        whatsapp: '+8801400786162',
+        phone: HOTLINE,
+        whatsapp: WHATSAPP,
         hours_text: 'Saturday – Thursday: 10:00 AM – 9:00 PM',
     });
 
@@ -102,8 +103,8 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
                 setNewBranch({
                     name: '',
                     address: '',
-                    phone: '01400786162',
-                    whatsapp: '+8801400786162',
+                    phone: HOTLINE,
+                    whatsapp: WHATSAPP,
                     hours_text: 'Saturday – Thursday: 10:00 AM – 9:00 PM'
                 });
                 setTimeout(() => setStatusMessage(null), 5000);
@@ -541,7 +542,7 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
                                         type="text"
                                         value={form.phone}
                                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                        placeholder="01400786162"
+                                        placeholder="09638000505"
                                         className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl"
                                     />
                                 </div>
@@ -630,7 +631,7 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
                                                 type="text"
                                                 value={form.phone}
                                                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                                placeholder="01400786162"
+                                                placeholder="09638000505"
                                                 className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-lg"
                                             />
                                             <p className="text-[10px] text-gray-400 mt-0.5">Dialed when patient clicks Call</p>
@@ -992,7 +993,7 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
                                         type="text"
                                         value={newBranch.phone}
                                         onChange={(e) => setNewBranch({ ...newBranch, phone: e.target.value })}
-                                        placeholder="01400786162"
+                                        placeholder="09638000505"
                                         className="w-full px-3 py-2 border border-gray-200 rounded-xl"
                                     />
                                 </div>

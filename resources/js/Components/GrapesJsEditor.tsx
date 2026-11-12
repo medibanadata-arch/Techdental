@@ -4,6 +4,7 @@ import {
     Undo, Redo, Trash2, Maximize2, Minimize2, Sparkles, 
     Layers, Sliders, Box, HelpCircle, Check, ArrowRight
 } from 'lucide-react';
+import { HOTLINE, HOTLINE_DISPLAY } from '@/utils/contact';
 
 declare global {
     interface Window {
@@ -207,7 +208,7 @@ export default function GrapesJsEditor({
                                 <h3 style="font-size: 18px; font-weight: bold; margin: 0 0 4px;">Severe Toothache or Dental Emergency?</h3>
                                 <p style="font-size: 13px; margin: 0; color: #fbcfe8;">Call our central consultation hotline for immediate doctor assistance.</p>
                             </div>
-                            <a href="tel:01400786162" style="background: #ffffff; color: #800038; font-weight: 800; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-size: 14px;">📞 01400786162</a>
+                            <a href="tel:${HOTLINE}" style="background: #ffffff; color: #800038; font-weight: 800; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-size: 14px;">📞 ${HOTLINE_DISPLAY}</a>
                         </div>
                     `,
                 });

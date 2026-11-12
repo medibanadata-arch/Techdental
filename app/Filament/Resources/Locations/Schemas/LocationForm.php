@@ -31,7 +31,7 @@ class LocationForm
                         TextInput::make('phone')
                             ->label('Hotline Number')
                             ->tel()
-                            ->default('01400786162')
+                            ->default('09638000505')
                             ->required(),
                         Textarea::make('address')
                             ->label('Full Physical Address')

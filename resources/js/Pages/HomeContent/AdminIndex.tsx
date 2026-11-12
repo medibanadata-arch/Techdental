@@ -524,7 +524,7 @@ export default function HomeContentAdminIndex({
         about_caption: content?.about_caption || 'Our Advanced Micro-Operatory with European Class-B Sterilization',
         faqs: content?.faqs || [
             { q: 'Which branches are open on Fridays?', a: 'All Tech Dental branches are closed on Fridays except for pre-scheduled emergency surgical consultations.' },
-            { q: 'How do I book an appointment?', a: 'You can book online in 30 seconds via our website or call our central hotline at 01400786162.' },
+            { q: 'How do I book an appointment?', a: 'You can book online in 30 seconds via our website or call our central hotline at 09638-000505.' },
             { q: 'What payment methods do you accept?', a: 'We accept Cash, bKash, Nagad, Visa, Mastercard, and major credit cards with EMI facility.' },
         ],
     });
@@ -1411,7 +1411,7 @@ export default function HomeContentAdminIndex({
                                                     type="text"
                                                     value={branchForm.phone || ''}
                                                     onChange={(e) => setBranchForm({ ...branchForm, phone: e.target.value })}
-                                                    placeholder="09638000505 or 01400786162"
+                                                    placeholder="09638000505"
                                                     className="w-full px-3 py-1.5 border border-gray-200 rounded-lg bg-white"
                                                 />
                                             </div>

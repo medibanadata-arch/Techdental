@@ -7,6 +7,7 @@ import {
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
+import { WHATSAPP_URL } from "@/utils/contact";
 import { PageProps } from '@inertiajs/core';
 import { getWebsiteTexts } from '@/data/websiteTexts';
 
@@ -486,7 +487,7 @@ export default function ServicesPublicSingle({
               </Link>
 
               <a
-                href="https://wa.me/8809638000505"
+                href={WHATSAPP_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="flex-1 bg-[#128C7E] hover:bg-[#075E54] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition flex justify-center items-center gap-2"

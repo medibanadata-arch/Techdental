@@ -1,3 +1,5 @@
+import { HOTLINE, WHATSAPP } from "@/utils/contact";
+
 export interface BranchInfo {
   id: string;
   name: string;
@@ -66,7 +68,8 @@ export const BRANCHES_DATA: Record<string, BranchInfo> = {
     shortName: "Mirpur Branch",
     address: "827 (2nd Floor), Shewrapara, Mirpur, Dhaka",
     time: "Opening time: 10 AM - 9 PM",
-    phone: "01400786162",
+    phone: HOTLINE,
+    whatsapp: WHATSAPP,
     mapUrl: "https://maps.google.com/?q=Tech+Dental+Shewrapara+Mirpur+Dhaka",
     reviewUrl: "https://search.google.com/local/writereview?placeid=ChIJTechDentalMirpur",
     statusText: "Open Now",
@@ -78,7 +81,8 @@ export const BRANCHES_DATA: Record<string, BranchInfo> = {
     shortName: "Badda Branch",
     address: "Cha-68/1, Pragati Sarani, Middle Badda, Dhaka",
     time: "Opening time: 03.00 PM - 9.00 PM",
-    phone: "01400786162",
+    phone: HOTLINE,
+    whatsapp: WHATSAPP,
     mapUrl: "https://maps.google.com/?q=Tech+Dental+Middle+Badda+Dhaka",
     reviewUrl: "https://search.google.com/local/writereview?placeid=ChIJTechDentalBadda",
     statusText: "Open Soon",
@@ -90,7 +94,8 @@ export const BRANCHES_DATA: Record<string, BranchInfo> = {
     shortName: "Uttara Branch",
     address: "House 18, Road 14, Sector 3, Uttara, Dhaka",
     time: "Opening time: 03.00 PM - 9.00 PM",
-    phone: "01400786162",
+    phone: HOTLINE,
+    whatsapp: WHATSAPP,
     mapUrl: "https://maps.google.com/?q=Tech+Dental+Sector+3+Uttara+Dhaka",
     reviewUrl: "https://search.google.com/local/writereview?placeid=ChIJTechDentalUttara",
     statusText: "Open Soon",
@@ -102,7 +107,8 @@ export const BRANCHES_DATA: Record<string, BranchInfo> = {
     shortName: "Jatrabari Branch",
     address: "Shahid Faruk Road, South Jatrabari, Dhaka",
     time: "Opening time: 03.00 PM - 9.00 PM",
-    phone: "01400786162",
+    phone: HOTLINE,
+    whatsapp: WHATSAPP,
     mapUrl: "https://maps.google.com/?q=Tech+Dental+Jatrabari+Dhaka",
     reviewUrl: "https://search.google.com/local/writereview?placeid=ChIJTechDentalJatrabari",
     statusText: "Open Soon",

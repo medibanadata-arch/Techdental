@@ -83,7 +83,7 @@ export default function SeoMetaBox({
         };
 
         if (type === 'Dentist' || type === 'MedicalClinic' || type === 'LocalBusiness') {
-            schema.telephone = '+8801400786162';
+            schema.telephone = '+8809638000505';
             schema.priceRange = '৳৳';
             schema.address = {
                 '@type': 'PostalAddress',

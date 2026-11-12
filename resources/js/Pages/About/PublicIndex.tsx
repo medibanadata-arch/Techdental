@@ -5,6 +5,7 @@ import { AppointmentModal } from "@/components/AppointmentModal";
 import { BranchPickerModal } from "@/components/BranchPickerModal";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
+import { HOTLINE_DISPLAY, HOTLINE_TEL } from "@/utils/contact";
 import { 
   Play, Eye, Target, ShieldCheck, Zap, Check, Clock, Shield, 
   Phone, MapPin, Calendar, ChevronRight, Star, Award, Sparkles, 
@@ -276,7 +277,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
               </Link>
 
               <a
-                href="tel:+8801400786162"
+                href={HOTLINE_TEL}
                 className="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm border border-slate-200 transition-all flex items-center gap-2"
               >
                 <PhoneCall size={16} className="text-[#800038]" />
@@ -619,11 +620,11 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
 
           <div className="flex items-center gap-4 flex-wrap justify-center">
             <a
-              href="tel:+8801400786162"
+              href={HOTLINE_TEL}
               className="px-6 py-3.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-white font-bold text-sm transition flex items-center gap-2"
             >
               <Phone size={16} />
-              <span>01400-786162</span>
+              <span>{HOTLINE_DISPLAY}</span>
             </a>
 
             <Link

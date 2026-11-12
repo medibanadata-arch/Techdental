@@ -5,6 +5,7 @@ import { AppointmentModal } from "@/components/AppointmentModal";
 import { BranchPickerModal } from "@/components/BranchPickerModal";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
+import { HOTLINE_DISPLAY, HOTLINE_TEL } from "@/utils/contact";
 import {
     Calendar, Clock, ShieldCheck, MapPin, Phone,
     Share2, Check, Copy, ArrowRight, Edit3, ChevronRight,
@@ -199,11 +200,11 @@ export default function CustomPageShow({ item, locations = [], nav_menu }: Custo
 
                     <div className="flex items-center gap-3 shrink-0 flex-wrap justify-center">
                         <a
-                            href="tel:+8801700000000"
+                            href={HOTLINE_TEL}
                             className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition-all flex items-center gap-2"
                         >
                             <Phone size={14} />
-                            <span>01700-000000</span>
+                            <span>{HOTLINE_DISPLAY}</span>
                         </a>
 
                         <Link

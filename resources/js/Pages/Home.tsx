@@ -8,6 +8,7 @@ import { AppointmentModal } from "@/Components/AppointmentModal";
 import { BranchInfo, BRANCHES_DATA } from "@/data/dentalData";
 import { getHomepageCopy } from "@/data/homepageCopy";
 import { getBranchStatus } from "@/utils/branchStatus";
+import { HOTLINE, WHATSAPP, buildWhatsAppUrl } from "@/utils/contact";
 import { PageProps } from '@inertiajs/core';
 
 interface HomeProps extends PageProps {
@@ -216,8 +217,8 @@ export default function Home({
             shortName: (loc.short_name || rawName).replace(/\bbranch\b/gi, '').trim(),
             address: loc.address || data[key]?.address || "",
             time: loc.time || data[key]?.time || "10:00 AM – 9:00 PM",
-            phone: loc.phone || data[key]?.phone || "01400786162",
-            whatsapp: loc.whatsapp || data[key]?.whatsapp || "01400786162",
+            phone: loc.phone || data[key]?.phone || HOTLINE,
+            whatsapp: loc.whatsapp || data[key]?.whatsapp || WHATSAPP,
             bookingUrl: loc.booking_url || data[key]?.bookingUrl || "/appointment",
             callLabel: loc.call_label || data[key]?.callLabel || "Call",
             directionsLabel: loc.directions_label || data[key]?.directionsLabel || "Directions",
@@ -235,13 +236,9 @@ export default function Home({
   }, [locations]);
 
   const currentBranch = (selectedBranch && branchesData[selectedBranch]) || branchesData["mirpur"] || Object.values(branchesData)[0];
-  const hotline = currentBranch?.phone || home_content?.contact_phone || "01400786162";
-  const rawWa = currentBranch?.whatsapp || hotline;
-  let cleanWa = rawWa.replace(/[^0-9]/g, "");
-  if (cleanWa.startsWith("01")) {
-    cleanWa = "88" + cleanWa;
-  }
-  const waUrl = `https://wa.me/${cleanWa}?text=${encodeURIComponent("হ্যালো টেক ডেন্টাল, আমি চিকিৎসার বিষয়ে জানতে চাচ্ছি।")}`;
+  const hotline = currentBranch?.phone || home_content?.contact_phone || HOTLINE;
+  const rawWa = currentBranch?.whatsapp || WHATSAPP;
+  const waUrl = buildWhatsAppUrl(rawWa, "হ্যালো টেক ডেন্টাল, আমি চিকিৎসার বিষয়ে জানতে চাচ্ছি।");
 
   // Top Chips above the search bar: editable from AI Assistant → Chips
   const topChips = useMemo(() => [

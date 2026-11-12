@@ -3,6 +3,7 @@ import { Link, router, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
+import { HOTLINE_DISPLAY, HOTLINE_TEL } from "@/utils/contact";
 import {
   MapPin, Calendar, Clock, Award, Check, X,
   ChevronDown, Phone, HeartHandshake, ArrowRight,
@@ -205,7 +206,7 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
       "name": "Tech Dental Care - Best Dentist in Dhaka",
       "description": pageDesc,
       "url": pageCanonical,
-      "telephone": "+8801400786162",
+      "telephone": "+8809638000505",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Dhaka",
@@ -550,11 +551,11 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
 
           <div className="flex items-center gap-3 shrink-0 flex-wrap justify-center">
             <a
-              href="tel:+8801700000000"
+              href={HOTLINE_TEL}
               className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition-all flex items-center gap-2"
             >
               <Phone size={13} />
-              <span>01700-000000</span>
+              <span>{HOTLINE_DISPLAY}</span>
             </a>
 
             <Link

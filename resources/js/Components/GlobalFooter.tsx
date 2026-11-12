@@ -10,6 +10,8 @@ import {
   Sparkles
 } from 'lucide-react';
 
+import { HOTLINE_DISPLAY, WHATSAPP, WHATSAPP_INTL } from '@/utils/contact';
+
 interface LinkItem {
   label: string;
   url: string;
@@ -43,8 +45,8 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
   const brandLogoImage = footerSettings.brand_logo_image || '';
   
   const aboutText = footerSettings.about_text || 'Tech Dental is a leading multi-branch dental care provider in Dhaka, dedicated to painless digital procedures, expert orthodontic solutions, and modern implant dentistry.';
-  const hotline = footerSettings.hotline || siteSettings?.contact_phone || '09638-000505';
-  const whatsapp = footerSettings.whatsapp || '+8801400786162';
+  const hotline = footerSettings.hotline || siteSettings?.contact_phone || HOTLINE_DISPLAY;
+  const whatsapp = footerSettings.whatsapp || WHATSAPP;
   const whatsappLabel = footerSettings.whatsapp_label || 'WhatsApp Direct Help';
   const email = footerSettings.email || siteSettings?.contact_email || 'info@techdentalcare.com';
   const address = footerSettings.address || siteSettings?.address || 'Mirpur, Uttara, Badda & Jatrabari, Dhaka, Bangladesh';
@@ -104,7 +106,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
   const ctaButtonText = footerSettings.cta_button_text || 'Make Appointment';
   const ctaButtonUrl = footerSettings.cta_button_url || '/appointment';
 
-  const cleanWaNumber = (whatsapp || hotline).replace(/[^0-9]/g, '');
+  const cleanWaNumber = whatsapp.replace(/[^0-9]/g, '') || WHATSAPP_INTL;
 
   const renderLink = (item: LinkItem, innerContent: React.ReactNode, extraClass: string = '') => {
     const isExternal = item.url.startsWith('http') || item.url.startsWith('//');
