@@ -764,17 +764,6 @@ export default function Home({
           <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide space-y-2">
             {renderFormattedReply(msg.answer?.reply || "")}
           </div>
-
-          <div className="pt-3 mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/60">
-            <button
-              type="button"
-              onClick={() => handleAnswerAction(msg.answer!)}
-              className="inline-flex items-center gap-2 bg-[#1d63ed] hover:bg-blue-700 active:scale-95 text-white px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer"
-            >
-              <i className="fa-solid fa-calendar-check text-xs" />
-              <span>{msg.answer?.actionLabel || "অনলাইন সিরিয়াল নিন"}</span>
-            </button>
-          </div>
         </div>
         <div className="text-[11px] text-slate-400 mt-1 ml-2 select-none">
           {msg.timestamp || getFormattedTime()}
