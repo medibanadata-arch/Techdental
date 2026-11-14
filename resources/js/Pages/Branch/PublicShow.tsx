@@ -16,7 +16,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  ChevronUp,
   Building2,
   User,
   Award,
@@ -24,7 +23,6 @@ import {
   X,
   ZoomIn,
   ExternalLink,
-  ArrowRight,
   Info
 } from "lucide-react";
 
@@ -89,7 +87,9 @@ interface DoctorItem {
 
 interface ServiceItem {
   id: number;
+  slug?: string;
   title?: string;
+  title_bn?: string;
   name?: string;
   desc?: string;
   price: string;
@@ -116,7 +116,19 @@ const DEFAULT_GALLERY = [
 
 export default function BranchPublicShow({ branch, gallery = [], doctors = [], services = [], locations = [], nav_menu }: Props) {
   const [selectedBranch, setSelectedBranch] = useState(branch?.short_name?.toLowerCase() || 'mirpur');
-  const [servicesExpanded, setServicesExpanded] = useState(false);
+  const [activeServiceIndex, setActiveServiceIndex] = useState(0);
+
+  // Helpers for the Services & Pricing cards
+  const serviceName = (s: any) => String((s && (s.title || s.name)) || 'Dental Treatment').split(/[-–—:]/)[0].trim();
+  const svcImage = (s: any) =>
+    (s && s.image) ||
+    'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=600&q=80';
+  const servicePrice = (s: any) => {
+    const raw = String((s && s.price) || '').trim();
+    if (!raw) return '৳ 1,500';
+    return raw.startsWith('৳') ? raw : `৳ ${raw.replace(/^[৳\sBDTtk.]+/i, '').trim()}`;
+  };
+  const serviceHref = (s: any) => `/service/${(s && (s.slug || s.id)) || ''}`;
   const [isMoreAboutOpen, setIsMoreAboutOpen] = useState(false);
 
   // Safe gallery images extraction — show each photo once even if it is attached twice.
@@ -254,7 +266,9 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     setLightboxOpen(true);
   };
 
-  const visibleServices = servicesExpanded ? services.slice(0, 7) : services.slice(0, 3);
+  // Services & Pricing: the four flagship treatments are previewed here; the rest live on /services.
+  const topServices = useMemo(() => (Array.isArray(services) ? services.slice(0, 4) : []), [services]);
+  const activeService = topServices[Math.min(activeServiceIndex, Math.max(topServices.length - 1, 0))];
 
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
@@ -838,82 +852,108 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           </div>
 
           {/* Services & Pricing */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 mb-4 relative transition-all duration-500">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Sparkles size={22} className="text-[#8B1538] shrink-0" />
-                <h2 className="text-lg sm:text-xl font-bold text-slate-800 whitespace-nowrap">Services &amp; Pricing</h2>
-              </div>
-              <div className="flex items-center gap-3">
-                {servicesExpanded && (
-                  <button
-                    type="button"
-                    onClick={() => setServicesExpanded(false)}
-                    className="p-1.5 text-primary-maroon hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                    title="Collapse list"
-                    aria-label="Collapse services list"
-                  >
-                    <ChevronUp size={20} className="stroke-[2.5]" />
-                  </button>
-                )}
-              </div>
+          {topServices.length > 0 && (
+          <div className="bg-white rounded-3xl p-5 sm:p-6 md:p-8 shadow-sm border border-slate-100 mb-4 relative">
+            <div className="flex items-center gap-2.5 mb-5">
+              <Sparkles size={22} className="text-[#8B1538] shrink-0" />
+              <h2 className="text-lg sm:text-xl font-bold text-slate-800">Services &amp; Pricing</h2>
             </div>
 
-            <div className="flex flex-col relative">
-              {visibleServices.map((svc, i) => (
-                <Link
-                  key={svc.id || i}
-                  href={`/service/${svc.slug || svc.id}`}
-                  className="flex items-center justify-between p-3.5 mb-3 border border-slate-100 rounded-2xl bg-white shadow-sm hover:shadow-md hover:border-slate-200 hover:-translate-y-0.5 transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 shrink-0">
-                      <img
-                        src={svc.image || 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=100&h=100&fit=crop'}
-                        className="w-full h-full object-cover"
-                        alt={svc.title || svc.name || 'Treatment'}
-                      />
+            {/* Tablet / desktop: treatment list + large preview */}
+            <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-5">
+              <div className="flex flex-col gap-2.5">
+                {topServices.map((svc, i) => {
+                  const isActive = i === Math.min(activeServiceIndex, topServices.length - 1);
+                  return (
+                    <button
+                      key={svc.id || i}
+                      type="button"
+                      onMouseEnter={() => setActiveServiceIndex(i)}
+                      onFocus={() => setActiveServiceIndex(i)}
+                      onClick={() => setActiveServiceIndex(i)}
+                      aria-pressed={isActive}
+                      className={`flex items-center gap-3.5 p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                        isActive
+                          ? 'border-[#8B1538] bg-[#fdf7f9] shadow-sm'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60'
+                      }`}
+                    >
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                        <img
+                          src={svcImage(svc)}
+                          className="w-full h-full object-cover"
+                          alt={serviceName(svc)}
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="flex-1 min-w-0 text-[15px] font-bold text-slate-800 truncate">
+                        {serviceName(svc)}
+                      </span>
+                      <span className="shrink-0 bg-[#fdf2f5] text-[#8B1538] text-[13px] font-bold px-3 py-1.5 rounded-xl whitespace-nowrap">
+                        {servicePrice(svc)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Link
+                href={serviceHref(activeService)}
+                className="block rounded-2xl border border-slate-200 overflow-hidden bg-white group"
+              >
+                <div className="h-[300px] w-full bg-slate-100 overflow-hidden">
+                  <img
+                    src={svcImage(activeService)}
+                    alt={serviceName(activeService)}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                </div>
+                <div className="flex items-center justify-between gap-3 px-5 py-4">
+                  <div className="min-w-0">
+                    <div className="text-lg font-bold text-slate-900 group-hover:text-[#8B1538] transition-colors truncate">
+                      {serviceName(activeService)}
                     </div>
-                    <div>
-                      <h3 className="text-[15px] font-semibold text-slate-800 group-hover:text-[#8B1538] transition-colors">
-                        {(svc.title || svc.name || 'Treatment').split(/[-–—:]/)[0].trim()}
-                      </h3>
-                    </div>
+                    <div className="text-[11px] font-semibold text-slate-500 mt-0.5">View treatment details →</div>
                   </div>
-                  <div className="text-right pl-2 shrink-0">
-                    <span className="inline-block bg-[#fdf2f5] text-[#8B1538] text-sm font-bold px-3 py-1.5 rounded-xl whitespace-nowrap">
-                      ৳ {String(svc.price || '1,500').replace(/^[৳\sBDTtk.]+/i, '').trim()}
-                    </span>
+                  <span className="shrink-0 bg-[#fdf2f5] text-[#8B1538] text-sm font-bold px-3.5 py-1.5 rounded-xl whitespace-nowrap">
+                    {servicePrice(activeService)}
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            {/* Mobile: four treatments side by side */}
+            <div className="grid grid-cols-4 gap-2 md:hidden">
+              {topServices.map((svc, i) => (
+                <Link key={svc.id || i} href={serviceHref(svc)} className="min-w-0 group">
+                  <div className="aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-100">
+                    <img
+                      src={svcImage(svc)}
+                      alt={serviceName(svc)}
+                      className="w-full h-full object-cover transition-transform duration-300 group-active:scale-105"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="mt-1.5 text-[10px] leading-[1.2] font-bold text-slate-800 line-clamp-2">
+                    {serviceName(svc)}
+                  </div>
+                  <div className="mt-1 text-[9.5px] font-bold text-[#8B1538] truncate">
+                    {servicePrice(svc)}
                   </div>
                 </Link>
               ))}
-
-              {services.length > 3 && (
-                <div className="mt-2 space-y-2">
-                  {!servicesExpanded && (
-                    <button
-                      type="button"
-                      onClick={() => setServicesExpanded(true)}
-                      className="w-full py-2.5 rounded-xl border border-slate-200 text-primary-maroon font-bold text-xs hover:bg-rose-50/50 transition-colors flex justify-center items-center gap-1.5 cursor-pointer shadow-2xs"
-                    >
-                      <span>See more</span>
-                      <ChevronDown size={14} />
-                    </button>
-                  )}
-
-                  {servicesExpanded && (
-                    <Link
-                      href="/services"
-                      className="group w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-[#800038]/5 via-[#800038]/10 to-[#800038]/5 hover:from-[#800038] hover:via-[#800038] hover:to-[#a01246] border border-[#800038]/20 hover:border-[#800038] text-[#800038] hover:text-white font-extrabold text-[0.84rem] shadow-xs hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
-                    >
-                      <span>View All Services</span>
-                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-                    </Link>
-                  )}
-                </div>
-              )}
             </div>
+
+            {/* See more → full services category page */}
+            <Link
+              href="/services"
+              className="mt-4 w-full py-2.5 rounded-xl border border-slate-200 text-primary-maroon font-bold text-xs hover:bg-rose-50/50 transition-colors flex justify-center items-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <span>See more</span>
+              <ChevronDown size={14} />
+            </Link>
           </div>
+          )}
 
           {/* Google Reviews Section (Exact Card Style) */}
           <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-100 mb-4">

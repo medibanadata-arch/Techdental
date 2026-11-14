@@ -47,7 +47,11 @@ class BranchController extends Controller
             $doctors = Doctor::orderBy('rank_order')->take(6)->get();
         }
 
-        $services = \DB::table('pricing')->get();
+        $services = \DB::table('services')
+            ->where('status', 'Published')
+            ->orderBy('rank_order')
+            ->orderBy('id')
+            ->get(['id', 'slug', 'title', 'title_bn', 'price', 'hero_main as image', 'short_desc']);
 
         return Inertia::render('Branch/PublicShow', [
             'branch' => $branch,
