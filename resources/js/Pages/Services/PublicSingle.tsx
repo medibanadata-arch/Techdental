@@ -266,10 +266,19 @@ export default function ServicesPublicSingle({
     ? `${shortName} এর ধরন ও মূল্য`
     : `Types of ${shortName} with prices`;
 
-  const displayThumbs = [
-    item.hero_main,
-    ...(Array.isArray(item.hero_thumbs) ? item.hero_thumbs : [])
-  ].filter(Boolean) as string[];
+  const galleryKey = (path: string) => path
+    .split('/')
+    .pop()!
+    .toLowerCase()
+    .replace(/-\d+x\d+(?=\.[a-z0-9]+$)/, '');
+
+  const displayThumbs = Array.from(
+    new Map(
+      [item.hero_main, ...(Array.isArray(item.hero_thumbs) ? item.hero_thumbs : [])]
+        .filter(Boolean)
+        .map((path) => [galleryKey(path as string), path as string]),
+    ).values(),
+  );
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'details', label: L.details },
@@ -522,11 +531,11 @@ export default function ServicesPublicSingle({
                     </div>
                   )}
 
-                  <div className="w-full h-40 mb-6 rounded-2xl overflow-hidden bg-gray-100 shrink-0 group mt-2">
+                  <div className="w-full aspect-[4/3] mb-6 rounded-2xl overflow-hidden bg-white border border-gray-100 shrink-0 flex items-center justify-center mt-2">
                     <img
                       src={card.img}
                       alt={card.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                      className="w-full h-full object-contain"
                     />
                   </div>
 
@@ -556,11 +565,11 @@ export default function ServicesPublicSingle({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-2">
               {results.map((img, i) => (
                 <div key={i} className="group">
-                  <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 relative">
+                  <div className="w-full aspect-square rounded-2xl overflow-hidden bg-white border border-gray-100 relative flex items-center justify-center">
                     <img
                       src={img}
                       alt={isBn ? `চিকিৎসার আগে ও পরে ${i + 1}` : `Before and after case ${i + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      className="w-full h-full object-contain"
                     />
                   </div>
                 </div>
