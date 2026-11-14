@@ -116,7 +116,7 @@ const DEFAULT_GALLERY = [
 
 export default function BranchPublicShow({ branch, gallery = [], doctors = [], services = [], locations = [], nav_menu }: Props) {
   const [selectedBranch, setSelectedBranch] = useState(branch?.short_name?.toLowerCase() || 'mirpur');
-  const [activeServiceIndex, setActiveServiceIndex] = useState(0);
+  const [activeServiceIndex, setActiveServiceIndex] = useState<number | null>(null);
 
   // Helpers for the Services & Pricing cards
   const serviceName = (s: any) => String((s && (s.title || s.name)) || 'Dental Treatment').split(/[-–—:]/)[0].trim();
@@ -266,9 +266,16 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     setLightboxOpen(true);
   };
 
-  // Services & Pricing: the four flagship treatments are previewed here; the rest live on /services.
+  // Services & Pricing: four treatments in the list, the fifth as the large preview; the rest live on /services.
   const topServices = useMemo(() => (Array.isArray(services) ? services.slice(0, 4) : []), [services]);
-  const activeService = topServices[Math.min(activeServiceIndex, Math.max(topServices.length - 1, 0))];
+  const featuredService = useMemo(
+    () => (Array.isArray(services) ? services[4] || services[0] : null),
+    [services]
+  );
+  const activeService =
+    activeServiceIndex === null
+      ? featuredService
+      : topServices[Math.min(activeServiceIndex, topServices.length - 1)];
 
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
@@ -863,7 +870,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-5">
               <div className="flex flex-col gap-2.5">
                 {topServices.map((svc, i) => {
-                  const isActive = i === Math.min(activeServiceIndex, topServices.length - 1);
+                  const isActive = activeServiceIndex === i;
                   return (
                     <button
                       key={svc.id || i}
@@ -922,11 +929,11 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               </Link>
             </div>
 
-            {/* Mobile: four treatments side by side */}
-            <div className="grid grid-cols-4 gap-2 md:hidden">
+            {/* Mobile: first four treatments, two per row */}
+            <div className="grid grid-cols-2 gap-3 md:hidden">
               {topServices.map((svc, i) => (
-                <Link key={svc.id || i} href={serviceHref(svc)} className="min-w-0 group">
-                  <div className="aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-100">
+                <Link key={svc.id || i} href={serviceHref(svc)} className="min-w-0 group rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="aspect-[4/3] rounded-t-2xl overflow-hidden bg-slate-100">
                     <img
                       src={svcImage(svc)}
                       alt={serviceName(svc)}
@@ -934,23 +941,24 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                       loading="lazy"
                     />
                   </div>
-                  <div className="mt-1.5 text-[10px] leading-[1.2] font-bold text-slate-800 line-clamp-2">
-                    {serviceName(svc)}
-                  </div>
-                  <div className="mt-1 text-[9.5px] font-bold text-[#8B1538] truncate">
-                    {servicePrice(svc)}
+                  <div className="p-2.5">
+                    <div className="text-[12px] leading-[1.25] font-bold text-slate-800 line-clamp-2">
+                      {serviceName(svc)}
+                    </div>
+                    <div className="mt-1 text-[11px] font-bold text-[#8B1538] truncate">
+                      {servicePrice(svc)}
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
 
-            {/* See more → full services category page */}
+            {/* See more → full services category page (plain link, no dropdown) */}
             <Link
               href="/services"
-              className="mt-4 w-full py-2.5 rounded-xl border border-slate-200 text-primary-maroon font-bold text-xs hover:bg-rose-50/50 transition-colors flex justify-center items-center gap-1.5 cursor-pointer shadow-2xs"
+              className="mt-4 w-full py-2.5 rounded-xl border border-slate-200 text-primary-maroon font-bold text-xs hover:bg-rose-50/50 transition-colors flex justify-center items-center cursor-pointer shadow-2xs"
             >
               <span>See more</span>
-              <ChevronDown size={14} />
             </Link>
           </div>
           )}
