@@ -112,7 +112,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-800 antialiased overflow-x-hidden w-full flex flex-col font-sans">
+    <div className="min-h-screen bg-white text-slate-800 antialiased overflow-x-clip w-full flex flex-col font-sans">
       <Seo
         title={content.seo_title || `${content.hero_title || 'About Tech Dental Care'} — Digital Oral Healthcare`}
         description={content.meta_desc || content.hero_subtitle || content.story_p1}

@@ -646,13 +646,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {isLanguageSwitcherVisible && (
             <div
               id="headerLanguageSwitcher"
-              className="flex items-center h-9 md:h-11 p-0.5 bg-slate-100/90 rounded-full border border-slate-200/90 shadow-2xs select-none"
+              className="flex items-center h-7 sm:h-8 md:h-11 p-0.5 bg-slate-100/90 rounded-full border border-slate-200/90 shadow-2xs select-none"
               title={language === 'bn' ? 'ভাষা পরিবর্তন করুন (বাংলা / ইংরেজি)' : 'Switch Language (English / Bangla)'}
             >
               <button
                 type="button"
                 onClick={() => handleLanguageSwitch('en')}
-                className={`h-full px-3 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
+                className={`h-full px-2 sm:px-2.5 md:px-3 rounded-full text-[10px] sm:text-[11px] md:text-xs font-bold transition-all cursor-pointer ${
                   language === 'en'
                     ? 'bg-white text-slate-900 shadow-xs font-black'
                     : 'text-slate-500 hover:text-slate-800'
@@ -663,7 +663,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               <button
                 type="button"
                 onClick={() => handleLanguageSwitch('bn')}
-                className={`h-full px-3 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
+                className={`h-full px-2 sm:px-2.5 md:px-3 rounded-full text-[10px] sm:text-[11px] md:text-xs font-bold transition-all cursor-pointer ${
                   language === 'bn'
                     ? 'bg-[#800038] text-white shadow-xs font-black'
                     : 'text-slate-500 hover:text-slate-800'
@@ -678,7 +678,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {isBookButtonVisible && (
             <Link
               href="/book"
-              className="book-btn h-9 md:h-11 px-3.5 sm:px-4 md:px-5 gap-2 text-sm md:text-[15px] font-sans font-medium shrink-0"
+              className="book-btn h-7 sm:h-8 md:h-11 px-2.5 sm:px-3 md:px-5 gap-1 md:gap-2 text-[11px] sm:text-xs md:text-[15px] font-sans font-medium shrink-0"
               aria-label="Book Appointment"
             >
               <i className="ti ti-calendar-plus" />

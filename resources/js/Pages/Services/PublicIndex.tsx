@@ -41,7 +41,7 @@ export default function ServicesPublicIndex({ services = [], locations = [], nav
     isBn ? `/bn/service/${s.slug_bn || s.slug}` : `/service/${s.slug}`;
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 antialiased overflow-x-hidden w-full font-sans">
+    <div className="min-h-screen bg-gray-50 text-gray-800 antialiased overflow-x-clip w-full font-sans">
       <Seo
         title={title}
         description={description}

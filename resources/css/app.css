@@ -114,6 +114,12 @@ body {
 .book-btn i {
   font-size: 19px;
 }
+/* Keep the Book button compact on phones (matches the smaller mobile header buttons) */
+@media (max-width: 767px) {
+  .book-btn i {
+    font-size: 15px;
+  }
+}
 .book-btn:hover {
   background: #741735;
   color: #fff;
