@@ -12,7 +12,6 @@ import {
   CalendarCheck,
   Clock,
   MapPin,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -116,7 +115,22 @@ const DEFAULT_GALLERY = [
 
 export default function BranchPublicShow({ branch, gallery = [], doctors = [], services = [], locations = [], nav_menu }: Props) {
   const [selectedBranch, setSelectedBranch] = useState(branch?.short_name?.toLowerCase() || 'mirpur');
-  const [activeServiceIndex, setActiveServiceIndex] = useState<number | null>(null);
+
+  // Small tooth mark used by the Services & Pricing heading
+  const ToothIcon = ({ className = '' }: { className?: string }) => (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 5.5c-1.5-1.5-3-2.5-4.5-2.5-2.5 0-4 2-4 4.5 0 3 1.5 5 2.5 7.5.6 1.5 1 3 1.5 4.5.3 1 .8 1.5 1.5 1.5 1 0 1.5-1 2-3 .3-1.3.8-2.5 1.5-2.5s1.2 1.2 1.5 2.5c.5 2 1 3 2 3 .7 0 1.2-.5 1.5-1.5.5-1.5.9-3 1.5-4.5 1-2.5 2.5-4.5 2.5-7.5 0-2.5-1.5-4.5-4-4.5-1.5 0-3 1-4.5 2.5Z" />
+    </svg>
+  );
 
   // Helpers for the Services & Pricing cards
   const serviceName = (s: any) => String((s && (s.title || s.name)) || 'Dental Treatment').split(/[-–—:]/)[0].trim();
@@ -266,16 +280,12 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     setLightboxOpen(true);
   };
 
-  // Services & Pricing: four treatments in the list, the fifth as the large preview; the rest live on /services.
+  // Services & Pricing: four treatments in the list, the fifth as its own feature card; the rest live on /services.
   const topServices = useMemo(() => (Array.isArray(services) ? services.slice(0, 4) : []), [services]);
   const featuredService = useMemo(
     () => (Array.isArray(services) ? services[4] || services[0] : null),
     [services]
   );
-  const activeService =
-    activeServiceIndex === null
-      ? featuredService
-      : topServices[Math.min(activeServiceIndex, topServices.length - 1)];
 
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
@@ -862,71 +872,62 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           {topServices.length > 0 && (
           <div className="bg-white rounded-3xl p-5 sm:p-6 md:p-8 shadow-sm border border-slate-100 mb-4 relative">
             <div className="flex items-center gap-2.5 mb-5">
-              <Sparkles size={22} className="text-[#8B1538] shrink-0" />
+              <ToothIcon className="w-[22px] h-[22px] text-[#8B1538] shrink-0" />
               <h2 className="text-lg sm:text-xl font-bold text-slate-800">Services &amp; Pricing</h2>
             </div>
 
-            {/* Tablet / desktop: treatment list + large preview */}
-            <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-5">
-              <div className="flex flex-col gap-2.5">
-                {topServices.map((svc, i) => {
-                  const isActive = activeServiceIndex === i;
-                  return (
-                    <button
-                      key={svc.id || i}
-                      type="button"
-                      onMouseEnter={() => setActiveServiceIndex(i)}
-                      onFocus={() => setActiveServiceIndex(i)}
-                      onClick={() => setActiveServiceIndex(i)}
-                      aria-pressed={isActive}
-                      className={`flex items-center gap-3.5 p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                        isActive
-                          ? 'border-[#8B1538] bg-[#fdf7f9] shadow-sm'
-                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60'
-                      }`}
-                    >
-                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0">
-                        <img
-                          src={svcImage(svc)}
-                          className="w-full h-full object-cover"
-                          alt={serviceName(svc)}
-                          loading="lazy"
-                        />
-                      </div>
-                      <span className="flex-1 min-w-0 text-[15px] font-bold text-slate-800 truncate">
-                        {serviceName(svc)}
-                      </span>
-                      <span className="shrink-0 bg-[#fdf2f5] text-[#8B1538] text-[13px] font-bold px-3 py-1.5 rounded-xl whitespace-nowrap">
-                        {servicePrice(svc)}
-                      </span>
-                    </button>
-                  );
-                })}
+            {/* Tablet / desktop: four treatments listed beside one more feature treatment */}
+            <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-5 items-stretch">
+              <div className="grid grid-rows-4 gap-2.5 min-h-0">
+                {topServices.map((svc, i) => (
+                  <Link
+                    key={svc.id || i}
+                    href={serviceHref(svc)}
+                    className="flex items-center gap-3.5 px-3 rounded-2xl border border-slate-200 bg-white text-left transition-all hover:border-[#8B1538]/40 hover:bg-[#fdf7f9] hover:shadow-sm group"
+                  >
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                      <img
+                        src={svcImage(svc)}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        alt={serviceName(svc)}
+                        loading="lazy"
+                      />
+                    </div>
+                    <span className="flex-1 min-w-0 text-[15px] font-bold text-slate-800 group-hover:text-[#8B1538] transition-colors truncate">
+                      {serviceName(svc)}
+                    </span>
+                    <span className="shrink-0 bg-[#fdf2f5] text-[#8B1538] text-[13px] font-bold px-3 py-1.5 rounded-xl whitespace-nowrap">
+                      {servicePrice(svc)}
+                    </span>
+                  </Link>
+                ))}
               </div>
 
-              <Link
-                href={serviceHref(activeService)}
-                className="block rounded-2xl border border-slate-200 overflow-hidden bg-white group"
-              >
-                <div className="h-[300px] w-full bg-slate-100 overflow-hidden">
-                  <img
-                    src={svcImage(activeService)}
-                    alt={serviceName(activeService)}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  />
-                </div>
-                <div className="flex items-center justify-between gap-3 px-5 py-4">
-                  <div className="min-w-0">
-                    <div className="text-lg font-bold text-slate-900 group-hover:text-[#8B1538] transition-colors truncate">
-                      {serviceName(activeService)}
-                    </div>
-                    <div className="text-[11px] font-semibold text-slate-500 mt-0.5">View treatment details →</div>
+              {featuredService && (
+                <Link
+                  href={serviceHref(featuredService)}
+                  className="flex flex-col rounded-2xl border border-slate-200 overflow-hidden bg-white group"
+                >
+                  <div className="flex-1 min-h-[280px] w-full bg-slate-100 overflow-hidden">
+                    <img
+                      src={svcImage(featuredService)}
+                      alt={serviceName(featuredService)}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    />
                   </div>
-                  <span className="shrink-0 bg-[#fdf2f5] text-[#8B1538] text-sm font-bold px-3.5 py-1.5 rounded-xl whitespace-nowrap">
-                    {servicePrice(activeService)}
-                  </span>
-                </div>
-              </Link>
+                  <div className="flex items-center justify-between gap-3 px-5 py-4">
+                    <div className="min-w-0">
+                      <div className="text-lg font-bold text-slate-900 group-hover:text-[#8B1538] transition-colors truncate">
+                        {serviceName(featuredService)}
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-500 mt-0.5">View treatment details →</div>
+                    </div>
+                    <span className="shrink-0 bg-[#fdf2f5] text-[#8B1538] text-sm font-bold px-3.5 py-1.5 rounded-xl whitespace-nowrap">
+                      {servicePrice(featuredService)}
+                    </span>
+                  </div>
+                </Link>
+              )}
             </div>
 
             {/* Mobile: first four treatments, two per row */}
