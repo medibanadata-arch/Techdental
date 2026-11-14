@@ -499,51 +499,64 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           }
           .bs-acts {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            justify-content: space-between;
             align-items: center;
+            gap: 10px;
+            margin: 20px auto 0;
+            width: 100%;
+            max-width: 340px;
           }
           .bs-circ {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: #F3F1F5;
+            background: #fff;
             display: grid;
             place-items: center;
             flex: none;
             color: #1B1620;
-            transition: transform .15s, background .15s;
+            border: 1px solid rgba(27, 22, 32, .06);
+            box-shadow: 0 2px 8px rgba(27, 22, 32, .08);
+            transition: transform .15s, box-shadow .15s, background .15s;
           }
           .bs-circ:hover {
-            background: #EAE6EE;
+            background: #FCFAFB;
+            box-shadow: 0 4px 12px rgba(27, 22, 32, .14);
             transform: translateY(-1px);
           }
           .bs-circ.w {
-            background: #E3F5EC;
-            color: #1E8E5A;
+            width: 58px;
+            height: 58px;
+            background: #D7EFDB;
+            color: #12703C;
+            border-color: rgba(18, 112, 60, .10);
+            box-shadow: 0 4px 12px rgba(18, 112, 60, .16);
+          }
+          .bs-circ.w:hover {
+            background: #C9E9CF;
+            box-shadow: 0 6px 16px rgba(18, 112, 60, .22);
           }
           .bs-book {
-            flex: 1;
-            min-height: 50px;
-            border-radius: 25px;
-            background: #8A1538;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            font-weight: 800;
-            font-size: 15px;
-            box-shadow: 0 12px 24px -12px #8A1538;
-            transition: transform .15s, opacity .15s;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #fff;
+            color: #8A1538;
+            display: grid;
+            place-items: center;
+            flex: none;
+            border: 1px solid rgba(138, 21, 56, .10);
+            box-shadow: 0 2px 8px rgba(138, 21, 56, .10);
+            transition: transform .15s, box-shadow .15s, background .15s;
           }
           .bs-book:hover {
-            opacity: .95;
+            background: #FDF7F9;
+            box-shadow: 0 4px 12px rgba(138, 21, 56, .18);
             transform: translateY(-1px);
           }
           .bs-circ:active,
           .bs-book:active {
-            transform: scale(.98);
+            transform: scale(.94);
           }
           .bs-list {
             list-style: none;
@@ -637,6 +650,9 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             }
             .bs-acts {
               margin-top: 26px;
+              margin-left: 0;
+              margin-right: 0;
+              max-width: 360px;
             }
             .bs-nav.p { left: 18px; }
             .bs-nav.n { right: 18px; }
@@ -647,9 +663,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           }
           @media (max-width: 480px) {
             .bs-info { margin-top: 20px; }
-            .bs-acts { gap: 8px; }
+            .bs-acts { gap: 8px; max-width: 320px; }
             .bs-circ { width: 46px; height: 46px; }
-            .bs-book { min-height: 46px; border-radius: 23px; font-size: 14px; }
+            .bs-circ.w { width: 54px; height: 54px; }
+            .bs-book { width: 40px; height: 40px; }
             .bs-shift { padding: 5px 9px; }
             .bs-shift strong { font-size: 13px; }
           }
@@ -706,19 +723,18 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
             <div className="bs-acts">
               <a className="bs-circ" href={`tel:${hotline}`} aria-label={callLabel} title={callLabel}>
-                <Phone size={20} />
+                <Phone size={21} strokeWidth={2} />
               </a>
               <a className="bs-circ" href={mapUrl} target="_blank" rel="noopener noreferrer" aria-label={directionsLabel} title={directionsLabel}>
-                <Send size={20} />
+                <Send size={21} strokeWidth={2} />
               </a>
               <a className="bs-circ w" href={waUrl} target="_blank" rel="noopener noreferrer" aria-label={whatsappLabel} title={whatsappLabel}>
-                <svg className="w-[22px] h-[22px] fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                <svg className="w-[26px] h-[26px] fill-current" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.983zm11.455-7.394c-.068-.113-.25-.181-.524-.318-.274-.137-1.62-.8-1.871-.891-.25-.092-.432-.137-.614.137-.182.274-.707.891-.866 1.073-.16.182-.319.205-.593.068-.274-.137-1.157-.426-2.203-1.359-.815-.726-1.365-1.623-1.524-1.897-.16-.274-.017-.422.12-.559.123-.122.274-.319.41-.478.137-.16.182-.274.274-.457.091-.182.046-.342-.023-.478-.068-.137-.614-1.482-.841-2.031-.222-.535-.447-.462-.614-.471l-.524-.01c-.182 0-.478.068-.729.342-.25.274-.956.935-.956 2.28 0 1.345.979 2.645 1.116 2.828.137.182 1.928 2.943 4.671 4.128 2.743 1.185 2.743.79 3.245.744.502-.046 1.62-.662 1.848-1.3.228-.639.228-1.186.16-1.301z" />
                 </svg>
               </a>
-              <Link href={bookingUrl} className="bs-book">
-                <CalendarCheck size={20} />
-                <span>{bookLabel}</span>
+              <Link href={bookingUrl} className="bs-book" aria-label={bookLabel} title={bookLabel}>
+                <CalendarCheck size={19} strokeWidth={2} />
               </Link>
             </div>
 
