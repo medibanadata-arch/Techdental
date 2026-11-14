@@ -25,7 +25,7 @@ interface ServiceItem {
   hero_main: string;
   hero_thumbs: string[];
   features: { title: string; sub: string }[];
-  pricing_cards: { img: string; title: string; price: string; note: string; popular?: boolean }[];
+  pricing_cards: { img: string; title: string; title_bn?: string; price: string; note?: string; popular?: boolean }[];
   results: string[];
   details_heading: string;
   details_heading_bn?: string;
@@ -242,10 +242,9 @@ export default function ServicesPublicSingle({
   );
   const pricingCards = (Array.isArray(item.pricing_cards) ? item.pricing_cards : []).map((card) => {
     if (!isBn) return card;
-    const tier = (card.title || '').split(' - ').pop() || '';
-    const tierBn: Record<string, string> = { Basic: 'বেসিক', Standard: 'স্ট্যান্ডার্ড', Premium: 'প্রিমিয়াম' };
-    const shortBn = (item.details_heading_bn || `${title} সম্পর্কে আরও জানুন`).replace(/\s*সম্পর্কে আরও জানুন\s*$/, '').trim();
-    return { ...card, title: `${shortBn} - ${tierBn[tier] || tier}`, note: L.demoNote };
+    // Use the real Bangla treatment name when available; never rewrite a real
+    // treatment name into a synthetic "Basic/Standard/Premium" tier.
+    return { ...card, title: card.title_bn || card.title };
   });
   const results = Array.isArray(item.results) ? item.results : [];
   const reviews = Array.isArray(item.reviews) ? item.reviews : [];
@@ -537,7 +536,7 @@ export default function ServicesPublicSingle({
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-bold text-[#e11d48]">{card.price}</span>
                     </div>
-                    <span className="text-gray-500 text-sm">{card.note}</span>
+                    {card.note ? <span className="text-gray-500 text-sm">{card.note}</span> : null}
                   </div>
                 </div>
               ))}

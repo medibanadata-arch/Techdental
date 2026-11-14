@@ -22,6 +22,7 @@ import SeoMetaBox from '@/Components/SeoMetaBox';
 interface PricingCard {
     img?: string;
     title: string;
+    title_bn?: string;
     price: string;
     note?: string;
     popular?: boolean;
