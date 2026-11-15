@@ -171,7 +171,14 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
         {/* Doctors Cards Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 w-full">
           {filtered.map((doc) => (
-            <div key={doc.id} className="bg-white rounded-xl p-5 text-center flex flex-col justify-between shadow-sm border-2 border-[#a21caf] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <div key={doc.id} className="relative bg-white rounded-xl p-5 text-center flex flex-col justify-between shadow-sm border-2 border-[#a21caf] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              {/* Whole card opens the doctor profile; action buttons below sit above this overlay */}
+              <Link
+                href={`/doctors/${doc.id}`}
+                className="absolute inset-0 z-0 rounded-xl"
+                aria-label={`View profile of ${doc.name}`}
+                tabIndex={-1}
+              />
               <div>
                 {/* Doctor Image */}
                 <div className="w-full h-56 sm:h-60 mb-4 rounded-lg overflow-hidden bg-slate-100 relative">
@@ -211,7 +218,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-center gap-3 pt-2 border-t border-slate-100">
+              <div className="relative z-10 flex items-center justify-center gap-3 pt-2 border-t border-slate-100">
                 <Link
                   href={`/doctors/${doc.id}`}
                   className="w-1/2 py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded transition shadow-sm flex items-center justify-center gap-1"

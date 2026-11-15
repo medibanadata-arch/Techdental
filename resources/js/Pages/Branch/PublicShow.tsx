@@ -128,7 +128,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
       className={className}
       aria-hidden="true"
     >
-      <path d="M12 5.5c-1.5-1.5-3-2.5-4.5-2.5-2.5 0-4 2-4 4.5 0 3 1.5 5 2.5 7.5.6 1.5 1 3 1.5 4.5.3 1 .8 1.5 1.5 1.5 1 0 1.5-1 2-3 .3-1.3.8-2.5 1.5-2.5s1.2 1.2 1.5 2.5c.5 2 1 3 2 3 .7 0 1.2-.5 1.5-1.5.5-1.5.9-3 1.5-4.5 1-2.5 2.5-4.5 2.5-7.5 0-2.5-1.5-4.5-4-4.5-1.5 0-3 1-4.5 2.5Z" />
+      <path d="M7.5 3C4.9 3 3 4.9 3 7.6c0 1.7.6 3 1.2 4.4.7 1.6.9 3.3 1.3 5.1.3 1.5 1 2.6 2.2 2.6 1.3 0 1.6-1.5 2-3.1.2-.9.7-1.4 1.3-1.4s1.1.5 1.3 1.4c.4 1.6.7 3.1 2 3.1 1.2 0 1.9-1.1 2.2-2.6.4-1.8.6-3.5 1.3-5.1.6-1.4 1.2-2.7 1.2-4.4C21 4.9 19.1 3 16.5 3c-1.7 0-2.8.7-4.5.7S9.2 3 7.5 3z" />
     </svg>
   );
 
@@ -141,6 +141,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     const raw = String((s && s.price) || '').trim();
     if (!raw) return '৳ 1,500';
     return raw.startsWith('৳') ? raw : `৳ ${raw.replace(/^[৳\sBDTtk.]+/i, '').trim()}`;
+  };
+  const serviceBlurb = (s: any) => {
+    const text = String((s && (s.short_desc || s.desc)) || '').replace(/\s+/g, ' ').trim();
+    return text.length > 58 ? `${text.slice(0, 55).replace(/[\s,.;:-]+$/, '')}…` : text;
   };
   const serviceHref = (s: any) => `/service/${(s && (s.slug || s.id)) || ''}`;
   const [isMoreAboutOpen, setIsMoreAboutOpen] = useState(false);
@@ -870,67 +874,89 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
           {/* Services & Pricing */}
           {topServices.length > 0 && (
-          <div className="bg-white rounded-3xl p-5 sm:p-6 md:p-8 shadow-sm border border-slate-100 mb-4 relative">
-            <div className="flex items-center gap-2.5 mb-5">
-              <ToothIcon className="w-[22px] h-[22px] text-[#8B1538] shrink-0" />
-              <h2 className="text-lg sm:text-xl font-bold text-slate-800">Services &amp; Pricing</h2>
+          <div className="bg-white rounded-3xl md:rounded-[28px] p-5 sm:p-6 md:p-9 shadow-sm md:shadow-none border border-slate-100 md:border-[#eadfe2] mb-4 relative">
+            <div className="flex items-center gap-2.5 md:gap-3 mb-5 md:mb-6">
+              <ToothIcon className="w-[22px] h-[22px] md:w-[30px] md:h-[30px] text-[#8B1538] md:text-[#9b1445] shrink-0" />
+              <h2 className="text-lg sm:text-xl md:text-[28px] md:font-semibold md:tracking-tight md:text-[#1b2434] font-bold text-slate-800">Services &amp; Pricing</h2>
             </div>
 
-            {/* Tablet / desktop: four treatments listed beside one more feature treatment */}
-            <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-5 items-stretch">
-              <div className="grid grid-rows-4 gap-2.5 min-h-0">
-                {topServices.map((svc, i) => (
-                  <Link
-                    key={svc.id || i}
-                    href={serviceHref(svc)}
-                    className="flex items-center gap-3.5 px-3 rounded-2xl border border-slate-200 bg-white text-left transition-all hover:border-[#8B1538]/40 hover:bg-[#fdf7f9] hover:shadow-sm group"
-                  >
-                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+            {/* Desktop: list rows + feature card + pill CTA */}
+            <div className="hidden md:block">
+              <div className="grid md:grid-cols-[1fr_1.05fr] gap-[22px] items-stretch">
+                <div className="flex flex-col border-t border-[#eadfe2]">
+                  {topServices.map((svc, i) => (
+                    <Link
+                      key={svc.id || i}
+                      href={serviceHref(svc)}
+                      className="grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-[18px] px-2 py-4 border-b border-[#eadfe2] no-underline text-inherit rounded-[14px] transition-colors hover:bg-[#fbeaf0] focus-visible:bg-[#fbeaf0] focus-visible:outline-none group"
+                    >
                       <img
                         src={svcImage(svc)}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        alt={serviceName(svc)}
+                        alt=""
                         loading="lazy"
+                        className="w-[72px] h-[72px] rounded-[16px] object-cover bg-[#fbeaf0]"
                       />
-                    </div>
-                    <span className="flex-1 min-w-0 text-[15px] font-bold text-slate-800 group-hover:text-[#8B1538] transition-colors truncate">
-                      {serviceName(svc)}
-                    </span>
-                    <span className="shrink-0 bg-[#fdf2f5] text-[#8B1538] text-[13px] font-bold px-3 py-1.5 rounded-xl whitespace-nowrap">
-                      {servicePrice(svc)}
-                    </span>
-                  </Link>
-                ))}
-              </div>
+                      <div className="min-w-0">
+                        <h3 className="text-[18px] leading-snug font-semibold text-[#2a1a20] truncate">
+                          {serviceName(svc)}
+                        </h3>
+                        <small className="block text-[14px] text-[#7a6a70] truncate">
+                          {serviceBlurb(svc)}
+                        </small>
+                      </div>
+                      <div className="text-right whitespace-nowrap">
+                        <span className="block text-[12px] text-[#7a6a70]">from</span>
+                        <span className="text-[18px] font-semibold text-[#6e0d31]">{servicePrice(svc)}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
 
-              {featuredService && (
-                <Link
-                  href={serviceHref(featuredService)}
-                  className="flex flex-col rounded-2xl border border-slate-200 overflow-hidden bg-white group"
-                >
-                  <div className="flex-1 min-h-[280px] w-full bg-slate-100 overflow-hidden">
+                {featuredService && (
+                  <Link
+                    href={serviceHref(featuredService)}
+                    className="relative rounded-[22px] overflow-hidden flex flex-col justify-end no-underline text-white min-h-[420px] bg-[#3a2a31] group focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-[#9b1445] focus-visible:outline-offset-[3px]"
+                  >
                     <img
                       src={svcImage(featuredService)}
                       alt={serviceName(featuredService)}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
-                  </div>
-                  <div className="flex items-center justify-between gap-3 px-5 py-4">
-                    <div className="min-w-0">
-                      <div className="text-lg font-bold text-slate-900 group-hover:text-[#8B1538] transition-colors truncate">
-                        {serviceName(featuredService)}
+                    <div
+                      className="absolute inset-0"
+                      style={{ background: 'linear-gradient(to top, rgba(30,8,18,.9) 0%, rgba(30,8,18,0) 52%)' }}
+                    />
+                    <div className="relative flex items-end justify-between gap-4 px-6 py-[22px]">
+                      <div className="min-w-0">
+                        <h3
+                          className="text-[24px] leading-[1.2] max-w-[20ch]"
+                          style={{ fontFamily: 'Fraunces, Georgia, "Times New Roman", serif' }}
+                        >
+                          {serviceName(featuredService)}
+                        </h3>
+                        <span className="inline-block mt-2 text-[14px] opacity-90 border-b border-white/50">
+                          View treatment details
+                        </span>
                       </div>
-                      <div className="text-[11px] font-semibold text-slate-500 mt-0.5">View treatment details →</div>
+                      <span className="bg-white text-[#6e0d31] font-semibold text-[18px] px-4 py-2 rounded-full whitespace-nowrap">
+                        {servicePrice(featuredService)}
+                      </span>
                     </div>
-                    <span className="shrink-0 bg-[#fdf2f5] text-[#8B1538] text-sm font-bold px-3.5 py-1.5 rounded-xl whitespace-nowrap">
-                      {servicePrice(featuredService)}
-                    </span>
-                  </div>
+                  </Link>
+                )}
+              </div>
+
+              <div className="flex justify-center mt-[26px]">
+                <Link
+                  href="/services"
+                  className="bg-[#9b1445] hover:bg-[#6e0d31] text-white font-semibold px-[34px] py-[13px] rounded-full transition-all hover:-translate-y-px active:translate-y-0"
+                >
+                  See all services
                 </Link>
-              )}
+              </div>
             </div>
 
-            {/* Mobile: first four treatments, two per row */}
+            {/* Mobile: first four treatments, two per row (unchanged) */}
             <div className="grid grid-cols-2 gap-3 md:hidden">
               {topServices.map((svc, i) => (
                 <Link key={svc.id || i} href={serviceHref(svc)} className="min-w-0 group rounded-2xl border border-slate-200 bg-white overflow-hidden">
@@ -957,7 +983,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             {/* See more → full services category page (plain link, no dropdown) */}
             <Link
               href="/services"
-              className="mt-4 w-full py-2.5 rounded-xl border border-slate-200 text-primary-maroon font-bold text-xs hover:bg-rose-50/50 transition-colors flex justify-center items-center cursor-pointer shadow-2xs"
+              className="md:hidden mt-4 w-full py-2.5 rounded-xl border border-slate-200 text-primary-maroon font-bold text-xs hover:bg-rose-50/50 transition-colors flex justify-center items-center cursor-pointer shadow-2xs"
             >
               <span>See more</span>
             </Link>

@@ -335,8 +335,8 @@ export default function Home({
     [videos]
   );
 
-  // 3 videos collapsed, "See More" adds 4 more (7 total), "See Less" collapses back.
-  const displayedVideos = isVideosExpanded ? videoGalleryItems.slice(0, 7) : videoGalleryItems.slice(0, 3);
+  // 3 videos collapsed, "See More" adds 6 more (9 total), "See Less" collapses back.
+  const displayedVideos = isVideosExpanded ? videoGalleryItems.slice(0, 9) : videoGalleryItems.slice(0, 3);
 
   // Keyboard navigation for image lightbox
   useEffect(() => {
@@ -1214,7 +1214,7 @@ export default function Home({
 
         {/* ========================================== */}
         {/* VIDEO GALLERY */}
-        {/* 3 videos collapsed (all breakpoints), See More adds 4 more (7 total) */}
+        {/* 3 videos collapsed (all breakpoints), See More adds 6 more (9 total) */}
         {/* ========================================== */}
         {videoGalleryItems.length > 0 && (
         <section id="video-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
