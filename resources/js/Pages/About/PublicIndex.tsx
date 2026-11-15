@@ -9,7 +9,7 @@ import { HOTLINE_DISPLAY, HOTLINE_TEL } from "@/utils/contact";
 import { 
   Play, Eye, Target, ShieldCheck, Zap, Check, Clock, Shield, 
   Phone, MapPin, Calendar, ChevronRight, Star, Award, Sparkles, 
-  Users, ArrowRight, X, ExternalLink, CheckCircle2, HeartHandshake,
+  Users, ArrowRight, ExternalLink, CheckCircle2, HeartHandshake,
   Smile, Activity, PhoneCall
 } from 'lucide-react';
 import { PageProps } from '@inertiajs/core';
@@ -80,13 +80,25 @@ const TECH_CONFIG = [
   },
 ];
 
+const FALLBACK_VIDEO_ID = 'Q76bTWRCEMo';
+
+/** Extract the 11-char YouTube id from any common link shape (youtu.be, watch?v=, /embed/, /shorts/). */
+const youTubeIdFrom = (url?: string): string => {
+  if (!url) return FALLBACK_VIDEO_ID;
+  const match = url.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/);
+  return match ? match[1] : FALLBACK_VIDEO_ID;
+};
+
 export default function AboutPublicIndex({ content, doctors = [], management = [], locations = [], nav_menu }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
   const [isBranchPickerOpen, setIsBranchPickerOpen] = useState(false);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   if (!content) return null;
+
+  const videoId = youTubeIdFrom(content.video_url);
+  const videoPoster = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
 
   const storyParagraphs = (content.story_p1 + (content.story_p2 ? '\n\n' + content.story_p2 : '')).split('\n\n').filter(Boolean);
   const displayDoctors = doctors.length > 0 ? doctors.slice(0, 8) : [];
@@ -193,36 +205,55 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
       <section className="py-16 md:py-24 px-4 sm:px-8 md:px-14 lg:px-20 xl:px-28 w-full bg-white">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           
-          {/* Left: Video / Clinic Preview Card */}
-          <div className="w-full lg:w-1/2 relative group rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
-            <img
-              src={content.video_thumb || "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=80"}
-              alt="Tech Dental Happy Patients"
-              className="w-full h-[320px] sm:h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-black/30 to-transparent flex flex-col justify-between p-6">
-              <div className="flex items-center gap-2">
-                <span className="bg-[#800038] text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                  Clinic Tour & Patient Experience
-                </span>
+          {/* Left: Video / Clinic Preview Card — plays inline, no popup */}
+          <div className="w-full lg:w-1/2 relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-black">
+            {isVideoPlaying ? (
+              <div className="relative w-full h-[320px] sm:h-[420px] bg-black">
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1`}
+                  title="Tech Dental Clinic Tour Video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
               </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsVideoPlaying(true)}
+                className="group relative block w-full text-left cursor-pointer"
+                aria-label="Play Tech Dental clinic tour video"
+              >
+                <img
+                  src={videoPoster}
+                  onError={(e) => {
+                    const img = e.currentTarget as HTMLImageElement;
+                    img.onerror = null;
+                    img.src = content.video_thumb || 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=80';
+                  }}
+                  alt="Tech Dental clinic tour video thumbnail"
+                  className="w-full h-[320px] sm:h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-black/30 to-transparent flex flex-col justify-between p-6">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-[#800038] text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                      Clinic Tour & Patient Experience
+                    </span>
+                  </div>
 
-              <div className="flex items-center justify-center my-auto">
-                <button
-                  type="button"
-                  onClick={() => setIsVideoModalOpen(true)}
-                  className="w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all duration-300 cursor-pointer group/btn"
-                  title="Play Clinic Tour Video"
-                >
-                  <Play size={32} className="ml-1 text-white fill-white group-hover/btn:animate-pulse" />
-                </button>
-              </div>
+                  <div className="flex items-center justify-center my-auto">
+                    <span className="w-20 h-20 rounded-full bg-rose-600 group-hover:bg-rose-700 text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-300">
+                      <Play size={32} className="ml-1 text-white fill-white group-hover:animate-pulse" />
+                    </span>
+                  </div>
 
-              <div className="text-white">
-                <p className="text-xs text-rose-200 font-medium">Inside Tech Dental Experience</p>
-                <h4 className="text-lg font-bold text-white">Advanced Sterile Operatories & Comfort Lounges</h4>
-              </div>
-            </div>
+                  <div className="text-white">
+                    <p className="text-xs text-rose-200 font-medium">Inside Tech Dental Experience</p>
+                    <h4 className="text-lg font-bold text-white">Advanced Sterile Operatories & Comfort Lounges</h4>
+                  </div>
+                </div>
+              </button>
+            )}
           </div>
 
           {/* Right: Story Content */}
@@ -651,33 +682,6 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
           selectedBranch={selectedBranch}
           onSelectBranch={setSelectedBranch}
         />
-      )}
-
-      {/* Video Lightbox Modal */}
-      {isVideoModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/20">
-            <div className="p-4 bg-slate-900 flex items-center justify-between text-white border-b border-slate-800">
-              <span className="text-xs font-bold uppercase tracking-wider">Tech Dental Clinic Experience Tour</span>
-              <button 
-                type="button" 
-                onClick={() => setIsVideoModalOpen(false)}
-                className="p-1 hover:bg-white/10 rounded-lg transition cursor-pointer"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="aspect-video w-full bg-black flex items-center justify-center">
-              <iframe
-                className="w-full h-full"
-                src="https://www.youtube-nocookie.com/embed/lYah5-xEeck?autoplay=1"
-                title="Tech Dental Experience"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Unified Global Footer (CTA strip hidden on About page to prevent duplicate CTA banner) */}

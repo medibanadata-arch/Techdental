@@ -173,7 +173,7 @@ export default function Home({
 
   // Gallery & Video Preview State
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
-  const [previewVideo, setPreviewVideo] = useState<{ videoId: string; title?: string; branch?: string } | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<string | number | null>(null);
   const [isVideosExpanded, setIsVideosExpanded] = useState(false);
 
   // Modal State for external actions
@@ -1227,28 +1227,60 @@ export default function Home({
 
           {/* 3 videos initially on every breakpoint (1 col mobile, 2 sm, 3 md) -> 7 when expanded */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4">
-            {displayedVideos.map((item, idx) => (
-              <div
-                key={item.id || idx}
-                onClick={() => setPreviewVideo({ videoId: item.videoId, title: item.title, branch: item.branch })}
-                className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-video group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
-                title={copy.video_click_title}
-              >
-                <img
-                  src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100 pointer-events-none"
-                  loading="lazy"
-                />
+            {displayedVideos.map((item, idx) => {
+              const videoKey = item.id || item.videoId || idx;
+              const isPlaying = playingVideo === videoKey;
+              return (
+                <div
+                  key={videoKey}
+                  className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-video group transition-all duration-300 ${
+                    isPlaying ? "z-10 shadow-lg" : "cursor-pointer hover:shadow-md hover:-translate-y-0.5"
+                  }`}
+                >
+                  {isPlaying ? (
+                    <>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${item.videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                        title={item.title || "Tech Dental Video"}
+                        className="absolute inset-0 w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPlayingVideo(null)}
+                        className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center backdrop-blur-sm transition cursor-pointer"
+                        title="বন্ধ করুন"
+                      >
+                        <i className="fa-solid fa-xmark text-sm" />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPlayingVideo(videoKey)}
+                      className="absolute inset-0 w-full h-full text-left cursor-pointer"
+                      title={copy.video_click_title}
+                      aria-label={`Play ${item.title || "video"}`}
+                    >
+                      <img
+                        src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                        loading="lazy"
+                      />
 
-                {/* Center Red Play Button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-red-600/95 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-600 transition-all">
-                    <i className="fa-solid fa-play text-sm translate-x-0.5" />
-                  </div>
+                      {/* Center Red Play Button */}
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <span className="w-12 h-12 rounded-full bg-red-600/95 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-600 transition-all">
+                          <i className="fa-solid fa-play text-sm translate-x-0.5" />
+                        </span>
+                      </span>
+                    </button>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Button(s) Area */}
@@ -1268,6 +1300,7 @@ export default function Home({
                   type="button"
                   onClick={() => {
                     setIsVideosExpanded(false);
+                    setPlayingVideo(null);
                     setTimeout(() => {
                       document.getElementById('video-gallery-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }, 50);
@@ -1516,37 +1549,6 @@ export default function Home({
                 {previewImage.index + 1} / {galleryItems.length}
               </span>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* FULLSCREEN VIDEO MODAL */}
-      {previewVideo && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fade-in"
-          onClick={() => setPreviewVideo(null)}
-        >
-          {/* Close button */}
-          <button
-            type="button"
-            onClick={() => setPreviewVideo(null)}
-            className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
-            title="বন্ধ করুন (Esc)"
-          >
-            <i className="fa-solid fa-xmark text-xl" />
-          </button>
-
-          <div
-            className="relative w-full max-w-3xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <iframe
-              src={`https://www.youtube.com/embed/${previewVideo.videoId}?autoplay=1&rel=0&modestbranding=1`}
-              title={previewVideo.title || "Tech Dental Video"}
-              className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
           </div>
         </div>
       )}
