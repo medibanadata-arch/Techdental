@@ -35,6 +35,7 @@ import RichContentEditor from '@/Components/RichContentEditor';
 import ImageCropperModal from '@/Components/ImagePicker/ImageCropperModal';
 import MediaLibraryModal from '@/Components/ImagePicker/MediaLibraryModal';
 import { PageProps } from '@inertiajs/core';
+import { MILESTONE_ICON_OPTIONS, inferMilestoneIcon, milestoneIconFor } from '@/utils/milestoneIcons';
 
 interface Doctor {
     id: number;
@@ -67,28 +68,30 @@ interface Doctor {
     schema_type?: string;
     schema_json?: string;
     faqs?: { q: string; a: string }[];
-    milestones?: { count: string; label: string; color: string }[];
+    milestones?: { count: string; label: string; color: string; icon?: string }[];
 }
 
 const DEFAULT_DOCTOR_MILESTONES = [
-    { count: '830+', label: 'Painless Child Treatments', color: 'pink' },
-    { count: '750+', label: 'Rotary Root Canals', color: 'emerald' },
-    { count: '1,200+', label: 'Ultrasonic Scaling Sessions', color: 'sky' },
-    { count: '460+', label: 'Pediatric Stainless Crowns', color: 'amber' },
-    { count: '340+', label: 'Space Maintainers & Habits', color: 'purple' },
-    { count: '620+', label: 'Aesthetic Restorations', color: 'teal' },
+    { count: '830+', label: 'Painless Child Treatments', color: 'pink', icon: 'child' },
+    { count: '750+', label: 'Rotary Root Canals', color: 'emerald', icon: 'syringe' },
+    { count: '1,200+', label: 'Ultrasonic Scaling Sessions', color: 'sky', icon: 'droplet' },
+    { count: '460+', label: 'Pediatric Stainless Crowns', color: 'amber', icon: 'crown' },
+    { count: '340+', label: 'Space Maintainers & Habits', color: 'purple', icon: 'shield' },
+    { count: '620+', label: 'Aesthetic Restorations', color: 'teal', icon: 'tooth' },
 ];
 
-const parseDoctorMilestones = (raw: any): { count: string; label: string; color: string }[] => {
-    if (!raw) return DEFAULT_DOCTOR_MILESTONES;
-    if (Array.isArray(raw) && raw.length > 0) return raw;
+const parseDoctorMilestones = (raw: any): { count: string; label: string; color: string; icon?: string }[] => {
+    const withIcons = (list: any[]) =>
+        list.map((ms) => ({ ...ms, icon: ms?.icon || inferMilestoneIcon(ms?.label) }));
+    if (!raw) return withIcons(DEFAULT_DOCTOR_MILESTONES);
+    if (Array.isArray(raw)) return withIcons(raw);
     if (typeof raw === 'string') {
         try {
             const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            if (Array.isArray(parsed)) return withIcons(parsed);
         } catch {}
     }
-    return DEFAULT_DOCTOR_MILESTONES;
+    return withIcons(DEFAULT_DOCTOR_MILESTONES);
 };
 
 interface DoctorSettingData {
@@ -346,6 +349,31 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
             d.bmdc?.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [doctorList, searchQuery]);
+
+    // Doctor milestone cards: add / remove / edit as many as needed
+    const milestoneCards = editForm.milestones || DEFAULT_DOCTOR_MILESTONES;
+    const milestoneColors = ['pink', 'emerald', 'sky', 'amber', 'purple', 'teal'];
+
+    const updateMilestone = (index: number, patch: { count?: string; label?: string; color?: string; icon?: string }) => {
+        const list = [...milestoneCards];
+        list[index] = { ...list[index], ...patch };
+        setEditForm({ ...editForm, milestones: list });
+    };
+
+    const addMilestoneCard = () => {
+        const list = [...milestoneCards];
+        list.push({
+            count: '',
+            label: '',
+            color: milestoneColors[list.length % milestoneColors.length],
+        });
+        setEditForm({ ...editForm, milestones: list });
+    };
+
+    const removeMilestoneCard = (index: number) => {
+        const list = milestoneCards.filter((_, i) => i !== index);
+        setEditForm({ ...editForm, milestones: list });
+    };
 
     return (
         <AdminLayout>
@@ -855,88 +883,115 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                 </div>
                             </div>
 
-                            {/* Section: 6 Doctor Performance Milestone Cards */}
+                            {/* Section: Doctor Performance Milestone Cards (dynamic list) */}
                             <div className="lg:col-span-3 bg-white p-6 rounded-2xl border border-gray-200 shadow-2xs space-y-4">
-                                <div className="border-b border-gray-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div className="border-b border-gray-100 pb-3 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                                     <div>
                                         <h3 className="text-sm font-extrabold text-gray-900 flex items-center gap-2">
                                             <Award size={16} className="text-[#800038]" />
-                                            Doctor Milestones &amp; Treatment Stats (6 Public Cards)
+                                            Doctor Milestones &amp; Treatment Stats ({milestoneCards.length} Public Cards)
                                         </h3>
                                         <p className="text-xs text-gray-500">
-                                            These 6 milestone cards are displayed prominently on the doctor's single profile page.
+                                            These cards are displayed on the doctor's single profile page. Add as many as needed — the public grid balances its rows automatically.
                                         </p>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={addMilestoneCard}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#800038] hover:bg-[#5f002a] rounded-lg transition shrink-0 cursor-pointer"
+                                    >
+                                        <Plus size={13} /> Add Card
+                                    </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {(editForm.milestones || DEFAULT_DOCTOR_MILESTONES).slice(0, 6).map((ms, index) => {
-                                        const colorOptions = [
-                                            { value: 'pink', label: 'Pink' },
-                                            { value: 'emerald', label: 'Emerald' },
-                                            { value: 'sky', label: 'Sky' },
-                                            { value: 'amber', label: 'Amber' },
-                                            { value: 'purple', label: 'Purple' },
-                                            { value: 'teal', label: 'Teal' },
-                                        ];
-                                        return (
-                                            <div key={index} className="bg-gray-50/70 border border-gray-200 rounded-xl p-3.5 space-y-2.5">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                                                        Card #{index + 1}
-                                                    </span>
-                                                    <select
-                                                        value={ms.color || colorOptions[index % colorOptions.length].value}
-                                                        onChange={(e) => {
-                                                            const updated = [...(editForm.milestones || DEFAULT_DOCTOR_MILESTONES)];
-                                                            updated[index] = { ...updated[index], color: e.target.value };
-                                                            setEditForm({ ...editForm, milestones: updated });
-                                                        }}
-                                                        className="text-[10px] font-semibold px-2 py-0.5 rounded-lg border border-gray-200 bg-white"
-                                                    >
-                                                        {colorOptions.map(c => (
-                                                            <option key={c.value} value={c.value}>{c.label}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
+                                {milestoneCards.length === 0 ? (
+                                    <div className="text-center py-10 border border-dashed border-gray-200 rounded-xl">
+                                        <p className="text-xs text-gray-500 mb-3">
+                                            No milestone cards yet. Add your first treatment stat to show it on the public profile.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={addMilestoneCard}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#800038] bg-rose-50 hover:bg-rose-100 rounded-lg transition cursor-pointer"
+                                        >
+                                            <Plus size={13} /> Add Card
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                        {milestoneCards.map((ms, index) => {
+                                            const activeIcon = ms.icon || inferMilestoneIcon(ms.label);
+                                            return (
+                                                <div key={index} className="bg-gray-50/70 border border-gray-200 rounded-xl p-3.5 space-y-2.5">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                                            <span className="w-6 h-6 rounded-lg bg-white border border-gray-200 text-[#800038] flex items-center justify-center text-[11px]">
+                                                                <i className={milestoneIconFor(activeIcon, ms.label)}></i>
+                                                            </span>
+                                                            Card #{index + 1}
+                                                        </span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <select
+                                                                value={activeIcon}
+                                                                onChange={(e) => updateMilestone(index, { icon: e.target.value })}
+                                                                className="text-[10px] font-semibold px-2 py-1 rounded-lg border border-gray-200 bg-white max-w-[130px]"
+                                                                title="Icon shown on this card"
+                                                            >
+                                                                {MILESTONE_ICON_OPTIONS.map((opt) => (
+                                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                                ))}
+                                                            </select>
+                                                            <select
+                                                                value={ms.color || milestoneColors[index % milestoneColors.length]}
+                                                                onChange={(e) => updateMilestone(index, { color: e.target.value })}
+                                                                className="text-[10px] font-semibold px-2 py-1 rounded-lg border border-gray-200 bg-white"
+                                                                title="Colour theme"
+                                                            >
+                                                                {milestoneColors.map((c) => (
+                                                                    <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                                                                ))}
+                                                            </select>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeMilestoneCard(index)}
+                                                                className="w-6 h-6 flex items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition cursor-pointer"
+                                                                title="Remove this card"
+                                                            >
+                                                                <X size={12} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
 
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-gray-600 mb-1">
-                                                        Count / Stat (e.g. 830+)
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={ms.count}
-                                                        onChange={(e) => {
-                                                            const updated = [...(editForm.milestones || DEFAULT_DOCTOR_MILESTONES)];
-                                                            updated[index] = { ...updated[index], count: e.target.value };
-                                                            setEditForm({ ...editForm, milestones: updated });
-                                                        }}
-                                                        className="w-full px-2.5 py-1.5 text-xs font-bold border border-gray-200 rounded-lg bg-white"
-                                                        placeholder="e.g. 830+"
-                                                    />
-                                                </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                                                            Count / Stat (e.g. 830+)
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={ms.count}
+                                                            onChange={(e) => updateMilestone(index, { count: e.target.value })}
+                                                            className="w-full px-2.5 py-1.5 text-xs font-bold border border-gray-200 rounded-lg bg-white"
+                                                            placeholder="e.g. 830+"
+                                                        />
+                                                    </div>
 
-                                                <div>
-                                                    <label className="block text-[10px] font-bold text-gray-600 mb-1">
-                                                        Treatment Label
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={ms.label}
-                                                        onChange={(e) => {
-                                                            const updated = [...(editForm.milestones || DEFAULT_DOCTOR_MILESTONES)];
-                                                            updated[index] = { ...updated[index], label: e.target.value };
-                                                            setEditForm({ ...editForm, milestones: updated });
-                                                        }}
-                                                        className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white"
-                                                        placeholder="e.g. Painless Child Treatments"
-                                                    />
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                                                            Treatment Label
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={ms.label}
+                                                            onChange={(e) => updateMilestone(index, { label: e.target.value })}
+                                                            className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white"
+                                                            placeholder="e.g. Painless Child Treatments"
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Section: Single Doctor Expandable Drawer Content (Rich HTML & Headings) */}

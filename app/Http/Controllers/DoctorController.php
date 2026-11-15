@@ -159,6 +159,7 @@ class DoctorController extends Controller
             'milestones.*.count' => 'nullable|string|max:50',
             'milestones.*.label' => 'nullable|string|max:150',
             'milestones.*.color' => 'nullable|string|max:50',
+            'milestones.*.icon' => 'nullable|string|max:50',
             'seo_title' => 'nullable|string|max:255',
             'seo_content' => 'nullable|string',
             'meta_desc' => 'nullable|string',

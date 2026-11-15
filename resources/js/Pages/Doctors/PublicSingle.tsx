@@ -6,11 +6,13 @@ import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { PageProps } from '@inertiajs/core';
 import { getWebsiteTexts } from '@/data/websiteTexts';
+import { assignMilestoneIcons, milestoneIconClass } from '@/utils/milestoneIcons';
 
 interface Milestone {
   count: string;
   label: string;
   color: string;
+  icon?: string;
 }
 
 interface DoctorItem {
@@ -122,10 +124,25 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
 
   const milestones = useMemo(() => {
     if (item?.milestones !== undefined && item?.milestones !== null) {
-      return parseMilestones(item.milestones);
+      return parseMilestones(item.milestones).filter((ms) => ms && (ms.count || ms.label));
     }
     return DEFAULT_MILESTONES;
   }, [item?.milestones]);
+
+  /**
+   * Pick 3 or 4 columns so the last row stays as full as possible
+   * (e.g. 5 cards -> 3+2, 7 cards -> 4+3) instead of leaving empty slots.
+   */
+  const milestoneCols = useMemo(() => {
+    const n = milestones.length;
+    if (n <= 3) return Math.max(n, 1);
+    const rem3 = n % 3 === 0 ? 3 : n % 3;
+    const rem4 = n % 4 === 0 ? 4 : n % 4;
+    return rem4 >= rem3 ? 4 : 3;
+  }, [milestones.length]);
+
+  // One distinct, label-related icon per card
+  const milestoneIcons = useMemo(() => assignMilestoneIcons(milestones), [milestones]);
 
   const degreeLines = useMemo(() => splitDegree(item?.deg), [item?.deg]);
 
@@ -309,13 +326,18 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
           {/* Clinical Milestones */}
           {milestones.length > 0 && (
             <section className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 sm:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+              <style>{`
+                .ms-grid { display: flex; flex-wrap: wrap; gap: 14px; }
+                .ms-grid > .ms-card { flex: 1 1 calc(50% - 14px); min-width: 0; }
+                @media (min-width: 768px) { .ms-grid > .ms-card { flex-basis: calc(${(100 / milestoneCols).toFixed(4)}% - 14px); } }
+              `}</style>
+              <div className="ms-grid">
                 {milestones.map((ms, i) => {
                   const style = MILESTONE_STYLE[ms.color] || MILESTONE_STYLE.pink;
                   return (
-                    <div key={i} className={`bg-white border border-slate-200/70 rounded-xl p-3.5 flex items-center gap-3.5 shadow-xs transition-all ${style.hover}`}>
+                    <div key={i} className={`ms-card bg-white border border-slate-200/70 rounded-xl p-3.5 flex items-center gap-3.5 shadow-xs transition-all ${style.hover}`}>
                       <div className={`w-11 h-11 rounded-xl ${style.box} flex items-center justify-center text-base flex-shrink-0`}>
-                        <i className={style.icon}></i>
+                        <i className={milestoneIconClass(milestoneIcons[i] || ms.icon)}></i>
                       </div>
                       <div className="min-w-0">
                         <div className="text-lg font-extrabold text-slate-900 leading-tight">{ms.count}</div>
