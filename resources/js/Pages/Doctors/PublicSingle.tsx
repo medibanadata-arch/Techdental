@@ -328,7 +328,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
             <section className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 sm:p-6">
               <style>{`
                 .ms-grid { display: flex; flex-wrap: wrap; gap: 14px; }
-                .ms-grid > .ms-card { flex: 1 1 calc(50% - 14px); min-width: 0; }
+                .ms-grid > .ms-card { flex: 1 1 100%; min-width: 0; }
                 @media (min-width: 768px) { .ms-grid > .ms-card { flex-basis: calc(${(100 / milestoneCols).toFixed(4)}% - 14px); } }
               `}</style>
               <div className="ms-grid">
