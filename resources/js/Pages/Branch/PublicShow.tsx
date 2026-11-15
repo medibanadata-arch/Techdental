@@ -7,8 +7,6 @@ import { PageProps } from '@inertiajs/core';
 import { getBranchStatus, parseAllBranchShifts } from "@/utils/branchStatus";
 import { HOTLINE, WHATSAPP, buildWhatsAppUrl } from "@/utils/contact";
 import {
-  Phone,
-  Send,
   CalendarCheck,
   Clock,
   MapPin,
@@ -532,60 +530,67 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             letter-spacing: -.01em;
             color: #1B1620;
           }
-          .bs-acts {
+          .bs-actions {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+          }
+          .bs-actions > li { display: contents; }
+          .bs-act {
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
-            margin: 20px auto 0;
-            width: 100%;
-            max-width: 340px;
-          }
-          .bs-circ {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
+            height: 52px;
+            padding: 0 24px;
+            border-radius: 16px;
+            border: 1px solid #E3DDE0;
             background: #fff;
-            display: grid;
-            place-items: center;
+            color: #1B1B22;
+            font: 500 15px/1 Inter, system-ui, sans-serif;
+            letter-spacing: .1px;
+            text-decoration: none;
+            cursor: pointer;
+            white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
+          }
+          .bs-act svg {
+            width: 20px;
+            height: 20px;
             flex: none;
-            color: #1B1620;
-            border: 1px solid rgba(27, 22, 32, .06);
-            box-shadow: 0 2px 8px rgba(27, 22, 32, .08);
-            transition: transform .15s, box-shadow .15s, background .15s;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
           }
-          .bs-circ:hover {
-            background: #FCFAFB;
-            box-shadow: 0 4px 12px rgba(27, 22, 32, .14);
-            transform: translateY(-1px);
-          }
-          .bs-circ.w {
-            color: #12703C;
-          }
-          .bs-circ.w:hover {
-            background: #F4FBF6;
-          }
-          .bs-book {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #fff;
-            color: #8A1538;
-            display: grid;
-            place-items: center;
-            flex: none;
-            border: 1px solid rgba(138, 21, 56, .10);
-            box-shadow: 0 2px 8px rgba(27, 22, 32, .08);
-            transition: transform .15s, box-shadow .15s, background .15s;
-          }
-          .bs-book:hover {
-            background: #FDF7F9;
-            box-shadow: 0 4px 12px rgba(27, 22, 32, .14);
-            transform: translateY(-1px);
-          }
-          .bs-circ:active,
-          .bs-book:active {
-            transform: scale(.94);
+          .bs-act:hover { transform: translateY(-1px); border-color: #8B1538; color: #8B1538; }
+          .bs-act:active { transform: scale(.97); }
+          .bs-act:focus-visible { outline: 2px solid #8B1538; outline-offset: 3px; }
+          .bs-act.wa svg { color: #25D366; }
+          .bs-act.wa:hover svg { color: #25D366; }
+          .bs-act.wa:hover { border-color: #25D366; color: #128C4A; }
+          .bs-act svg.fill { fill: currentColor; stroke: none; }
+          .bs-act.book { background: #8B1538; border-color: #8B1538; color: #fff; }
+          .bs-act.book:hover { background: #6E102C; border-color: #6E102C; color: #fff; }
+          @media (max-width: 640px) {
+            .bs-actions { gap: 10px; }
+            .bs-act { flex: 1 1 0; min-width: 0; padding: 0; }
+            .bs-act .bs-act-label {
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              margin: -1px;
+              padding: 0;
+              overflow: hidden;
+              clip: rect(0 0 0 0);
+              white-space: nowrap;
+              border: 0;
+            }
           }
           .bs-list {
             list-style: none;
@@ -677,12 +682,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               max-width: none;
               justify-self: stretch;
             }
-            .bs-acts {
-              margin-top: 26px;
-              margin-left: 0;
-              margin-right: 0;
-              max-width: 360px;
-            }
+            .bs-actions { margin-top: 26px; }
             .bs-nav.p { left: 18px; }
             .bs-nav.n { right: 18px; }
           }
@@ -692,8 +692,6 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           }
           @media (max-width: 480px) {
             .bs-info { margin-top: 20px; }
-            .bs-acts { gap: 8px; max-width: 320px; }
-            .bs-circ, .bs-book { width: 46px; height: 46px; }
             .bs-shift { padding: 5px 9px; }
             .bs-shift strong { font-size: 13px; }
           }
@@ -748,22 +746,32 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
             <h1 className="bs-h1">{branch?.short_name || branch?.name || `${cleanBranch} Branch`}</h1>
 
-            <div className="bs-acts">
-              <a className="bs-circ" href={`tel:${hotline}`} aria-label={callLabel} title={callLabel}>
-                <Phone size={21} strokeWidth={2} />
-              </a>
-              <a className="bs-circ" href={mapUrl} target="_blank" rel="noopener noreferrer" aria-label={directionsLabel} title={directionsLabel}>
-                <Send size={21} strokeWidth={2} />
-              </a>
-              <a className="bs-circ w" href={waUrl} target="_blank" rel="noopener noreferrer" aria-label={whatsappLabel} title={whatsappLabel}>
-                <svg className="w-[24px] h-[24px] fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.983zm11.455-7.394c-.068-.113-.25-.181-.524-.318-.274-.137-1.62-.8-1.871-.891-.25-.092-.432-.137-.614.137-.182.274-.707.891-.866 1.073-.16.182-.319.205-.593.068-.274-.137-1.157-.426-2.203-1.359-.815-.726-1.365-1.623-1.524-1.897-.16-.274-.017-.422.12-.559.123-.122.274-.319.41-.478.137-.16.182-.274.274-.457.091-.182.046-.342-.023-.478-.068-.137-.614-1.482-.841-2.031-.222-.535-.447-.462-.614-.471l-.524-.01c-.182 0-.478.068-.729.342-.25.274-.956.935-.956 2.28 0 1.345.979 2.645 1.116 2.828.137.182 1.928 2.943 4.671 4.128 2.743 1.185 2.743.79 3.245.744.502-.046 1.62-.662 1.848-1.3.228-.639.228-1.186.16-1.301z" />
-                </svg>
-              </a>
-              <Link href={bookingUrl} className="bs-book" aria-label={bookLabel} title={bookLabel}>
-                <CalendarCheck size={21} strokeWidth={2} />
-              </Link>
-            </div>
+            <ul className="bs-actions">
+              <li>
+                <a className="bs-act" href={`tel:${hotline}`} aria-label={callLabel} title={callLabel}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
+                  <span className="bs-act-label">{callLabel}</span>
+                </a>
+              </li>
+              <li>
+                <a className="bs-act" href={mapUrl} target="_blank" rel="noopener noreferrer" aria-label={directionsLabel} title={directionsLabel}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8-8-2z" /></svg>
+                  <span className="bs-act-label">{directionsLabel}</span>
+                </a>
+              </li>
+              <li>
+                <a className="bs-act wa" href={waUrl} target="_blank" rel="noopener noreferrer" aria-label={whatsappLabel} title={whatsappLabel}>
+                  <svg className="fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" /></svg>
+                  <span className="bs-act-label">{whatsappLabel}</span>
+                </a>
+              </li>
+              <li>
+                <Link href={bookingUrl} className="bs-act book" aria-label={bookLabel} title={bookLabel}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3" /><path d="M8 2v4M16 2v4M3 10h18M9 15l2 2 4-4" /></svg>
+                  <span className="bs-act-label">{bookLabel}</span>
+                </Link>
+              </li>
+            </ul>
 
             <ul className="bs-list">
               <li>
@@ -1023,11 +1031,21 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
               </div>
             </div>
 
-            {/* Testimonial Quote Box with left rounded red/maroon accent */}
-            <div className="bg-[#f8fafc] rounded-2xl p-4 sm:p-5 my-4 border-l-4 border-[#d62858]">
-              <p className="italic text-slate-700 text-[13.5px] sm:text-[14.5px] leading-relaxed">
-                "{branch?.reviews_text || 'Extremely gentle and painless treatment! The doctors explained every procedure clearly, and the clinic environment was spotless and reassuring.'}"
-              </p>
+            {/* Testimonial Quotes: one on mobile, two side by side (with a gap) on web */}
+            <div className="grid md:grid-cols-2 gap-4 md:gap-6 my-4">
+              {[
+                branch?.reviews_text || 'Extremely gentle and painless treatment! The doctors explained every procedure clearly, and the clinic environment was spotless and reassuring.',
+                'The doctors are very professional and the clinic is spotless. I got my braces treatment here and the follow-up care was excellent. Highly recommended!',
+              ].map((text, i) => (
+                <div
+                  key={i}
+                  className={`bg-[#f8fafc] rounded-2xl p-4 sm:p-5 border-l-4 border-[#d62858] ${i === 1 ? 'hidden md:block' : ''}`}
+                >
+                  <p className="italic text-slate-700 text-[13.5px] sm:text-[14.5px] leading-relaxed">
+                    "{text}"
+                  </p>
+                </div>
+              ))}
             </div>
 
             {/* See All Google Reviews Button */}
