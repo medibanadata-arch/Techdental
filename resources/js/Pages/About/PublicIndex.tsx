@@ -142,11 +142,6 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
             <ChevronRight size={13} className="text-slate-400" />
             <span className="font-bold text-slate-800">{content.hero_title || 'About Tech Dental Care'}</span>
           </div>
-
-          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200/60">
-            <ShieldCheck size={14} className="text-rose-600" />
-            <span>Govt. Approved & BMDC Certified Clinic</span>
-          </div>
         </div>
       </div>
 
@@ -571,7 +566,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
             Experienced healthcare leaders committed to ethical dentistry and continuous innovation.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {(management.length > 0 ? management : []).map((member) => {
               const memberSlug = (member.name || '')
                 .toLowerCase()
