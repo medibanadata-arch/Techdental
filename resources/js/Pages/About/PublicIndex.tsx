@@ -561,11 +561,11 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
               Setting new benchmarks in modern oral healthcare with patient satisfaction and painless results.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex flex-wrap justify-center gap-8">
               {content.why_cards?.map((card, i) => (
                 <div 
                   key={i} 
-                  className="bg-white p-8 sm:p-10 rounded-3xl shadow-xs hover:shadow-lg transition-all border border-slate-200/80 flex flex-col items-center text-center"
+                  className="w-full md:w-[calc(50%_-_1rem)] bg-white p-8 sm:p-10 rounded-3xl shadow-xs hover:shadow-lg transition-all border border-slate-200/80 flex flex-col items-center text-center"
                 >
                   <div className="w-32 h-32 rounded-full overflow-hidden mb-6 border-4 border-rose-50 shadow-md">
                     <img 
