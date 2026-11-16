@@ -175,6 +175,16 @@ export default function Home({
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | number | null>(null);
   const [isVideosExpanded, setIsVideosExpanded] = useState(false);
+  // Mobile (<768px) expands to 7 videos, desktop to 9.
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobileViewport(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   // Modal State for external actions
   const [modal, setModal] = useState<ModalState>({
@@ -335,8 +345,9 @@ export default function Home({
     [videos]
   );
 
-  // 3 videos collapsed, "See More" adds 6 more (9 total), "See Less" collapses back.
-  const displayedVideos = isVideosExpanded ? videoGalleryItems.slice(0, 9) : videoGalleryItems.slice(0, 3);
+  // 3 videos collapsed; "See More" adds 4 more on mobile (7 total) and 6 more on desktop (9 total).
+  const expandedVideoCount = isMobileViewport ? 7 : 9;
+  const displayedVideos = videoGalleryItems.slice(0, isVideosExpanded ? expandedVideoCount : 3);
 
   // Keyboard navigation for image lightbox
   useEffect(() => {
