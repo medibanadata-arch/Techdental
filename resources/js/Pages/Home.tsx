@@ -679,10 +679,13 @@ export default function Home({
 
   const handleChatBookingTurn = async (query: string, userMsgId: string): Promise<boolean> => {
     const bookingIntent = /(বুকিং|বুক\s*করা|বুক\s*কর|বুক\s*কর্তে|বুক\s*করে|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল|book|bok|buk|buke|booking|appoint|serial|sirial|srial)/i.test(query);
+    // Only start the in-chat booking flow when the patient explicitly asks to book HERE in the chat.
+    const wantsBookingAction = bookingIntent || /(করতে\s*চাই|নিতে\s*চাই|নিব|করব|korte\s*chai|nite\s*chai|korbo|lagbe|লাগবে)/i.test(query);
+    const chatBookingIntent = wantsBookingAction && /(chat|চ্যাট|এখানে|এখানেই|এখান\s*থেকে|ekhane|ekhanei|ikhane|eikhane|eikhanei)/i.test(query);
     const cancelIntent = /(বাতিল|cancel|থাক\s*না)/i.test(query);
     const looksLikeQuestion = /[?？]|কত|কোথায়|কখন|কেন|কী|কি\s*$|কিভাবে|কীভাবে/.test(query);
 
-    if (!bookingDraft && !bookingIntent) return false;
+    if (!bookingDraft && !chatBookingIntent) return false;
 
     if (bookingDraft && cancelIntent) {
       setBookingDraft(null);
