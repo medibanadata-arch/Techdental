@@ -787,6 +787,15 @@ export default function Home({
     );
 
     if (!bookingDraft && !chatBookingIntent && !looksLikeDetailsBundle && !(aiAskedForBooking && hasAnyBookingDetail)) {
+      // General booking request (e.g. "book korte chai") without an explicit in-chat request:
+      // answer deterministically with the hotline instead of letting the AI improvise.
+      if (bookingIntent) {
+        pushBookingReply(
+          'আপনি আমাদের হটলাইন 09638000505 নম্বরে কল করে সিরিয়াল নিতে পারবেন।',
+          userMsgId
+        );
+        return true;
+      }
       return false;
     }
 
