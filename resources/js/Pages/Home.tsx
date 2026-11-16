@@ -528,13 +528,13 @@ export default function Home({
   const parseBookingDate = (raw: string): string | null => {
     const t = bnToEn(raw).trim();
     const now = new Date();
-    if (/আজ|^aj$|today/i.test(t)) return formatIsoDate(now);
-    if (/আগামীকাল|^kal$|tomorrow/i.test(t)) {
+    if (/আজ|(^|\s)aj(\s|$)|today/i.test(t)) return formatIsoDate(now);
+    if (/আগামীকাল|agamikal|(^|\s)kal(\s|$)|tomorrow/i.test(t)) {
       const d = new Date(now);
       d.setDate(d.getDate() + 1);
       return formatIsoDate(d);
     }
-    if (/পরশু/.test(t)) {
+    if (/পরশু|porshu|(^|\s)parshu(\s|$)/i.test(t)) {
       const d = new Date(now);
       d.setDate(d.getDate() + 2);
       return formatIsoDate(d);
@@ -572,10 +572,10 @@ export default function Home({
       if (h >= 10 && h <= 12) return `${String(h).padStart(2, '0')}:00 AM`;
       if (h >= 13 && h <= 21) return `${String(h - 12).padStart(2, '0')}:00 PM`;
     }
-    if (/সকাল|morning/.test(t)) return '11:00 AM';
-    if (/দুপুর|noon/.test(t)) return '12:00 PM';
-    if (/বিকেল|বিকাল|সন্ধ্যা|evening|afternoon/.test(t)) return '05:00 PM';
-    if (/রাত|night/.test(t)) return '08:00 PM';
+    if (/সকাল|morning|sokal|shokal/.test(t)) return '11:00 AM';
+    if (/দুপুর|noon|dupur/.test(t)) return '12:00 PM';
+    if (/বিকেল|বিকাল|সন্ধ্যা|evening|afternoon|bikel|bikal|shondha|shondhe/.test(t)) return '05:00 PM';
+    if (/রাত|night|(^|\s)rat(\s|$)/.test(t)) return '08:00 PM';
     return null;
   };
 
@@ -678,7 +678,7 @@ export default function Home({
   };
 
   const handleChatBookingTurn = async (query: string, userMsgId: string): Promise<boolean> => {
-    const bookingIntent = /(বুকিং|বুক\s*করা|বুক\s*কর|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল\s*(নিতে|নিব|চাই)|book\s*(an?\s*)?appointment|booking)/i.test(query);
+    const bookingIntent = /(বুকিং|বুক\s*করা|বুক\s*কর|বুক\s*কর্তে|বুক\s*করে|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল|book|bok|buk|buke|booking|appoint|serial|sirial|srial)/i.test(query);
     const cancelIntent = /(বাতিল|cancel|থাক\s*না)/i.test(query);
     const looksLikeQuestion = /[?？]|কত|কোথায়|কখন|কেন|কী|কি\s*$|কিভাবে|কীভাবে/.test(query);
 
