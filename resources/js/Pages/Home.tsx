@@ -628,10 +628,10 @@ export default function Home({
 
   const parseBookingBranch = (raw: string): string | null => {
     const t = raw;
-    if (/mirpur|মিরপুর/i.test(t)) return 'Mirpur Branch';
-    if (/uttara|উত্তরা/i.test(t)) return 'Uttara Branch';
-    if (/badda|বাড্ডা/i.test(t)) return 'Badda Branch';
-    if (/jatrabari|যাত্রাবাড়ী|যাত্রাবাড়ী/i.test(t)) return 'Jatrabari Branch';
+    if (/mirpur|mipur|mearpur|মিরপুর/i.test(t)) return 'Mirpur Branch';
+    if (/uttara|uttora|utara|উত্তরা/i.test(t)) return 'Uttara Branch';
+    if (/badda|bada|badha|বাড্ডা/i.test(t)) return 'Badda Branch';
+    if (/jatrabari|jatra\s*bari|jattrabari|যাত্রাবাড়ী|যাত্রাবাড়ী/i.test(t)) return 'Jatrabari Branch';
     const loc = (locations || []).find((l: any) => {
       const n = String(l.short_name || l.name || '');
       if (!n) return false;
@@ -689,6 +689,8 @@ export default function Home({
     if (/\d/.test(first)) return null;
     if (/^(date|time|name|amar|ami|my|i|book|serial|appointment|mirpur|uttara|badda|jatrabari)$/i.test(first)) return null;
     if (parseBookingBranch(first) || parseBookingService(first)) return null;
+    // "kal asbo" / "bikel 5 ta" are scheduling answers, not names.
+    if (parseBookingDate(first) || parseBookingTime(first)) return null;
     return first;
   };
 
@@ -755,11 +757,38 @@ export default function Home({
     const parsedBranch = parseBookingBranch(query);
     const parsedService = parseBookingService(query);
     const parsedName = parseBookingName(query);
+    const nameGuess = guessNameFromBundle(query);
 
-    const signalCount = [strictPhone || phoneLike, parsedDate, parsedTime, parsedBranch, parsedName].filter(Boolean).length;
-    const looksLikeDetailsBundle = signalCount >= 2 && (!!(strictPhone || phoneLike) || (!!parsedDate && !!parsedTime));
+    // A message that carries a phone number plus any other booking detail is a details bundle,
+    // even if the patient sent it right after the AI asked for their information.
+    const bundleSignals = [
+      strictPhone || phoneLike,
+      parsedDate,
+      parsedTime,
+      parsedBranch,
+      parsedService,
+      phoneLike && !!nameGuess,
+    ].filter(Boolean).length;
+    const looksLikeDetailsBundle =
+      (!!(strictPhone || phoneLike) && bundleSignals >= 2) ||
+      (!!parsedDate && !!parsedTime) ||
+      bundleSignals >= 3;
 
-    if (!bookingDraft && !chatBookingIntent && !looksLikeDetailsBundle) return false;
+    // If the AI itself already asked for booking details, treat the patient's next answer
+    // (even a partial one) as the start of the in-chat booking flow instead of answering
+    // it as a fresh treatment question.
+    const lastAssistant = [...chatMessages].reverse().find((m) => m.role === 'assistant');
+    const lastAssistantText = lastAssistant ? (lastAssistant.text || lastAssistant.answer?.reply || '') : '';
+    const aiAskedForBooking =
+      /(অ্যাপয়েন্টমেন্ট|বুকিং|সিরিয়াল|appointment|booking|serial)/i.test(lastAssistantText) &&
+      /(আপনার\s*নাম|নাম,|ফোন|কোন\s*শাখায়|শাখা|চিকিৎসা|তারিখ|সময়|name|phone|branch|treatment|date|time)/i.test(lastAssistantText);
+    const hasAnyBookingDetail = !!(
+      strictPhone || phoneLike || parsedDate || parsedTime || parsedBranch || parsedService || nameGuess
+    );
+
+    if (!bookingDraft && !chatBookingIntent && !looksLikeDetailsBundle && !(aiAskedForBooking && hasAnyBookingDetail)) {
+      return false;
+    }
 
     if (bookingDraft && cancelIntent) {
       setBookingDraft(null);
@@ -783,10 +812,7 @@ export default function Home({
     if (parsedBranch && (!draft.branch || fieldBefore === 'branch')) draft.branch = parsedBranch;
     if (parsedService && (!draft.service || fieldBefore === 'service')) draft.service = parsedService;
     if (parsedName) draft.name = parsedName;
-    if (isFirst && looksLikeDetailsBundle && !draft.name) {
-      const guessed = guessNameFromBundle(query);
-      if (guessed) draft.name = guessed;
-    }
+    if (!draft.name && nameGuess) draft.name = nameGuess;
 
     // Fallback: free-text answers to the field we just asked for.
     // Only use the raw message when it did not clearly answer some other field
