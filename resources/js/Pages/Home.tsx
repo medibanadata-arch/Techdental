@@ -528,6 +528,7 @@ export default function Home({
   const parseBookingDate = (raw: string): string | null => {
     const t = bnToEn(raw).trim();
     const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     if (/আজ|(^|\s)aj(\s|$)|today/i.test(t)) return formatIsoDate(now);
     if (/আগামীকাল|agamikal|(^|\s)kal(\s|$)|tomorrow/i.test(t)) {
       const d = new Date(now);
@@ -538,6 +539,35 @@ export default function Home({
       const d = new Date(now);
       d.setDate(d.getDate() + 2);
       return formatIsoDate(d);
+    }
+    // Day + month name, e.g. "17 november", "17november", "১৭ নভেম্বর", "17 nov".
+    const monthNames: Record<string, number> = {
+      january: 1, jan: 1, জানুয়ারি: 1, জানুয়ারি: 1,
+      february: 2, feb: 2, ফেব্রুয়ারি: 2, ফেব্রুয়ারি: 2,
+      march: 3, mar: 3, মার্চ: 3,
+      april: 4, apr: 4, এপ্রিল: 4,
+      may: 5, মে: 5,
+      june: 6, jun: 6, জুন: 6,
+      july: 7, jul: 7, জুলাই: 7,
+      august: 8, aug: 8, আগস্ট: 8, আগষ্ট: 8,
+      september: 9, sept: 9, sep: 9, সেপ্টেম্বর: 9,
+      october: 10, oct: 10, অক্টোবর: 10,
+      november: 11, nov: 11, নভেম্বর: 11,
+      december: 12, dec: 12, ডিসেম্বর: 12,
+    };
+    const monthPattern = Object.keys(monthNames)
+      .sort((a, b) => b.length - a.length)
+      .join('|');
+    const monthMatch = t.match(new RegExp(`(\\d{1,2})\\s*(?:st|nd|rd|th)?\\s*(${monthPattern})`, 'i'));
+    if (monthMatch) {
+      const day = parseInt(monthMatch[1], 10);
+      const month = monthNames[monthMatch[2].toLowerCase()];
+      if (month && day >= 1 && day <= 31) {
+        let d = new Date(now.getFullYear(), month - 1, day);
+        // A date in the past means the patient means next year.
+        if (d < startOfToday) d = new Date(now.getFullYear() + 1, month - 1, day);
+        return formatIsoDate(d);
+      }
     }
     let m = t.match(/(\d{1,2})\s*(?:তারিখ|tarik|tarikh|tariq)/i);
     if (m) {
@@ -568,7 +598,7 @@ export default function Home({
     // the day in "17 tarik" is mistaken for the hour.
     const t = bnToEn(raw)
       .toLowerCase()
-      .replace(/(?:\+?88)?01[3-9]\d{8,13}/g, ' ')
+      .replace(/(?:\+?88)?0?1?\d{10,13}/g, ' ')
       .replace(/\d{1,2}\s*(?:তারিখ|tarik|tarikh|tariq)/gi, ' ')
       .replace(/\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/g, ' ');
     const explicit = t.match(/(\d{1,2})[:.]?(\d{2})?\s*(am|pm|এএম|পিএম)/i);
@@ -581,7 +611,7 @@ export default function Home({
       return `${String(h12).padStart(2, '0')}:00 ${suffix}`;
     }
     const bareTime =
-      t.match(/(\d{1,2})\s*(?:টা|টায়|টার|টার|ta\b|tar\b)/i) ||
+      t.match(/(\d{1,2})\s*(?:টা|টায়|টার|টার|tai\b|tay\b|te\b|ta\b|tar\b)/i) ||
       t.trim().match(/^(\d{1,2})$/);
     if (bareTime) {
       const h = parseInt(bareTime[1], 10);
@@ -632,6 +662,8 @@ export default function Home({
       [/ইমপ্ল্যান্ট|implant/i, 'Dental Implant'],
       [/ফিলিং|filling|ক্যাভিটি|cavity/i, 'Cosmetic Filling'],
       [/দাঁত\s*তুল|extraction|tooth\s*removal/i, 'Tooth Removal'],
+      [/দাঁত\s*ফাঁকা|দাত\s*ফাঁকা|dat\s*faka|dant\s*faka|dath?\s*faka|faka/i, 'Tooth Gap Treatment'],
+      [/দাঁত\s*ব্যথা|দাত\s*ব্যথা|dat\s*batha|dant\s*betha|dath?\s*betha|batha|betha/i, 'Consultation 500 Tk.'],
       [/ফাঁকা|gap/i, 'Tooth Gap Treatment'],
       [/ডেন্টার|denture/i, 'Flexible Denture'],
       [/কনসালটেশন|consult/i, 'Consultation 500 Tk.'],
@@ -715,7 +747,9 @@ export default function Home({
 
     // Parse everything we can from this message — patients often send every detail in one line.
     const strictPhone = parseBookingPhone(query);
-    const phoneLike = /(?:\+?88)?0?1[3-9]\d{8,13}/.test(bnToEn(query).replace(/[\s\-()]/g, ''));
+    // Any long digit run counts as a phone attempt, so an invalid number still starts the
+    // booking flow and the patient is asked to correct it.
+    const phoneLike = /\d{10,}/.test(bnToEn(query).replace(/[\s\-()]/g, ''));
     const parsedDate = parseBookingDate(query);
     const parsedTime = parseBookingTime(query);
     const parsedBranch = parseBookingBranch(query);
