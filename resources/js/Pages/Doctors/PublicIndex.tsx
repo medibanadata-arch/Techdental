@@ -62,7 +62,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
   const [moreInfoOpen, setMoreInfoOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [apptDoctor, setApptDoctor] = useState<DoctorItem | null>(null);
-  const [form, setForm] = useState({ name: '', phone: '', date: '', time: '4:00 PM - 6:00 PM' });
+  const [form, setForm] = useState({ name: '', phone: '', date: '', time: '4:00 PM - 6:00 PM', address: '' });
   const [toast, setToast] = useState(false);
 
   const safeFaqs = useMemo(() => {
@@ -97,11 +97,12 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
       preferred_date: form.date,
       preferred_time: form.time,
       branch: apptDoctor.branch,
+      address: form.address,
       notes: `Doctor appointment request from /doctors — Time slot: ${form.time}`,
     }, {
       onSuccess: () => {
         setApptDoctor(null);
-        setForm({ name: '', phone: '', date: '', time: '4:00 PM - 6:00 PM' });
+        setForm({ name: '', phone: '', date: '', time: '4:00 PM - 6:00 PM', address: '' });
         setToast(true);
         setTimeout(() => setToast(false), 3000);
       },
@@ -395,6 +396,17 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
                     <option>6:00 PM - 8:00 PM</option>
                   </select>
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Address</label>
+                <textarea
+                  required
+                  rows={2}
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  placeholder="Your full address (area, house/road)"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-pink-600 focus:outline-none resize-none"
+                />
               </div>
               <button
                 type="submit"

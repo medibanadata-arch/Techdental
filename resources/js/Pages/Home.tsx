@@ -61,6 +61,31 @@ export interface ChatMessage {
   timestamp?: string;
 }
 
+// Chat-based booking (slot filling)
+type BookingField = 'name' | 'phone' | 'branch' | 'service' | 'date' | 'time' | 'address';
+
+interface BookingDraft {
+  name?: string;
+  phone?: string;
+  branch?: string;
+  service?: string;
+  date?: string;
+  time?: string;
+  address?: string;
+}
+
+const BOOKING_FIELD_ORDER: BookingField[] = ['name', 'phone', 'branch', 'service', 'date', 'time', 'address'];
+
+const BOOKING_FIELD_QUESTIONS: Record<BookingField, string> = {
+  name: 'আপনার নামটা বলবেন?',
+  phone: 'আপনার মোবাইল নম্বরটা দিন (যেমন 017XXXXXXXX)।',
+  branch: 'কোন শাখায় আসতে চান? মিরপুর / উত্তরা / বাড্ডা / যাত্রাবাড়ী — যেটা চান লিখুন।',
+  service: 'কোন চিকিৎসার জন্য আসতে চান? (যেমন কনসালটেশন, স্কেলিং, রুট ক্যানেল, ব্রেসেস, ফিলিং)',
+  date: 'কোন তারিখে আসতে চান? (যেমন আজ, আগামীকাল, অথবা 20/11/2026)',
+  time: 'কোন সময়ে আসতে চান? মিরপুরে সকাল ১০টা–দুপুর ২টা ও বিকেল ৪টা–রাত ৯টা, অন্য শাখায় বিকেল ৪টা–রাত ৯টা।',
+  address: 'সর্বশেষে আপনার ঠিকানা লিখুন (এলাকা, বাসা/রোড নম্বর)।',
+};
+
 // Helper: Extract YouTube 11-char Video ID from any YouTube URL
 export const extractYouTubeId = (url: string): string | null => {
   if (!url) return null;
@@ -149,6 +174,7 @@ export default function Home({
   const [aiInputValue, setAiInputValue] = useState("");
   const [modalInputValue, setModalInputValue] = useState("");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [bookingDraft, setBookingDraft] = useState<BookingDraft | null>(null);
   const [isWidgetOpen, setIsWidgetOpen] = useState(false);
   const [isFullModalOpen, setIsFullModalOpen] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -482,6 +508,295 @@ export default function Home({
     return `${hours}:${minStr} ${ampm}`;
   };
 
+  // ===== Chat-based appointment booking (collect all info, then save) =====
+  const bnToEn = (str: string) => str.replace(/[০-৯]/g, (d) => String('০১২৩৪৫৬৭৮৯'.indexOf(d)));
+
+  const nextBookingField = (draft: BookingDraft): BookingField | null => {
+    for (const f of BOOKING_FIELD_ORDER) {
+      if (!draft[f] || !String(draft[f]).trim()) return f;
+    }
+    return null;
+  };
+
+  const formatIsoDate = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const parseBookingDate = (raw: string): string | null => {
+    const t = bnToEn(raw).trim();
+    const now = new Date();
+    if (/আজ|^aj$|today/i.test(t)) return formatIsoDate(now);
+    if (/আগামীকাল|^kal$|tomorrow/i.test(t)) {
+      const d = new Date(now);
+      d.setDate(d.getDate() + 1);
+      return formatIsoDate(d);
+    }
+    if (/পরশু/.test(t)) {
+      const d = new Date(now);
+      d.setDate(d.getDate() + 2);
+      return formatIsoDate(d);
+    }
+    let m = t.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+    m = t.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
+    if (m) {
+      const y = m[3].length === 2 ? `20${m[3]}` : m[3];
+      return `${y}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    }
+    return null;
+  };
+
+  const isFridayIso = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00`);
+    return !Number.isNaN(d.getTime()) && d.getDay() === 5;
+  };
+
+  const parseBookingTime = (raw: string): string | null => {
+    const t = bnToEn(raw).toLowerCase();
+    const explicit = t.match(/(\d{1,2})[:.]?(\d{2})?\s*(am|pm|এএম|পিএম)/i);
+    if (explicit) {
+      let h = parseInt(explicit[1], 10);
+      const isPm = /pm|পিএম/i.test(explicit[3]);
+      if (isPm && h < 12) h += 12;
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      const suffix = h >= 12 ? 'PM' : 'AM';
+      return `${String(h12).padStart(2, '0')}:00 ${suffix}`;
+    }
+    const bare = t.match(/(\d{1,2})\s*(টা|টায়|টার)?/);
+    if (bare) {
+      const h = parseInt(bare[1], 10);
+      if (h >= 1 && h <= 9) return `${String(h).padStart(2, '0')}:00 PM`;
+      if (h >= 10 && h <= 12) return `${String(h).padStart(2, '0')}:00 AM`;
+      if (h >= 13 && h <= 21) return `${String(h - 12).padStart(2, '0')}:00 PM`;
+    }
+    if (/সকাল|morning/.test(t)) return '11:00 AM';
+    if (/দুপুর|noon/.test(t)) return '12:00 PM';
+    if (/বিকেল|বিকাল|সন্ধ্যা|evening|afternoon/.test(t)) return '05:00 PM';
+    if (/রাত|night/.test(t)) return '08:00 PM';
+    return null;
+  };
+
+  const parseBookingBranch = (raw: string): string | null => {
+    const t = raw;
+    if (/mirpur|মিরপুর/i.test(t)) return 'Mirpur Branch';
+    if (/uttara|উত্তরা/i.test(t)) return 'Uttara Branch';
+    if (/badda|বাড্ডা/i.test(t)) return 'Badda Branch';
+    if (/jatrabari|যাত্রাবাড়ী|যাত্রাবাড়ী/i.test(t)) return 'Jatrabari Branch';
+    const loc = (locations || []).find((l: any) => {
+      const n = String(l.short_name || l.name || '');
+      if (!n) return false;
+      try {
+        return new RegExp(n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(t);
+      } catch {
+        return false;
+      }
+    });
+    if (loc) {
+      const n = String(loc.short_name || loc.name || '').replace(/\s*branch\s*$/i, '').trim();
+      return `${n} Branch`;
+    }
+    return null;
+  };
+
+  const parseBookingPhone = (raw: string): string | null => {
+    const t = bnToEn(raw).replace(/[\s\-()]/g, '');
+    const m = t.match(/(?:\+?88)?(01[3-9]\d{8})/);
+    return m ? m[1] : null;
+  };
+
+  const parseBookingService = (raw: string): string | null => {
+    const map: Array<[RegExp, string]> = [
+      [/ব্রেসেস|ব্রেস|brace|orthodon/i, 'Orthodontic Treatment'],
+      [/স্কেলিং|scaling|পলিশ/i, 'Scaling & Polishing'],
+      [/রুট\s*ক্যানেল|root\s*canal|rct/i, 'Root Canal Treatment'],
+      [/ইমপ্ল্যান্ট|implant/i, 'Dental Implant'],
+      [/ফিলিং|filling|ক্যাভিটি|cavity/i, 'Cosmetic Filling'],
+      [/দাঁত\s*তুল|extraction|tooth\s*removal/i, 'Tooth Removal'],
+      [/ফাঁকা|gap/i, 'Tooth Gap Treatment'],
+      [/ডেন্টার|denture/i, 'Flexible Denture'],
+      [/কনসালটেশন|consult/i, 'Consultation 500 Tk.'],
+    ];
+    for (const [re, label] of map) {
+      if (re.test(raw)) return label;
+    }
+    return null;
+  };
+
+  const parseBookingName = (raw: string): string | null => {
+    const m = raw.match(/(?:আমার\s*নাম|name)\s*[:\-–]?\s*([^\n,।?]{2,40})/i);
+    if (!m) return null;
+    const v = m[1].replace(/\b(বুকিং|অ্যাপয়েন্টমেন্ট|appointment|booking)\b.*/i, '').trim();
+    return v.length >= 2 ? v : null;
+  };
+
+  const pushBookingReply = (reply: string, userMsgId: string) => {
+    const msg: ChatMessage = {
+      id: `ai-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      role: 'assistant',
+      answer: {
+        title: ai_settings?.bot_name || 'Tech Dental Agent',
+        reply,
+        source: 'keyword',
+      },
+      timestamp: getFormattedTime(),
+    };
+    setChatMessages((prev) => [...prev, msg]);
+    setTimeout(() => scrollChatToQuestion(userMsgId), 60);
+  };
+
+  const submitChatBooking = async (draft: BookingDraft): Promise<boolean> => {
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const res = await fetch('/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          patient_name: draft.name,
+          phone: draft.phone,
+          branch: draft.branch,
+          service_or_doctor: draft.service,
+          preferred_date: draft.date,
+          preferred_time: draft.time,
+          address: draft.address,
+          notes: 'Booked via AI chat',
+        }),
+      });
+      return res.ok;
+    } catch (err) {
+      console.error('Chat booking failed:', err);
+      return false;
+    }
+  };
+
+  const handleChatBookingTurn = async (query: string, userMsgId: string): Promise<boolean> => {
+    const bookingIntent = /(বুকিং|বুক\s*করা|বুক\s*কর|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল\s*(নিতে|নিব|চাই)|book\s*(an?\s*)?appointment|booking)/i.test(query);
+    const cancelIntent = /(বাতিল|cancel|থাক\s*না)/i.test(query);
+    const looksLikeQuestion = /[?？]|কত|কোথায়|কখন|কেন|কী|কি\s*$|কিভাবে|কীভাবে/.test(query);
+
+    if (!bookingDraft && !bookingIntent) return false;
+
+    if (bookingDraft && cancelIntent) {
+      setBookingDraft(null);
+      pushBookingReply('ঠিক আছে, বুকিং বাতিল করা হয়েছে। আবার কখনো বুক করতে চাইলে জানাবেন।', userMsgId);
+      return true;
+    }
+
+    const draft: BookingDraft = { ...(bookingDraft || {}) };
+    const isFirst = !bookingDraft;
+
+    // Seed anything already present in the first message.
+    if (isFirst) {
+      const p = parseBookingPhone(query);
+      if (p) draft.phone = p;
+      const b = parseBookingBranch(query);
+      if (b) draft.branch = b;
+      const s = parseBookingService(query);
+      if (s) draft.service = s;
+      const d = parseBookingDate(query);
+      if (d && !isFridayIso(d)) draft.date = d;
+      const tm = parseBookingTime(query);
+      if (tm) draft.time = tm;
+      const n = parseBookingName(query);
+      if (n) draft.name = n;
+    }
+
+    // Fill the current pending field from this message.
+    const field = nextBookingField(draft);
+    let filled = false;
+
+    if (field && !isFirst) {
+      if (field === 'name') {
+        const v = query.trim();
+        if (v.length >= 2 && !looksLikeQuestion) {
+          draft.name = v;
+          filled = true;
+        }
+      } else if (field === 'phone') {
+        const p = parseBookingPhone(query);
+        if (p) {
+          draft.phone = p;
+          filled = true;
+        }
+      } else if (field === 'branch') {
+        const b = parseBookingBranch(query);
+        if (b) {
+          draft.branch = b;
+          filled = true;
+        }
+      } else if (field === 'service') {
+        const s = parseBookingService(query) || query.trim();
+        if (s.length >= 2 && !looksLikeQuestion) {
+          draft.service = s;
+          filled = true;
+        }
+      } else if (field === 'date') {
+        const d = parseBookingDate(query);
+        if (d) {
+          if (isFridayIso(d)) {
+            pushBookingReply('শুক্রবার আমাদের সব শাখা বন্ধ থাকে। অনুগ্রহ করে শনি থেকে বৃহস্পতিবারের মধ্যে একটি তারিখ দিন।', userMsgId);
+            setBookingDraft(draft);
+            return true;
+          }
+          draft.date = d;
+          filled = true;
+        }
+      } else if (field === 'time') {
+        const tm = parseBookingTime(query);
+        if (tm) {
+          draft.time = tm;
+          filled = true;
+        }
+      } else if (field === 'address') {
+        const v = query.trim();
+        if (v.length >= 3) {
+          draft.address = v;
+          filled = true;
+        }
+      }
+    }
+
+    const pending = nextBookingField(draft);
+
+    // Patient asked a question mid-booking and we could not parse an answer → let the AI reply, keep the draft.
+    if (!isFirst && field && !filled && looksLikeQuestion) {
+      setBookingDraft(draft);
+      return false;
+    }
+
+    setBookingDraft(draft);
+
+    if (pending) {
+      const prefix = field && !filled && !isFirst ? 'দুঃখিত, তথ্যটি ঠিক বুঝতে পারিনি। ' : '';
+      pushBookingReply(`${prefix}${BOOKING_FIELD_QUESTIONS[pending]}`, userMsgId);
+      return true;
+    }
+
+    // All information collected → save the booking immediately (no confirmation step).
+    const saved = await submitChatBooking(draft);
+    if (saved) {
+      setBookingDraft(null);
+      pushBookingReply(
+        `আপনার বুকিং কনফার্ম হয়েছে, খুব শিগগিরই আপনাকে কল করা হবে।\n\nনাম: ${draft.name}\nশাখা: ${draft.branch}\nচিকিৎসা: ${draft.service}\nতারিখ: ${draft.date}\nসময়: ${draft.time}`,
+        userMsgId
+      );
+    } else {
+      pushBookingReply(
+        'দুঃখিত, বুকিং সেভ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন অথবা হটলাইনে কল করুন: 09638-000505',
+        userMsgId
+      );
+    }
+    return true;
+  };
+
   // Connected to Backend API: checks admin keywords first, then Gemini AI, then fallback
   const processAIQuestion = async (query: string) => {
     if (!query.trim()) return;
@@ -502,6 +817,17 @@ export default function Home({
     setChatMessages((prev) => [...prev, userMsg]);
     setIsAiLoading(true);
     scrollChatToQuestion(userMsgId);
+
+    // Chat-based booking: collect all details inside the chat and save automatically.
+    try {
+      const handledByBooking = await handleChatBookingTurn(cleanQuery, userMsgId);
+      if (handledByBooking) {
+        setIsAiLoading(false);
+        return;
+      }
+    } catch (e) {
+      console.error("Chat booking error:", e);
+    }
 
     const startTime = Date.now();
     const TARGET_DELAY_MS = 2500; // Realistic conversational pacing

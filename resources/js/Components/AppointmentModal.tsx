@@ -24,9 +24,17 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
   const [branch, setBranch] = useState("");
   const [serviceOrDoctor, setServiceOrDoctor] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
+  const [preferredTime, setPreferredTime] = useState("");
+  const [address, setAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const TIME_SLOTS = [
+    "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM",
+    "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM", "08:00 PM",
+  ];
 
   // Sync defaults
   useEffect(() => {
@@ -47,14 +55,32 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
     setPreferredDate(tomorrow.toISOString().split("T")[0]);
     setSuccessMessage(null);
     setErrorMessage(null);
+    setFieldErrors({});
   }, [isOpen, defaultBranch, defaultService, locations]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setErrorMessage(null);
+    setFieldErrors({});
+
+    const errors: Record<string, string> = {};
+    if (!patientName.trim()) errors.patientName = "রোগীর নাম লিখুন।";
+    if (!phone.trim()) errors.phone = "মোবাইল নম্বর লিখুন।";
+    if (!branch.trim()) errors.branch = "শাখা নির্বাচন করুন।";
+    if (!serviceOrDoctor.trim()) errors.serviceOrDoctor = "ডাক্তার / ট্রিটমেন্ট লিখুন।";
+    if (!preferredDate.trim()) errors.preferredDate = "তারিখ নির্বাচন করুন।";
+    if (!preferredTime.trim()) errors.preferredTime = "সময় নির্বাচন করুন।";
+    if (!address.trim()) errors.address = "ঠিকানা লিখুন।";
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErrorMessage("সব ঘর পূরণ করুন — কোনো ঘর খালি রাখা যাবে না।");
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       // Save directly into the Laravel appointments table (visible in Admin → Appointments)
@@ -74,15 +100,35 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
           branch,
           service_or_doctor: serviceOrDoctor,
           preferred_date: preferredDate,
+          preferred_time: preferredTime,
+          address,
         }),
       });
+
+      if (res.status === 422) {
+        const data = await res.json().catch(() => null);
+        const serverErrors: Record<string, string> = {};
+        const map: Record<string, string> = {
+          patient_name: "patientName", name: "patientName", phone: "phone",
+          branch: "branch", service_or_doctor: "serviceOrDoctor", service: "serviceOrDoctor",
+          preferred_date: "preferredDate", date: "preferredDate",
+          preferred_time: "preferredTime", address: "address",
+        };
+        Object.entries(data?.errors || {}).forEach(([key, msgs]: [string, any]) => {
+          const target = map[key] || key;
+          serverErrors[target] = Array.isArray(msgs) ? msgs[0] : String(msgs);
+        });
+        setFieldErrors(serverErrors);
+        setErrorMessage("সব ঘর পূরণ করুন — কোনো ঘর খালি রাখা যাবে না।");
+        return;
+      }
 
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
 
       setSuccessMessage(
-        `ধন্যবাদ ${patientName} সাহেব! আপনার অ্যাপয়েন্টমেন্ট রিকোয়েস্ট (${branch}) সফলভাবে গ্রহণ করা হয়েছে। আমাদের প্রতিনিধি শীঘ্রই ${phone} নম্বরে কল করে সময় নিশ্চিত করবেন।`
+        `ধন্যবাদ ${patientName} সাহেব! আপনার অ্যাপয়েন্টমেন্ট (${branch}, ${preferredDate} ${preferredTime}) সফলভাবে গ্রহণ করা হয়েছে। আমাদের প্রতিনিধি শীঘ্রই ${phone} নম্বরে কল করে সময় নিশ্চিত করবেন।`
       );
     } catch (err) {
       setErrorMessage(
@@ -104,6 +150,9 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
     setPatientName("");
     setPhone("");
     setServiceOrDoctor("");
+    setPreferredTime("");
+    setAddress("");
+    setFieldErrors({});
     onClose();
   };
 
@@ -151,7 +200,7 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
             {/* Full Name */}
             <div>
               <label className="block text-[0.75rem] font-bold text-slate-700 mb-1">
-                Full Name
+                Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -159,14 +208,15 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
                 onChange={(e) => setPatientName(e.target.value)}
                 placeholder="Enter your full name"
                 required
-                className="w-full px-3 py-2 border-[1.5px] border-slate-200 focus:border-primary-maroon rounded-xl text-[0.82rem] outline-none bg-white transition-colors"
+                className={`w-full px-3 py-2 border-[1.5px] rounded-xl text-[0.82rem] outline-none bg-white transition-colors ${fieldErrors.patientName ? "border-red-400" : "border-slate-200 focus:border-primary-maroon"}`}
               />
+              {fieldErrors.patientName && <p className="text-[0.7rem] text-red-600 mt-1 font-semibold">{fieldErrors.patientName}</p>}
             </div>
 
             {/* Phone Number */}
             <div>
               <label className="block text-[0.75rem] font-bold text-slate-700 mb-1">
-                Phone Number
+                Phone Number <span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
@@ -174,53 +224,94 @@ export const AppointmentModal: React.FC<AppointmentModalProps> = ({
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="01XXXXXXXXX"
                 required
-                className="w-full px-3 py-2 border-[1.5px] border-slate-200 focus:border-primary-maroon rounded-xl text-[0.82rem] outline-none bg-white transition-colors"
+                className={`w-full px-3 py-2 border-[1.5px] rounded-xl text-[0.82rem] outline-none bg-white transition-colors ${fieldErrors.phone ? "border-red-400" : "border-slate-200 focus:border-primary-maroon"}`}
               />
+              {fieldErrors.phone && <p className="text-[0.7rem] text-red-600 mt-1 font-semibold">{fieldErrors.phone}</p>}
             </div>
 
             {/* Select Branch */}
             <div>
               <label className="block text-[0.75rem] font-bold text-slate-700 mb-1">
-                Select Branch
+                Select Branch <span className="text-red-500">*</span>
               </label>
               <select
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
                 required
-                className="w-full px-3 py-2 border-[1.5px] border-slate-200 focus:border-primary-maroon rounded-xl text-[0.82rem] outline-none bg-white transition-colors cursor-pointer"
+                className={`w-full px-3 py-2 border-[1.5px] rounded-xl text-[0.82rem] outline-none bg-white transition-colors cursor-pointer ${fieldErrors.branch ? "border-red-400" : "border-slate-200 focus:border-primary-maroon"}`}
               >
+                <option value="">Select a branch</option>
                 {locations.map((loc) => (
                   <option key={loc.location_id} value={loc.name}>{loc.name}</option>
                 ))}
               </select>
+              {fieldErrors.branch && <p className="text-[0.7rem] text-red-600 mt-1 font-semibold">{fieldErrors.branch}</p>}
             </div>
 
             {/* Doctor / Service */}
             <div>
               <label className="block text-[0.75rem] font-bold text-slate-700 mb-1">
-                Selected Doctor / Service
+                Selected Doctor / Service <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={serviceOrDoctor}
                 onChange={(e) => setServiceOrDoctor(e.target.value)}
                 placeholder="Consultation, RCT, Braces, etc."
-                className="w-full px-3 py-2 border-[1.5px] border-slate-200 focus:border-primary-maroon rounded-xl text-[0.82rem] outline-none bg-white transition-colors"
+                required
+                className={`w-full px-3 py-2 border-[1.5px] rounded-xl text-[0.82rem] outline-none bg-white transition-colors ${fieldErrors.serviceOrDoctor ? "border-red-400" : "border-slate-200 focus:border-primary-maroon"}`}
               />
+              {fieldErrors.serviceOrDoctor && <p className="text-[0.7rem] text-red-600 mt-1 font-semibold">{fieldErrors.serviceOrDoctor}</p>}
             </div>
 
             {/* Preferred Date */}
             <div>
               <label className="block text-[0.75rem] font-bold text-slate-700 mb-1">
-                Preferred Date
+                Preferred Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={preferredDate}
                 onChange={(e) => setPreferredDate(e.target.value)}
                 required
-                className="w-full px-3 py-2 border-[1.5px] border-slate-200 focus:border-primary-maroon rounded-xl text-[0.82rem] outline-none bg-white transition-colors cursor-pointer"
+                className={`w-full px-3 py-2 border-[1.5px] rounded-xl text-[0.82rem] outline-none bg-white transition-colors cursor-pointer ${fieldErrors.preferredDate ? "border-red-400" : "border-slate-200 focus:border-primary-maroon"}`}
               />
+              {fieldErrors.preferredDate && <p className="text-[0.7rem] text-red-600 mt-1 font-semibold">{fieldErrors.preferredDate}</p>}
+            </div>
+
+            {/* Preferred Time */}
+            <div>
+              <label className="block text-[0.75rem] font-bold text-slate-700 mb-1">
+                Preferred Time <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={preferredTime}
+                onChange={(e) => setPreferredTime(e.target.value)}
+                required
+                className={`w-full px-3 py-2 border-[1.5px] rounded-xl text-[0.82rem] outline-none bg-white transition-colors cursor-pointer ${fieldErrors.preferredTime ? "border-red-400" : "border-slate-200 focus:border-primary-maroon"}`}
+              >
+                <option value="">Select a time</option>
+                {TIME_SLOTS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              {fieldErrors.preferredTime && <p className="text-[0.7rem] text-red-600 mt-1 font-semibold">{fieldErrors.preferredTime}</p>}
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="block text-[0.75rem] font-bold text-slate-700 mb-1">
+                Address <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Your full address"
+                required
+                rows={2}
+                className={`w-full px-3 py-2 border-[1.5px] rounded-xl text-[0.82rem] outline-none bg-white transition-colors resize-none ${fieldErrors.address ? "border-red-400" : "border-slate-200 focus:border-primary-maroon"}`}
+              />
+              {fieldErrors.address && <p className="text-[0.7rem] text-red-600 mt-1 font-semibold">{fieldErrors.address}</p>}
             </div>
 
             {errorMessage && (

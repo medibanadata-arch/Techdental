@@ -71,11 +71,12 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
     phone: '',
     treatment: '',
     branch: '',
-    time: '10:00 AM',
+    time: '',
     date: '',
     address: '',
   });
   const [fridayError, setFridayError] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [toast, setToast] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -122,13 +123,8 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
   const currentAvailableTimes = isEveningOnlyBranch ? EVENING_TIMES : ALL_TIMES;
 
   const handleBranchChange = (branchVal: string) => {
-    const isEvening = branchVal && !branchVal.toLowerCase().includes('mirpur');
-    const validTimes = isEvening ? EVENING_TIMES : ALL_TIMES;
-    let newTime = form.time;
-    if (!validTimes.includes(form.time)) {
-      newTime = validTimes[0];
-    }
-    setForm(prev => ({ ...prev, branch: branchVal, time: newTime }));
+    // Reset the time so the patient must explicitly pick a slot for this branch.
+    setForm(prev => ({ ...prev, branch: branchVal, time: '' }));
   };
 
   const handleDateChange = (val: string) => {
@@ -145,7 +141,22 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
     e.preventDefault();
     if (fridayError || isSubmitting) return;
 
-    const branchName = form.branch || (branchOptions[0]?.short_name || branchOptions[0]?.name || 'Mirpur');
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push('নাম');
+    if (!form.phone.trim()) missing.push('মোবাইল নম্বর');
+    if (!form.treatment.trim()) missing.push('ট্রিটমেন্ট');
+    if (!form.branch.trim()) missing.push('শাখা');
+    if (!form.time.trim()) missing.push('সময়');
+    if (!form.date.trim()) missing.push('তারিখ');
+    if (!form.address.trim()) missing.push('ঠিকানা');
+
+    if (missing.length > 0) {
+      setFormError(`অনুগ্রহ করে সব তথ্য দিন — বাকি আছে: ${missing.join(', ')}`);
+      return;
+    }
+    setFormError(null);
+
+    const branchName = form.branch;
     const snapshot = {
       name: form.name,
       phone: form.phone,
@@ -174,8 +185,9 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
       onSuccess: () => {
         setConfirmedBooking(snapshot);
         setIsConfirmed(true);
-        setForm({ name: '', phone: '', treatment: '', branch: '', time: '10:00 AM', date: '', address: '' });
+        setForm({ name: '', phone: '', treatment: '', branch: '', time: '', date: '', address: '' });
         setFridayError(false);
+        setFormError(null);
         setIsSubmitting(false);
         setToast(true);
         setTimeout(() => setToast(false), 4000);
@@ -282,6 +294,7 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
                 required
                 className="w-full px-5 py-4 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-400/30 transition-all duration-300 shadow-sm text-base cursor-pointer"
               >
+                <option value="" disabled>Select Time</option>
                 {currentAvailableTimes.map((t) => (
                   <option key={t} value={t}>{t.replace(':00 ', '.00 ')}</option>
                 ))}
@@ -323,6 +336,11 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
 
           {/* Row 6: Submit Button */}
           <div className="pt-4">
+            {formError && (
+              <p role="alert" className="mb-3 text-white text-sm font-bold bg-red-500/95 px-4 py-3 rounded-xl shadow-lg">
+                {formError}
+              </p>
+            )}
             <button
               type="submit"
               disabled={fridayError || isSubmitting}

@@ -28,6 +28,84 @@ class AiAssistantController extends Controller
 • সাধারণ যেকোনো প্রশ্নের উত্তরে শুধুমাত্র হটলাইন নম্বর 09638-000505 প্রদান করতে হবে।
 • সাধারণ উত্তরে কখনোই হোয়াটসঅ্যাপ নম্বর দেওয়া যাবে না।
 • শুধুমাত্র যদি রোগী সুনির্দিষ্টভাবে WhatsApp বা মোবাইল নম্বর জানতে চান, তখনই WhatsApp নম্বর 01400-786162 জানাতে হবে।
+
+# DOCTOR DIRECTORY & BRANCH-WISE DUTY SCHEDULE
+
+## IMPORTANT INSTRUCTIONS
+
+রোগী ডাক্তারদের নাম, শাখা, ডিউটির সময় অথবা কোন দিন কোন ডাক্তার বসেন জানতে চাইলে এই Section অনুসরণ করবে। প্রশ্নের ধরন অনুযায়ী সরাসরি উত্তর দেবে।
+
+কোনো ডাক্তারের নাম বা সময়সূচি অনুমান করবে না। শুধুমাত্র নিচের অনুমোদিত তালিকা ব্যবহার করবে।
+
+## MIRPUR BRANCH
+
+Morning Shift: 10:00 AM – 2:00 PM
+- Doctor Name: Dr. Sayera Tabassum Elmee
+- Doctor Name: Dr Saima Binte Zaman Shoili
+
+Evening Shift: 4:00 PM – 9:00 PM
+- Doctor Name: Dr. Aysha Siddika
+- Doctor Name: Dr. Sayera Tabassum Elmee
+- Doctor Name: Dr. Nowshin Faria Khan Chowdhury
+- Doctor Name: Dr. Mahmuda-Maimuna
+- Doctor Name: Prof. Dr. Nafees Uddin Chowdhury
+
+## BADDA BRANCH
+
+Morning Shift: 10:00 AM – 2:00 PM
+- এই শিফটে বর্তমানে কোনো ডাক্তার নেই (শুধুমাত্র ইভিনিং শিফট)।
+
+Evening Shift: 4:00 PM – 9:00 PM
+- Doctor Name: Dr. Hasna Hena Bhuiyan Nishi
+- Doctor Name: Dr. Sanjida Farabi
+
+## UTTARA BRANCH
+
+Evening Shift: 4:00 PM – 9:00 PM
+- Doctor Name: Dr. Roquaya Akhter
+
+## JATRABARI BRANCH
+
+Evening Shift: 4:00 PM – 9:00 PM
+- Doctor Name: Dr Afsana Mim
+
+## SPECIALIST DOCTORS
+
+Orthodontist (Braces Specialist):
+- Name: Dr. Md. Ashraful Hashem Johny
+- Available Branch: Mirpur
+- Visiting Schedule: As Per Schedule — রোগীকে অবশ্যই হটলাইন 09638-000505-এ কল করে সঠিক সময় কনফার্ম করতে বলবে।
+
+Other Specialists:
+- Name: Prof. Dr. Nafees Uddin Chowdhury
+- Specialty: Dental Implants, Laser Root Canal (RCT), Hollywood Smile Design — Medical Director
+- Available Branch: Mirpur
+- Visiting Schedule: Evening Shift 4:00 PM – 9:00 PM
+
+- Name: Dr. Sanjida Farabi
+- Specialty: Aesthetic Dentistry, Pediatric Dentistry, Hollywood Smile Design
+- Available Branch: Badda
+- Visiting Schedule: Evening Shift 4:00 PM – 9:00 PM
+
+## DAY-WISE DUTY SCHEDULE
+
+শনি থেকে বৃহস্পতিবার প্রতিদিন উপরের ব্রাঞ্চ-ভিত্তিক শিফট রুটিন একই থাকে। শুক্রবার সব শাখা বন্ধ।
+
+Saturday / Sunday / Monday / Tuesday / Wednesday / Thursday: উপরের শিফট রুটিন অনুযায়ী।
+Friday: All branches closed.
+
+## RESPONSE EXAMPLES
+
+Patient: মিরপুরে সকালে কোন ডাক্তার বসেন?
+Sumon: সকালে (১০টা–২টা) মিরপুরে ডা. সায়েরা তাবাসসুম এলমি ও ডা. সাইমা বিনতে জামান শৈলী বসেন।
+
+Patient: বিকেলে কারা থাকেন?
+Sumon: বিকেলে (৪টা–৯টা) মিরপুরে ডা. আয়েশা সিদ্দিকা, ডা. সায়েরা তাবাসসুম এলমি, ডা. নওশিন ফারিয়া খান চৌধুরী, ডা. মাহমুদা-মাইমুনা ও অধ্যাপক ডা. নাফিস উদ্দিন চৌধুরী চেম্বার করেন।
+
+Patient: ব্রেসেসের ডাক্তার কখন বসেন?
+Sumon: আমাদের অর্থোডন্টিস্ট ডা. মো. আশরাফুল হাশেম জহনি মিরপুর শাখায় নির্ধারিত শিডিউল অনুযায়ী চেম্বার করেন। সঠিক সময় জানতে হটলাইন 09638-000505-এ কল করুন।
+
+IMPORTANT: ডাক্তারদের সর্বশেষ অনুমোদিত ডিউটি রোস্টার অনুসরণ করবে। তথ্য নিশ্চিত না হলে কোনো নাম বা সময় বানিয়ে বলবে না।
 ";
     /**
      * Admin Dashboard view for AI Assistant
@@ -326,7 +404,9 @@ class AiAssistantController extends Controller
 4. STRICT WHATSAPP RULE: NEVER provide the WhatsApp number (01400-786162) in normal replies. Only provide WhatsApp if the patient specifically asks for WhatsApp or mobile number.
 5. Keep the answer warm, concise (2-4 bullet points), and in polite Bengali text format only.
 6. YOUTUBE VIDEOS: If the training data contains a YouTube video link (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...) related to the treatment, procedure, or topic the patient is inquiring about, include the full YouTube link on its own line so the patient can watch the video directly in the chat box.
-7. CRITICAL: Output ONLY the final polite Bengali message to the patient. NEVER output internal thoughts, checklists, reasoning, or self-verifications (such as '(2-4 bullet points)? Yes' or 'Checked').";
+7. CRITICAL: Output ONLY the final polite Bengali message to the patient. NEVER output internal thoughts, checklists, reasoning, or self-verifications (such as '(2-4 bullet points)? Yes' or 'Checked').
+8. DOCTOR ROSTER RULE: For any question about doctor names, branches, duty times or day-wise schedules, use ONLY the 'DOCTOR DIRECTORY & BRANCH-WISE DUTY SCHEDULE' section above. NEVER guess or invent a doctor name or schedule. If a specific detail (e.g. the orthodontist's exact time) is not confirmed in that section, say it should be confirmed on hotline 09638-000505.
+9. BOOKING RULE: If the patient wants to book an appointment, do not claim it is booked. The chat system collects their details and confirms the booking automatically.";
 
                 $candidateModels = array_values(array_unique(array_merge(
                     [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],
@@ -604,7 +684,9 @@ class AiAssistantController extends Controller
 4. STRICT WHATSAPP RULE: NEVER provide the WhatsApp number (01400-786162) in normal replies. Only provide WhatsApp if the patient specifically asks for WhatsApp or mobile number.
 5. Keep the answer warm, concise (2-4 bullet points), and in polite Bengali text format only.
 6. YOUTUBE VIDEOS: If the training data contains a YouTube video link (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...) related to the treatment, procedure, or topic the patient is inquiring about, include the full YouTube link on its own line so the patient can watch the video directly in the chat box.
-7. CRITICAL: Output ONLY the final polite Bengali message to the patient. NEVER output internal thoughts, checklists, reasoning, or self-verifications (such as '(2-4 bullet points)? Yes' or 'Checked').";
+7. CRITICAL: Output ONLY the final polite Bengali message to the patient. NEVER output internal thoughts, checklists, reasoning, or self-verifications (such as '(2-4 bullet points)? Yes' or 'Checked').
+8. DOCTOR ROSTER RULE: For any question about doctor names, branches, duty times or day-wise schedules, use ONLY the 'DOCTOR DIRECTORY & BRANCH-WISE DUTY SCHEDULE' section above. NEVER guess or invent a doctor name or schedule. If a specific detail (e.g. the orthodontist's exact time) is not confirmed in that section, say it should be confirmed on hotline 09638-000505.
+9. BOOKING RULE: If the patient wants to book an appointment, do not claim it is booked. The chat system collects their details and confirms the booking automatically.";
 
             $candidateModels = array_values(array_unique(array_merge(
                 [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],

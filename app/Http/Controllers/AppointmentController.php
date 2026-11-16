@@ -30,26 +30,41 @@ class AppointmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'patient_name' => 'nullable|string',
-            'name' => 'nullable|string',
-            'phone' => 'required|string',
-            'branch' => 'nullable|string',
-            'service' => 'nullable|string',
-            'service_or_doctor' => 'nullable|string',
-            'date' => 'nullable|string',
-            'preferred_date' => 'nullable|string',
-            'preferred_time' => 'nullable|string',
-            'address' => 'nullable|string',
+            'patient_name' => 'required_without:name|nullable|string|max:191',
+            'name' => 'required_without:patient_name|nullable|string|max:191',
+            'phone' => 'required|string|max:32',
+            'branch' => 'required|string|max:191',
+            'service' => 'required_without:service_or_doctor|nullable|string|max:191',
+            'service_or_doctor' => 'required_without:service|nullable|string|max:191',
+            'date' => 'required_without:preferred_date|nullable|string|max:64',
+            'preferred_date' => 'required_without:date|nullable|string|max:64',
+            'preferred_time' => 'required|string|max:64',
+            'address' => 'required|string|max:500',
             'notes' => 'nullable|string',
+        ], [
+            'patient_name.required_without' => 'রোগীর নাম লিখুন।',
+            'name.required_without' => 'রোগীর নাম লিখুন।',
+            'phone.required' => 'মোবাইল নম্বর লিখুন।',
+            'branch.required' => 'শাখা নির্বাচন করুন।',
+            'service.required_without' => 'ট্রিটমেন্ট নির্বাচন করুন।',
+            'service_or_doctor.required_without' => 'ট্রিটমেন্ট নির্বাচন করুন।',
+            'date.required_without' => 'তারিখ নির্বাচন করুন।',
+            'preferred_date.required_without' => 'তারিখ নির্বাচন করুন।',
+            'preferred_time.required' => 'সময় নির্বাচন করুন।',
+            'address.required' => 'ঠিকানা লিখুন।',
         ]);
 
-        $name = $validated['patient_name'] ?? $validated['name'] ?? 'Patient';
-        $service = $validated['service_or_doctor'] ?? $validated['service'] ?? 'General Consultation';
-        $date = $validated['preferred_date'] ?? $validated['date'] ?? now()->addDay()->toDateString();
-        $time = $validated['preferred_time'] ?? null;
-        $address = $validated['address'] ?? null;
-        $branch = $validated['branch'] ?? null;
-        $notes = $validated['notes'] ?? ((($branch ? 'Branch: ' . $branch . '. ' : '') . ($time ? 'Time: ' . $time : '')) ?: null);
+        $name = $validated['patient_name'] ?? $validated['name'];
+        $service = $validated['service_or_doctor'] ?? $validated['service'];
+        $date = $validated['preferred_date'] ?? $validated['date'];
+        $time = $validated['preferred_time'];
+        $address = $validated['address'];
+        $branch = $validated['branch'];
+
+        $meta = 'Branch: ' . $branch . '. Time: ' . $time;
+        if (!empty($validated['notes'])) {
+            $meta .= '. ' . $validated['notes'];
+        }
 
         $appointment = Appointment::create([
             'name' => $name,
@@ -59,7 +74,7 @@ class AppointmentController extends Controller
             'preferred_time' => $time,
             'address' => $address,
             'status' => 'Pending',
-            'notes' => $notes,
+            'notes' => $meta,
         ]);
 
         if ($request->wantsJson()) {
