@@ -539,7 +539,16 @@ export default function Home({
       d.setDate(d.getDate() + 2);
       return formatIsoDate(d);
     }
-    let m = t.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    let m = t.match(/(\d{1,2})\s*(?:তারিখ|tarik|tarikh|tariq)/i);
+    if (m) {
+      const day = parseInt(m[1], 10);
+      if (day >= 1 && day <= 31) {
+        const d = new Date(now.getFullYear(), now.getMonth(), day);
+        if (day < now.getDate()) d.setMonth(d.getMonth() + 1);
+        return formatIsoDate(d);
+      }
+    }
+    m = t.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
     if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
     m = t.match(/(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
     if (m) {
@@ -555,7 +564,13 @@ export default function Home({
   };
 
   const parseBookingTime = (raw: string): string | null => {
-    const t = bnToEn(raw).toLowerCase();
+    // Remove phone numbers and dates first — otherwise the phone prefix ("0163...") or
+    // the day in "17 tarik" is mistaken for the hour.
+    const t = bnToEn(raw)
+      .toLowerCase()
+      .replace(/(?:\+?88)?01[3-9]\d{8,13}/g, ' ')
+      .replace(/\d{1,2}\s*(?:তারিখ|tarik|tarikh|tariq)/gi, ' ')
+      .replace(/\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/g, ' ');
     const explicit = t.match(/(\d{1,2})[:.]?(\d{2})?\s*(am|pm|এএম|পিএম)/i);
     if (explicit) {
       let h = parseInt(explicit[1], 10);
@@ -565,9 +580,11 @@ export default function Home({
       const suffix = h >= 12 ? 'PM' : 'AM';
       return `${String(h12).padStart(2, '0')}:00 ${suffix}`;
     }
-    const bare = t.match(/(\d{1,2})\s*(টা|টায়|টার)?/);
-    if (bare) {
-      const h = parseInt(bare[1], 10);
+    const bareTime =
+      t.match(/(\d{1,2})\s*(?:টা|টায়|টার|টার|ta\b|tar\b)/i) ||
+      t.trim().match(/^(\d{1,2})$/);
+    if (bareTime) {
+      const h = parseInt(bareTime[1], 10);
       if (h >= 1 && h <= 9) return `${String(h).padStart(2, '0')}:00 PM`;
       if (h >= 10 && h <= 12) return `${String(h).padStart(2, '0')}:00 AM`;
       if (h >= 13 && h <= 21) return `${String(h - 12).padStart(2, '0')}:00 PM`;
@@ -603,7 +620,7 @@ export default function Home({
 
   const parseBookingPhone = (raw: string): string | null => {
     const t = bnToEn(raw).replace(/[\s\-()]/g, '');
-    const m = t.match(/(?:\+?88)?(01[3-9]\d{8})/);
+    const m = t.match(/(?:\+?88)?(01[3-9]\d{8})(?!\d)/);
     return m ? m[1] : null;
   };
 
@@ -626,10 +643,21 @@ export default function Home({
   };
 
   const parseBookingName = (raw: string): string | null => {
-    const m = raw.match(/(?:আমার\s*নাম|name)\s*[:\-–]?\s*([^\n,।?]{2,40})/i);
+    const m = raw.match(/(?:আমার\s*নাম|amar\s*nam|my\s+name(?:\s+is)?|name)\s*[:\-–]?\s*([^\n,।?]{2,40})/i);
     if (!m) return null;
     const v = m[1].replace(/\b(বুকিং|অ্যাপয়েন্টমেন্ট|appointment|booking)\b.*/i, '').trim();
     return v.length >= 2 ? v : null;
+  };
+
+  // When the patient sends everything in one line (e.g. "jjj, 016..., 17 tarik, 6 ta"),
+  // the part before the first comma is usually the name.
+  const guessNameFromBundle = (raw: string): string | null => {
+    const first = (raw.split(/[,،\n]/)[0] || '').trim();
+    if (first.length < 2 || first.length > 40) return null;
+    if (/\d/.test(first)) return null;
+    if (/^(date|time|name|amar|ami|my|i|book|serial|appointment|mirpur|uttara|badda|jatrabari)$/i.test(first)) return null;
+    if (parseBookingBranch(first) || parseBookingService(first)) return null;
+    return first;
   };
 
   const pushBookingReply = (reply: string, userMsgId: string) => {
@@ -685,7 +713,19 @@ export default function Home({
     const cancelIntent = /(বাতিল|cancel|থাক\s*না)/i.test(query);
     const looksLikeQuestion = /[?？]|কত|কোথায়|কখন|কেন|কী|কি\s*$|কিভাবে|কীভাবে/.test(query);
 
-    if (!bookingDraft && !chatBookingIntent) return false;
+    // Parse everything we can from this message — patients often send every detail in one line.
+    const strictPhone = parseBookingPhone(query);
+    const phoneLike = /(?:\+?88)?0?1[3-9]\d{8,13}/.test(bnToEn(query).replace(/[\s\-()]/g, ''));
+    const parsedDate = parseBookingDate(query);
+    const parsedTime = parseBookingTime(query);
+    const parsedBranch = parseBookingBranch(query);
+    const parsedService = parseBookingService(query);
+    const parsedName = parseBookingName(query);
+
+    const signalCount = [strictPhone || phoneLike, parsedDate, parsedTime, parsedBranch, parsedName].filter(Boolean).length;
+    const looksLikeDetailsBundle = signalCount >= 2 && (!!(strictPhone || phoneLike) || (!!parsedDate && !!parsedTime));
+
+    if (!bookingDraft && !chatBookingIntent && !looksLikeDetailsBundle) return false;
 
     if (bookingDraft && cancelIntent) {
       setBookingDraft(null);
@@ -695,82 +735,54 @@ export default function Home({
 
     const draft: BookingDraft = { ...(bookingDraft || {}) };
     const isFirst = !bookingDraft;
+    const fieldBefore = nextBookingField(draft);
 
-    // Seed anything already present in the first message.
-    if (isFirst) {
-      const p = parseBookingPhone(query);
-      if (p) draft.phone = p;
-      const b = parseBookingBranch(query);
-      if (b) draft.branch = b;
-      const s = parseBookingService(query);
-      if (s) draft.service = s;
-      const d = parseBookingDate(query);
-      if (d && !isFridayIso(d)) draft.date = d;
-      const tm = parseBookingTime(query);
-      if (tm) draft.time = tm;
-      const n = parseBookingName(query);
-      if (n) draft.name = n;
+    // Merge whatever was detected (never overwrite given data, unless it is the field currently being asked).
+    if (parsedDate && isFridayIso(parsedDate) && (!draft.date || fieldBefore === 'date')) {
+      pushBookingReply('শুক্রবার আমাদের সব শাখা বন্ধ থাকে। অনুগ্রহ করে শনি থেকে বৃহস্পতিবারের মধ্যে একটি তারিখ দিন।', userMsgId);
+      setBookingDraft(draft);
+      return true;
+    }
+    if (strictPhone) draft.phone = strictPhone;
+    if (parsedDate && !isFridayIso(parsedDate) && (!draft.date || fieldBefore === 'date')) draft.date = parsedDate;
+    if (parsedTime && (!draft.time || fieldBefore === 'time')) draft.time = parsedTime;
+    if (parsedBranch && (!draft.branch || fieldBefore === 'branch')) draft.branch = parsedBranch;
+    if (parsedService && (!draft.service || fieldBefore === 'service')) draft.service = parsedService;
+    if (parsedName) draft.name = parsedName;
+    if (isFirst && looksLikeDetailsBundle && !draft.name) {
+      const guessed = guessNameFromBundle(query);
+      if (guessed) draft.name = guessed;
     }
 
-    // Fill the current pending field from this message.
-    const field = nextBookingField(draft);
-    let filled = false;
-
-    if (field && !isFirst) {
-      if (field === 'name') {
+    // Fallback: free-text answers to the field we just asked for.
+    // Only use the raw message when it did not clearly answer some other field
+    // (e.g. while asking for the service the patient replies "mirpur" — that is the branch).
+    const answeredOtherField =
+      (fieldBefore !== 'phone' && !!strictPhone) ||
+      (fieldBefore !== 'date' && !!parsedDate) ||
+      (fieldBefore !== 'time' && !!parsedTime) ||
+      (fieldBefore !== 'branch' && !!parsedBranch) ||
+      (fieldBefore !== 'service' && !!parsedService) ||
+      (fieldBefore !== 'name' && !!parsedName);
+    if (!isFirst && fieldBefore === 'address' && !draft.address) {
+      // An address naturally contains area names and numbers, so accept it as-is.
+      const v = query.trim();
+      if (v.length >= 3) draft.address = v;
+    } else if (fieldBefore && !isFirst && !answeredOtherField && nextBookingField(draft) === fieldBefore) {
+      const hasExtraSignals = !!strictPhone || !!parsedDate || !!parsedTime;
+      if (fieldBefore === 'name' && !draft.name && !looksLikeQuestion && !hasExtraSignals) {
         const v = query.trim();
-        if (v.length >= 2 && !looksLikeQuestion) {
-          draft.name = v;
-          filled = true;
-        }
-      } else if (field === 'phone') {
-        const p = parseBookingPhone(query);
-        if (p) {
-          draft.phone = p;
-          filled = true;
-        }
-      } else if (field === 'branch') {
-        const b = parseBookingBranch(query);
-        if (b) {
-          draft.branch = b;
-          filled = true;
-        }
-      } else if (field === 'service') {
-        const s = parseBookingService(query) || query.trim();
-        if (s.length >= 2 && !looksLikeQuestion) {
-          draft.service = s;
-          filled = true;
-        }
-      } else if (field === 'date') {
-        const d = parseBookingDate(query);
-        if (d) {
-          if (isFridayIso(d)) {
-            pushBookingReply('শুক্রবার আমাদের সব শাখা বন্ধ থাকে। অনুগ্রহ করে শনি থেকে বৃহস্পতিবারের মধ্যে একটি তারিখ দিন।', userMsgId);
-            setBookingDraft(draft);
-            return true;
-          }
-          draft.date = d;
-          filled = true;
-        }
-      } else if (field === 'time') {
-        const tm = parseBookingTime(query);
-        if (tm) {
-          draft.time = tm;
-          filled = true;
-        }
-      } else if (field === 'address') {
+        if (v.length >= 2 && v.length <= 60) draft.name = v;
+      } else if (fieldBefore === 'service' && !draft.service && !looksLikeQuestion) {
         const v = query.trim();
-        if (v.length >= 3) {
-          draft.address = v;
-          filled = true;
-        }
+        if (v.length >= 2) draft.service = v;
       }
     }
 
     const pending = nextBookingField(draft);
 
     // Patient asked a question mid-booking and we could not parse an answer → let the AI reply, keep the draft.
-    if (!isFirst && field && !filled && looksLikeQuestion) {
+    if (!isFirst && fieldBefore && pending === fieldBefore && looksLikeQuestion) {
       setBookingDraft(draft);
       return false;
     }
@@ -778,7 +790,12 @@ export default function Home({
     setBookingDraft(draft);
 
     if (pending) {
-      const prefix = field && !filled && !isFirst ? 'দুঃখিত, তথ্যটি ঠিক বুঝতে পারিনি। ' : '';
+      let prefix = '';
+      if (pending === 'phone' && phoneLike) {
+        prefix = 'মোবাইল নম্বরটি ১১ ডিজিটে ঠিকভাবে দিন (যেমন 01712345678)। ';
+      } else if (!isFirst && fieldBefore === pending) {
+        prefix = 'দুঃখিত, তথ্যটি ঠিক বুঝতে পারিনি। ';
+      }
       pushBookingReply(`${prefix}${BOOKING_FIELD_QUESTIONS[pending]}`, userMsgId);
       return true;
     }
@@ -788,7 +805,7 @@ export default function Home({
     if (saved) {
       setBookingDraft(null);
       pushBookingReply(
-        `আপনার বুকিং কনফার্ম হয়েছে, খুব শিগগিরই আপনাকে কল করা হবে।\n\nনাম: ${draft.name}\nশাখা: ${draft.branch}\nচিকিৎসা: ${draft.service}\nতারিখ: ${draft.date}\nসময়: ${draft.time}`,
+        `আপনার বুকিং কনফার্ম হয়েছে। আমাদের একজন প্রতিনিধি আপনাকে শিগগিরই কল দিয়ে কনফার্ম করবে।\n\nনাম: ${draft.name}\nশাখা: ${draft.branch}\nচিকিৎসা: ${draft.service}\nতারিখ: ${draft.date}\nসময়: ${draft.time}`,
         userMsgId
       );
     } else {
