@@ -443,14 +443,14 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                                     ['text' => $instructionText]
                                 ]
                             ],
-                            'contents' => [
+                            'contents' => array_merge($history, [
                                 [
                                     'role' => 'user',
                                     'parts' => [
                                         ['text' => $query]
                                     ]
                                 ]
-                            ],
+                            ]),
                             'generationConfig' => $genConfig
                         ];
 
@@ -669,6 +669,45 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
     }
 
     /**
+     * Convert the client's recent chat turns into Gemini `contents` entries.
+     * Only the last 10 messages are kept, and consecutive same-role turns are merged.
+     */
+    private function normalizeChatHistory($raw): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $turns = [];
+        foreach (array_slice($raw, -10) as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $role = (($item['role'] ?? '') === 'assistant') ? 'model' : 'user';
+            $text = trim((string) ($item['text'] ?? ''));
+            if ($text === '') {
+                continue;
+            }
+            if (mb_strlen($text) > 1500) {
+                $text = mb_substr($text, 0, 1500);
+            }
+            $lastIndex = count($turns) - 1;
+            if ($lastIndex >= 0 && $turns[$lastIndex]['role'] === $role) {
+                $turns[$lastIndex]['parts'][0]['text'] .= "\n" . $text;
+            } else {
+                $turns[] = ['role' => $role, 'parts' => [['text' => $text]]];
+            }
+        }
+
+        // Gemini expects the conversation to start with a user turn.
+        while (!empty($turns) && $turns[0]['role'] !== 'user') {
+            array_shift($turns);
+        }
+
+        return $turns;
+    }
+
+    /**
      * Public AI Chat API Endpoint (POST /api/ai-chat)
      */
     public function chatApi(Request $request)
@@ -680,6 +719,9 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                 'message' => 'অনুগ্রহ করে প্রশ্ন লিখুন।',
             ], 422);
         }
+
+        // Recent turns from the same chat box, so the assistant can follow the conversation.
+        $history = $this->normalizeChatHistory($request->input('history'));
 
         $settings = DB::table('ai_chat_settings')->first();
         $apiKey = trim($settings->gemini_api_key ?? env('GEMINI_API_KEY', ''));
@@ -724,14 +766,14 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                                 ['text' => $instructionText]
                             ]
                         ],
-                        'contents' => [
+                        'contents' => array_merge($history, [
                             [
                                 'role' => 'user',
                                 'parts' => [
                                     ['text' => $query]
                                 ]
                             ]
-                        ],
+                        ]),
                         'generationConfig' => $genConfig
                     ];
 

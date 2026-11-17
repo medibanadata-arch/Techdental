@@ -1145,6 +1145,14 @@ export default function Home({
       }
     };
 
+    const history = chatMessages
+      .slice(-10)
+      .map((m) => ({
+        role: m.role,
+        text: (m.text || m.answer?.reply || "").trim(),
+      }))
+      .filter((m) => m.text);
+
     try {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
@@ -1152,7 +1160,7 @@ export default function Home({
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
-        body: JSON.stringify({ query: cleanQuery }),
+        body: JSON.stringify({ query: cleanQuery, history }),
       });
 
       const data = await res.json();
