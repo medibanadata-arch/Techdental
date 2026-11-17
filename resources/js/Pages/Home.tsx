@@ -59,6 +59,8 @@ export interface ChatMessage {
   text?: string;
   answer?: AiAnswer;
   timestamp?: string;
+  /** When set, the bubble offers a one-tap copy button with this exact text. */
+  copyText?: string;
 }
 
 // Chat-based booking (slot filling)
@@ -85,6 +87,32 @@ const BOOKING_FIELD_QUESTIONS: Record<BookingField, string> = {
   time: 'কোন সময়ে আসতে চান? মিরপুরে সকাল ১০টা–দুপুর ২টা ও বিকেল ৪টা–রাত ৯টা, অন্য শাখায় বিকেল ৪টা–রাত ৯টা।',
   address: 'সর্বশেষে আপনার ঠিকানা লিখুন (এলাকা, বাসা/রোড নম্বর)।',
 };
+
+// Fill-in-the-blank booking format shown in the chat. The patient copies it, fills every
+// line and sends it back as one message — that becomes a real backend booking.
+const BOOKING_TEMPLATE = [
+  'নাম:',
+  'মোবাইল নম্বর:',
+  'শাখা:',
+  'চিকিৎসা:',
+  'তারিখ:',
+  'সময়:',
+  'ঠিকানা:',
+].join('\n');
+
+const BOOKING_TEMPLATE_INTRO =
+  'চ্যাট থেকেই সিরিয়াল নিতে পারেন। নিচের ফরম্যাটটি কপি করে প্রতিটি ঘর পূরণ করে একসাথে পাঠিয়ে দিন — পাঠানোর সাথে সাথেই আপনার বুকিং কনফার্ম হবে এবং আমাদের একজন প্রতিনিধি কল দিয়ে কনফার্ম করবেন।';
+
+// Label → field map for the filled-in template (Bengali + Banglish/English labels).
+const BOOKING_TEMPLATE_LABELS: Array<[BookingField, string[]]> = [
+  ['name', ['নাম', 'name', 'patient name']],
+  ['phone', ['মোবাইল নম্বর', 'মোবাইল', 'ফোন নম্বর', 'ফোন', 'নম্বর', 'phone number', 'phone', 'mobile', 'contact']],
+  ['branch', ['শাখা', 'ব্রাঞ্চ', 'branch']],
+  ['service', ['চিকিৎসা', 'সার্ভিস', 'service', 'treatment']],
+  ['date', ['তারিখ', 'date']],
+  ['time', ['সময়', 'সময়', 'time']],
+  ['address', ['ঠিকানা', 'address']],
+];
 
 // Helper: Extract YouTube 11-char Video ID from any YouTube URL
 export const extractYouTubeId = (url: string): string | null => {
@@ -474,12 +502,31 @@ export default function Home({
     setIsWidgetOpen(false);
   };
 
-  const handleCopyAnswer = (text: string, id: string) => {
-    if (navigator?.clipboard) {
-      navigator.clipboard.writeText(text);
+  const handleCopyAnswer = (text: string, id: string, toastText = "উত্তর কপি হয়েছে") => {
+    if (!text) return;
+    const fallbackCopy = () => {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', 'readonly');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      try {
+        document.execCommand('copy');
+      } catch (e) {
+        console.error('Copy failed:', e);
+      }
+      document.body.removeChild(area);
+    };
+
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
     }
     setCopiedMsgId(id);
-    showToast("উত্তর কপি হয়েছে");
+    showToast(toastText);
     setTimeout(() => setCopiedMsgId(null), 2000);
   };
 
@@ -688,13 +735,91 @@ export default function Home({
     if (first.length < 2 || first.length > 40) return null;
     if (/\d/.test(first)) return null;
     if (/^(date|time|name|amar|ami|my|i|book|serial|appointment|mirpur|uttara|badda|jatrabari)$/i.test(first)) return null;
+    // "ekan theke serial nibo" / "chat e book korte chai" are booking requests, not names.
+    if (/(book|bok|buk|serial|sirial|srial|appoint|chat|ekhane|ekan|tumi|tmi|বুকিং|সিরিয়াল|অ্যাপয়েন্টমেন্ট|চ্যাট|এখান|নিতে|নিব|নেব|নিও|চাই|korte|kore|koro|nite|nibo|nebo|niye|chai|dao|den|dite|lagbe)/i.test(first)) {
+      return null;
+    }
     if (parseBookingBranch(first) || parseBookingService(first)) return null;
     // "kal asbo" / "bikel 5 ta" are scheduling answers, not names.
     if (parseBookingDate(first) || parseBookingTime(first)) return null;
     return first;
   };
 
-  const pushBookingReply = (reply: string, userMsgId: string) => {
+  const bookingFieldForLabel = (label: string): BookingField | null => {
+    const l = label.trim().toLowerCase();
+    for (const [field, labels] of BOOKING_TEMPLATE_LABELS) {
+      if (labels.some((x) => x.toLowerCase() === l)) return field;
+    }
+    return null;
+  };
+
+  /**
+   * Reads a filled-in booking template ("নাম: রফিক / মোবাইল নম্বর: 017... / শাখা: মিরপুর ...").
+   * Works for multi-line templates as well as labelled lines separated by commas.
+   */
+  const parseBookingTemplate = (raw: string): Partial<BookingDraft> | null => {
+    const alternation = BOOKING_TEMPLATE_LABELS
+      .flatMap(([, labels]) => labels)
+      .sort((a, b) => b.length - a.length)
+      .map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|');
+    let labelRegex: RegExp;
+    try {
+      labelRegex = new RegExp(`(?:^|[\\n,;।])\\s*[^\\p{L}\\p{N}]{0,4}\\s*(${alternation})\\s*[:：=]\\s*`, 'giu');
+    } catch {
+      labelRegex = new RegExp(`(?:^|[\\n,;।])\\s*(?:\\S{1,2}\\s*)?(${alternation})\\s*[:：=]\\s*`, 'gi');
+    }
+
+    let matches = Array.from(bnToEn(raw).matchAll(labelRegex));
+
+    // A single-line input can strip the newlines when a patient pastes the format, which
+    // glues "…রফিকমোবাইল নম্বর:…" together. In that case fall back to matching the labels
+    // anywhere, as long as several of them are present.
+    if (matches.length < 2) {
+      try {
+        const looseRegex = new RegExp(`(${alternation})\\s*[:：=]\\s*`, 'giu');
+        const looseMatches = Array.from(bnToEn(raw).matchAll(looseRegex));
+        if (looseMatches.length >= 3) matches = looseMatches;
+      } catch {
+        // ignore — the strict pass result stands
+      }
+    }
+
+    if (!matches.length) return null;
+
+    const values: Partial<Record<BookingField, string>> = {};
+    matches.forEach((m, idx) => {
+      const field = bookingFieldForLabel(m[1]);
+      if (!field) return;
+      const start = (m.index ?? 0) + m[0].length;
+      const end = idx + 1 < matches.length ? (matches[idx + 1].index ?? raw.length) : raw.length;
+      const value = raw.slice(start, end).replace(/^[\s,;।.]+|[\s,;।.]+$/g, '');
+      if (!value) return;
+      values[field] = value;
+    });
+
+    const parsed: Partial<BookingDraft> = {};
+    if (values.name) parsed.name = values.name.replace(/\s+/g, ' ').slice(0, 191);
+    if (values.phone) {
+      const p = parseBookingPhone(values.phone);
+      if (p) parsed.phone = p;
+    }
+    if (values.branch) parsed.branch = (parseBookingBranch(values.branch) || values.branch).slice(0, 191);
+    if (values.service) parsed.service = (parseBookingService(values.service) || values.service).slice(0, 191);
+    if (values.date) {
+      const d = parseBookingDate(values.date);
+      if (d) parsed.date = d;
+    }
+    if (values.time) {
+      const t = parseBookingTime(values.time);
+      if (t) parsed.time = t;
+    }
+    if (values.address) parsed.address = values.address.replace(/\s+/g, ' ').slice(0, 500);
+
+    return parsed;
+  };
+
+  const pushBookingReply = (reply: string, userMsgId: string, copyText?: string) => {
     const msg: ChatMessage = {
       id: `ai-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       role: 'assistant',
@@ -704,6 +829,7 @@ export default function Home({
         source: 'keyword',
       },
       timestamp: getFormattedTime(),
+      copyText,
     };
     setChatMessages((prev) => [...prev, msg]);
     setTimeout(() => scrollChatToQuestion(userMsgId), 60);
@@ -732,7 +858,9 @@ export default function Home({
           notes: 'Booked via AI chat',
         }),
       });
-      return res.ok;
+      // Only treat the booking as confirmed when the server says it actually saved a row.
+      const data = await res.json().catch(() => null);
+      return res.ok && !!data?.success;
     } catch (err) {
       console.error('Chat booking failed:', err);
       return false;
@@ -740,10 +868,28 @@ export default function Home({
   };
 
   const handleChatBookingTurn = async (query: string, userMsgId: string): Promise<boolean> => {
-    const bookingIntent = /(বুকিং|বুক\s*করা|বুক\s*কর|বুক\s*কর্তে|বুক\s*করে|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল|book|bok|buk|buke|booking|appoint|serial|sirial|srial)/i.test(query);
-    // Only start the in-chat booking flow when the patient explicitly asks to book HERE in the chat.
-    const wantsBookingAction = bookingIntent || /(করতে\s*চাই|নিতে\s*চাই|নিব|করব|korte\s*chai|nite\s*chai|korbo|lagbe|লাগবে)/i.test(query);
-    const chatBookingIntent = wantsBookingAction && /(chat|চ্যাট|এখানে|এখানেই|এখান\s*থেকে|ekhane|ekhanei|ikhane|eikhane|eikhanei)/i.test(query);
+    const normalized = bnToEn(query);
+    // Any of these words signals a booking conversation ("serial", "book", "appointment"…).
+    const bookingKeyword =
+      /(বুকিং|বুক\s*করা|বুক\s*কর|বুক\s*কর্তে|বুক\s*করে|বুক\s*করতে|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল|\bbook(?:ing|ed)?\b|\bbok(?:e|te|bo|ben|be)?\b|\bbuk(?:e|te|bo|ben)?\b|\bappoint(?:ment)?\b|\bserial\b|\bsirial\b|\bsrial\b)/i;
+    // …but it must also be a request to act, not just a passing mention.
+    const bookingAction =
+      /(করতে|করা|করে|কর্ন|করব|নিতে|নেব|নিব|নিও|নিন|নেওয়া|নেয়া|দেন|দিন|দাও|দিতে|দিও|দিয়ো|দিবে|দেবে|চাই|দরকার|lagbe|লাগবে|korte|korta|kore|koro|korbo|korben|nite|nibo|nebo|niba|nebe|niye|neoa|den|din|dao|diyo|dibe|debe|chai|chen|dorkar)/i;
+    // "serial niye dao", "book kore din", "সিরিয়াল নিয়ে দেন" — a phrasal booking request.
+    const bookingPhrase =
+      /(?:বুকিং|সিরিয়াল|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|\bbook\w*|\bbok\w*|\bbuk\w*|\bserial\w*|\bsirial\w*|\bsrial\w*)\s*[-–]?\s*(?:niye|nite|nibo|nebo|niba|nebe|neoya|den|din|dao|diyo|dibe|debe|kore|koro|korte|নিয়ে|নিতে|নেব|নিব|নিও|দেন|দিন|দাও|দিয়ো|দিবে|দেবে|করে|করো|করতে)/i;
+    // Patient explicitly asks how to book or for the format → hand the template back.
+    const asksForTemplate =
+      /(ফরম্যাট|format|কি\s*কি\s*লাগবে|ki\s*ki\s*lagbe|কি\s*কি\s*দিতে\s*হবে|ki\s*ki\s*dite\s*hobe|কিভাবে\s*বুক|kivabe\s*book)/i.test(normalized) ||
+      (/(kivabe|kibhabe|কিভাবে|কীভাবে)/i.test(normalized) && bookingKeyword.test(normalized));
+    const bookingIntent = bookingKeyword.test(normalized);
+    const wantsBookingAction = bookingIntent && (bookingAction.test(normalized) || bookingPhrase.test(normalized));
+    // "এখন থেকেই", "চ্যাট থেকে", "এখানে" or "তুমি দিয়ে দাও" — the patient wants it done right here.
+    const botActionPhrase =
+      /(?:niye|kore|niye\s*de|দিয়ে|করে)\s*(?:dao|din|den|diyo|dibe|debe|দাও|দিন|দেন|দিয়ো|দিবে|দেবে)/i;
+    const explicitChatIntent =
+      /(chat|চ্যাট|এখান|ekhane|ekhanei|eikhane|ikhane|ekan\b|ekhon\b|tumi|tmi|তুমি)/i.test(normalized) ||
+      botActionPhrase.test(normalized);
     const cancelIntent = /(বাতিল|cancel|থাক\s*না)/i.test(query);
     const looksLikeQuestion = /[?？]|কত|কোথায়|কখন|কেন|কী|কি\s*$|কিভাবে|কীভাবে/.test(query);
 
@@ -758,6 +904,9 @@ export default function Home({
     const parsedService = parseBookingService(query);
     const parsedName = parseBookingName(query);
     const nameGuess = guessNameFromBundle(query);
+    // A filled-in booking template already carries labelled values for several fields.
+    const templateDraft = parseBookingTemplate(query);
+    const filledTemplate = !!templateDraft && Object.keys(templateDraft).length >= 2;
 
     // A message that carries a phone number plus any other booking detail is a details bundle,
     // even if the patient sent it right after the AI asked for their information.
@@ -786,14 +935,39 @@ export default function Home({
       strictPhone || phoneLike || parsedDate || parsedTime || parsedBranch || parsedService || nameGuess
     );
 
-    if (!bookingDraft && !chatBookingIntent && !looksLikeDetailsBundle && !(aiAskedForBooking && hasAnyBookingDetail)) {
-      // General booking request (e.g. "book korte chai") without an explicit in-chat request:
-      // answer deterministically with the hotline instead of letting the AI improvise.
-      if (bookingIntent) {
-        pushBookingReply(
-          'আপনি আমাদের হটলাইন 09638000505 নম্বরে কল করে সিরিয়াল নিতে পারবেন।',
-          userMsgId
-        );
+    // Patient asks for the booking format again — always hand the same template back.
+    if (asksForTemplate) {
+      if (!bookingDraft) setBookingDraft({});
+      pushBookingReply(
+        `${BOOKING_TEMPLATE_INTRO}\n\n${BOOKING_TEMPLATE}\n\nঅথবা সরাসরি হটলাইন 09638000505 নম্বরে কল করে সিরিয়াল নিতে পারেন।`,
+        userMsgId,
+        BOOKING_TEMPLATE
+      );
+      return true;
+    }
+
+    if (
+      !bookingDraft &&
+      !looksLikeDetailsBundle &&
+      !filledTemplate &&
+      !(aiAskedForBooking && hasAnyBookingDetail)
+    ) {
+      if (wantsBookingAction) {
+        if (explicitChatIntent) {
+          // Wants it booked right here in the chat → hand over the fill-in-the-blank format.
+          setBookingDraft({});
+          pushBookingReply(
+            `${BOOKING_TEMPLATE_INTRO}\n\n${BOOKING_TEMPLATE}\n\nঅথবা সরাসরি হটলাইন 09638000505 নম্বরে কল করে সিরিয়াল নিতে পারেন।`,
+            userMsgId,
+            BOOKING_TEMPLATE
+          );
+        } else {
+          // General booking request → only the hotline first.
+          pushBookingReply(
+            'আপনি আমাদের হটলাইন 09638000505 নম্বরে কল করে সিরিয়াল নিতে পারবেন।',
+            userMsgId
+          );
+        }
         return true;
       }
       return false;
@@ -809,12 +983,24 @@ export default function Home({
     const isFirst = !bookingDraft;
     const fieldBefore = nextBookingField(draft);
 
-    // Merge whatever was detected (never overwrite given data, unless it is the field currently being asked).
-    if (parsedDate && isFridayIso(parsedDate) && (!draft.date || fieldBefore === 'date')) {
+    // Values typed into the labelled template always win — they are the patient's own answers.
+    if (templateDraft) {
+      (Object.keys(templateDraft) as BookingField[]).forEach((f) => {
+        const v = templateDraft[f];
+        if (v) draft[f] = v;
+      });
+    }
+
+    // Friday is closed — check whatever date we have (template value or free text).
+    const candidateDate = draft.date || parsedDate;
+    if (candidateDate && isFridayIso(candidateDate) && (!bookingDraft?.date || fieldBefore === 'date' || filledTemplate)) {
+      if (draft.date && isFridayIso(draft.date)) delete draft.date;
       pushBookingReply('শুক্রবার আমাদের সব শাখা বন্ধ থাকে। অনুগ্রহ করে শনি থেকে বৃহস্পতিবারের মধ্যে একটি তারিখ দিন।', userMsgId);
       setBookingDraft(draft);
       return true;
     }
+
+    // Merge whatever was detected (never overwrite given data, unless it is the field currently being asked).
     if (strictPhone) draft.phone = strictPhone;
     if (parsedDate && !isFridayIso(parsedDate) && (!draft.date || fieldBefore === 'date')) draft.date = parsedDate;
     if (parsedTime && (!draft.time || fieldBefore === 'time')) draft.time = parsedTime;
@@ -833,18 +1019,24 @@ export default function Home({
       (fieldBefore !== 'branch' && !!parsedBranch) ||
       (fieldBefore !== 'service' && !!parsedService) ||
       (fieldBefore !== 'name' && !!parsedName);
-    if (!isFirst && fieldBefore === 'address' && !draft.address) {
+    if (filledTemplate) {
+      // The filled template already carried its own values — never store the whole
+      // block as an address or name.
+    } else if (!isFirst && fieldBefore === 'address' && !draft.address) {
       // An address naturally contains area names and numbers, so accept it as-is.
       const v = query.trim();
-      if (v.length >= 3) draft.address = v;
+      if (v.length >= 3) draft.address = v.slice(0, 500);
     } else if (fieldBefore && !isFirst && !answeredOtherField && nextBookingField(draft) === fieldBefore) {
       const hasExtraSignals = !!strictPhone || !!parsedDate || !!parsedTime;
-      if (fieldBefore === 'name' && !draft.name && !looksLikeQuestion && !hasExtraSignals) {
+      // Never treat a booking command ("chat theke book korte chai", "serial niye dao")
+      // as an answer to the name/treatment question.
+      const isBookingCommand = wantsBookingAction || bookingIntent || explicitChatIntent || asksForTemplate;
+      if (fieldBefore === 'name' && !draft.name && !looksLikeQuestion && !hasExtraSignals && !isBookingCommand) {
         const v = query.trim();
         if (v.length >= 2 && v.length <= 60) draft.name = v;
-      } else if (fieldBefore === 'service' && !draft.service && !looksLikeQuestion) {
+      } else if (fieldBefore === 'service' && !draft.service && !looksLikeQuestion && !isBookingCommand) {
         const v = query.trim();
-        if (v.length >= 2) draft.service = v;
+        if (v.length >= 2) draft.service = v.slice(0, 191);
       }
     }
 
@@ -859,10 +1051,25 @@ export default function Home({
     setBookingDraft(draft);
 
     if (pending) {
+      // Nothing collected yet and the patient asked to book here again — show the format
+      // again instead of guessing their name.
+      const filledFieldCount = BOOKING_FIELD_ORDER.filter((f) => draft[f] && String(draft[f]).trim()).length;
+      if (filledFieldCount === 0 && explicitChatIntent) {
+        pushBookingReply(
+          `${BOOKING_TEMPLATE_INTRO}\n\n${BOOKING_TEMPLATE}\n\nঅথবা সরাসরি হটলাইন 09638000505 নম্বরে কল করে সিরিয়াল নিতে পারেন।`,
+          userMsgId,
+          BOOKING_TEMPLATE
+        );
+        return true;
+      }
+
+      const capturedSomething = !!(
+        strictPhone || parsedDate || parsedTime || parsedBranch || parsedService || parsedName || templateDraft
+      );
       let prefix = '';
       if (pending === 'phone' && phoneLike) {
         prefix = 'মোবাইল নম্বরটি ১১ ডিজিটে ঠিকভাবে দিন (যেমন 01712345678)। ';
-      } else if (!isFirst && fieldBefore === pending) {
+      } else if (!isFirst && fieldBefore === pending && !capturedSomething && !wantsBookingAction) {
         prefix = 'দুঃখিত, তথ্যটি ঠিক বুঝতে পারিনি। ';
       }
       pushBookingReply(`${prefix}${BOOKING_FIELD_QUESTIONS[pending]}`, userMsgId);
@@ -874,7 +1081,7 @@ export default function Home({
     if (saved) {
       setBookingDraft(null);
       pushBookingReply(
-        `আপনার বুকিং কনফার্ম হয়েছে। আমাদের একজন প্রতিনিধি আপনাকে শিগগিরই কল দিয়ে কনফার্ম করবে।\n\nনাম: ${draft.name}\nশাখা: ${draft.branch}\nচিকিৎসা: ${draft.service}\nতারিখ: ${draft.date}\nসময়: ${draft.time}`,
+        `আপনার বুকিং কনফার্ম হয়েছে। আমাদের একজন প্রতিনিধি আপনাকে শিগগিরই কল দিয়ে কনফার্ম করবে।\n\nনাম: ${draft.name}\nমোবাইল: ${draft.phone}\nশাখা: ${draft.branch}\nচিকিৎসা: ${draft.service}\nতারিখ: ${draft.date}\nসময়: ${draft.time}\nঠিকানা: ${draft.address}`,
         userMsgId
       );
     } else {
@@ -1170,7 +1377,7 @@ export default function Home({
     if (msg.role === "user") {
       return (
         <div key={msg.id} data-msg-id={msg.id} className="flex flex-col items-end pt-2">
-          <div className="bg-[#dbeafe] text-[#0f172a] font-normal px-4 py-2.5 rounded-[20px] rounded-br-[4px] text-[14px] sm:text-[15px] max-w-[85%] border border-blue-200/60 shadow-2xs font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+          <div className="bg-[#dbeafe] text-[#0f172a] font-normal px-4 py-2.5 rounded-[20px] rounded-br-[4px] text-[14px] sm:text-[15px] max-w-[85%] border border-blue-200/60 shadow-2xs whitespace-pre-line font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
             {msg.text}
           </div>
           <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-1 mr-1 select-none">
@@ -1190,6 +1397,16 @@ export default function Home({
           <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide space-y-2">
             {renderFormattedReply(msg.answer?.reply || "")}
           </div>
+          {msg.copyText && (
+            <button
+              type="button"
+              onClick={() => handleCopyAnswer(msg.copyText || '', msg.id, 'বুকিং ফরম্যাট কপি হয়েছে — পূরণ করে পাঠিয়ে দিন')}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-blue-700 shadow-2xs transition-all hover:border-blue-400 hover:bg-blue-50 active:scale-95"
+            >
+              <i className={copiedMsgId === msg.id ? 'fa-solid fa-check text-emerald-600' : 'fa-regular fa-copy'} />
+              <span>{copiedMsgId === msg.id ? 'কপি হয়েছে' : 'ফরম্যাট কপি করুন'}</span>
+            </button>
+          )}
         </div>
         <div className="text-[11px] text-slate-400 mt-1 ml-2 select-none">
           {msg.timestamp || getFormattedTime()}
@@ -2039,18 +2256,30 @@ export default function Home({
             <div className="p-4 border-t border-slate-100 bg-white shrink-0">
               <form
                 onSubmit={handleModalSubmit}
-                className="relative flex items-center bg-[#f0f4f9] rounded-full px-5 py-2.5 sm:py-3 border border-slate-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20"
+                className="relative flex items-end bg-[#f0f4f9] rounded-2xl px-5 py-2.5 sm:py-3 border border-slate-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20"
               >
-                <svg className="w-4 h-4 text-slate-400 mr-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-4 h-4 text-slate-400 mr-3 mb-1 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input
-                  type="text"
+                <textarea
                   value={modalInputValue}
-                  onChange={(e) => setModalInputValue(e.target.value)}
+                  onChange={(e) => {
+                    setModalInputValue(e.target.value);
+                    const el = e.currentTarget;
+                    el.style.height = 'auto';
+                    el.style.height = `${Math.min(el.scrollHeight, 132)}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    // Enter sends, Shift+Enter adds a new line (needed for the booking format).
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleModalSubmit();
+                    }
+                  }}
+                  rows={1}
                   placeholder="আপনার পরবর্তী প্রশ্ন লিখুন..."
-                  className="w-full bg-transparent text-sm outline-none text-slate-800 border-0 ring-0 focus:ring-0 focus:outline-none"
+                  className="w-full bg-transparent text-sm outline-none text-slate-800 border-0 ring-0 focus:ring-0 focus:outline-none resize-none max-h-[132px] leading-relaxed py-0.5"
                 />
                 <button
                   type="submit"
