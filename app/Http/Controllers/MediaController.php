@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Media;
+use App\Support\ImageWebp;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -10,47 +11,7 @@ use Illuminate\Support\Facades\File;
 
 class MediaController extends Controller
 {
-    private function convertToWebp(string $sourcePath, string $destPath, int $quality = 82): bool
-    {
-        if (!function_exists('imagewebp')) {
-            return false;
-        }
-
-        $info = @getimagesize($sourcePath);
-        if (!$info) {
-            return false;
-        }
-
-        $mime = $info['mime'] ?? '';
-        $image = null;
-
-        switch ($mime) {
-            case 'image/jpeg':
-                $image = @imagecreatefromjpeg($sourcePath);
-                break;
-            case 'image/png':
-                $image = @imagecreatefrompng($sourcePath);
-                if ($image) {
-                    imagepalettetotruecolor($image);
-                    imagealphablending($image, true);
-                    imagesavealpha($image, true);
-                }
-                break;
-            case 'image/webp':
-                return true;
-            default:
-                return false;
-        }
-
-        if (!$image) {
-            return false;
-        }
-
-        $result = @imagewebp($image, $destPath, $quality);
-        imagedestroy($image);
-        return $result;
-    }
-
+    // Images are normalised (WebP + max 1600px) by App\Support\ImageWebp.
     public function index()
     {
         $media = Media::latest()->get();
@@ -138,10 +99,25 @@ class MediaController extends Controller
                 }
 
                 $cleanName = Str::slug($title);
-                $filename = time() . '_' . ($cleanName ?: 'image') . '.' . $type;
-                file_put_contents($uploadDir . '/' . $filename, $decoded);
+                $baseName = time() . '_' . ($cleanName ?: 'image');
+                $tempPath = $uploadDir . '/' . $baseName . '.' . $type;
+                file_put_contents($tempPath, $decoded);
 
-                $sizeBytes = strlen($decoded);
+                // Always keep a single WebP file per image, resized to a sensible maximum.
+                $webpPath = $uploadDir . '/' . $baseName . '.webp';
+                $converted = ImageWebp::convert($tempPath, $webpPath);
+                if ($converted) {
+                    if (realpath($tempPath) !== realpath($webpPath)) {
+                        @unlink($tempPath);
+                    }
+                    $filename = $baseName . '.webp';
+                    $type = 'webp';
+                } else {
+                    $filename = $baseName . '.' . $type;
+                }
+
+                $finalPath = $uploadDir . '/' . $filename;
+                $sizeBytes = @filesize($finalPath) ?: strlen($decoded);
                 if ($sizeBytes >= 1048576) {
                     $filesize = round($sizeBytes / 1048576, 2) . ' MB';
                 } else {
@@ -149,7 +125,7 @@ class MediaController extends Controller
                 }
 
                 $dimensions = null;
-                $imgInfo = @getimagesize($uploadDir . '/' . $filename);
+                $imgInfo = @getimagesize($finalPath);
                 if ($imgInfo && isset($imgInfo[0]) && isset($imgInfo[1])) {
                     $dimensions = $imgInfo[0] . ' by ' . $imgInfo[1] . ' pixels';
                 }
@@ -195,7 +171,7 @@ class MediaController extends Controller
 
         // Categorize directory by media type for shared hosting cleanliness
         $subFolder = 'files';
-        if (str_starts_with($mimeType, 'image/') || in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'])) {
+        if (str_starts_with($mimeType, 'image/') || in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg'])) {
             $subFolder = 'images';
         } elseif (str_starts_with($mimeType, 'video/') || in_array($extension, ['mp4', 'webm', 'mov', 'mkv', 'avi'])) {
             $subFolder = 'videos';
@@ -215,12 +191,23 @@ class MediaController extends Controller
         $file->move($uploadDir, $filename);
         $originalFilePath = $uploadDir . '/' . $filename;
 
-        // Auto WebP Conversion & Compression for uploaded images
-        if ($subFolder === 'images' && in_array($extension, ['jpg', 'jpeg', 'png'])) {
+        // Detect the real image format from the bytes â€” the client extension can lie
+        // (e.g. a JPEG sent with a .webp filename), which used to skip conversion.
+        $realInfo = @getimagesize($originalFilePath);
+        $realMime = $realInfo['mime'] ?? '';
+        $isConvertibleImage = in_array(
+            $realMime,
+            ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'],
+            true
+        );
+
+        if ($subFolder === 'images' && $isConvertibleImage) {
             $webpFilename = time() . '_' . $uniqueSuffix . '_' . ($cleanName ?: 'media') . '.webp';
             $webpPath = $uploadDir . '/' . $webpFilename;
-            if ($this->convertToWebp($originalFilePath, $webpPath, 82)) {
-                @unlink($originalFilePath);
+            if (ImageWebp::convert($originalFilePath, $webpPath)) {
+                if ($originalFilePath !== $webpPath) {
+                    @unlink($originalFilePath);
+                }
                 $filename = $webpFilename;
                 $extension = 'webp';
             }

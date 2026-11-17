@@ -1265,7 +1265,7 @@ export default function Home({
               "@id": `${siteUrl}#organization`,
               "name": "Tech Dental Care",
               "url": siteUrl,
-              "logo": `${siteUrl}/uploads/images/tech-dental-logo.png`,
+              "logo": `${siteUrl}/uploads/images/tech-dental-logo.webp`,
               "telephone": "+8809638000505",
               "email": "info@techdentalcare.com",
               "address": {
@@ -1281,7 +1281,7 @@ export default function Home({
               "@id": `${siteUrl}#clinic`,
               "name": "Tech Dental Care",
               "url": siteUrl,
-              "image": `${siteUrl}/uploads/images/tech-dental-logo.png`,
+              "image": `${siteUrl}/uploads/images/tech-dental-logo.webp`,
               "telephone": "+8809638000505",
               "priceRange": "৳৳",
               "currenciesAccepted": "BDT",

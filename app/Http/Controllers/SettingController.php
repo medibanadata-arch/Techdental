@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\HomeContent;
 use App\Models\Media;
 use App\Models\NavMenu;
+use App\Support\ImageWebp;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -63,6 +64,7 @@ class SettingController extends Controller
                 mkdir($destinationPath, 0755, true);
             }
             $file->move($destinationPath, $filename);
+            $filename = $this->convertUploadToWebp($destinationPath, $filename);
             $validated['header_logo'] = '/uploads/images/' . $filename;
         }
 
@@ -75,6 +77,7 @@ class SettingController extends Controller
                 mkdir($destinationPath, 0755, true);
             }
             $file->move($destinationPath, $filename);
+            $filename = $this->convertUploadToWebp($destinationPath, $filename);
             $validated['favicon'] = '/uploads/images/' . $filename;
         }
 
@@ -82,6 +85,26 @@ class SettingController extends Controller
         $settings->save();
 
         return redirect()->route('settings.admin')->with('success', 'Settings updated successfully.');
+    }
+
+    /**
+     * Re-encode an uploaded logo/favicon as WebP and return the stored file name.
+     * Falls back to the original file when it is not a convertible image (e.g. .ico).
+     */
+    private function convertUploadToWebp(string $directory, string $filename): string
+    {
+        $source = $directory . '/' . $filename;
+        $webpPath = $directory . '/' . pathinfo($filename, PATHINFO_FILENAME) . '.webp';
+
+        if (!ImageWebp::convert($source, $webpPath)) {
+            return $filename;
+        }
+
+        if ($source !== $webpPath) {
+            @unlink($source);
+        }
+
+        return basename($webpPath);
     }
 
     public function headerFooter()

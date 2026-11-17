@@ -374,10 +374,12 @@ export default function ImageCropperModal({
             const sourceW = Math.max(1, Math.min(nw - sourceX, rawSw - Math.max(0, -rawSx)));
             const sourceH = Math.max(1, Math.min(nh - sourceY, rawSh - Math.max(0, -rawSy)));
 
-            // Target canvas for output
+            // Target canvas for output — cap the long side so uploads stay light.
+            const MAX_OUTPUT = 1600;
+            const outputScale = Math.min(1, MAX_OUTPUT / Math.max(sourceW, sourceH));
             const outCanvas = document.createElement('canvas');
-            outCanvas.width = Math.round(sourceW);
-            outCanvas.height = Math.round(sourceH);
+            outCanvas.width = Math.max(1, Math.round(sourceW * outputScale));
+            outCanvas.height = Math.max(1, Math.round(sourceH * outputScale));
             const ctx = outCanvas.getContext('2d');
 
             if (!ctx) throw new Error('Canvas context could not be created');

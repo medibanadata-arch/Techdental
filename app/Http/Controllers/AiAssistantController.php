@@ -53,11 +53,10 @@ Evening Shift: 4:00 PM – 9:00 PM
 ## BADDA BRANCH
 
 Morning Shift: 10:00 AM – 2:00 PM
-- এই শিফটে বর্তমানে কোনো ডাক্তার নেই (শুধুমাত্র ইভিনিং শিফট)।
+- Doctor Name: Dr. Sanjida Farabi
 
 Evening Shift: 4:00 PM – 9:00 PM
 - Doctor Name: Dr. Hasna Hena Bhuiyan Nishi
-- Doctor Name: Dr. Sanjida Farabi
 
 ## UTTARA BRANCH
 
@@ -85,7 +84,7 @@ Other Specialists:
 - Name: Dr. Sanjida Farabi
 - Specialty: Aesthetic Dentistry, Pediatric Dentistry, Hollywood Smile Design
 - Available Branch: Badda
-- Visiting Schedule: Evening Shift 4:00 PM – 9:00 PM
+- Visiting Schedule: Morning Shift 10:00 AM – 2:00 PM
 
 ## DAY-WISE DUTY SCHEDULE
 
