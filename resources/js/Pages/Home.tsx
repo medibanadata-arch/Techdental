@@ -869,6 +869,8 @@ export default function Home({
 
   const handleChatBookingTurn = async (query: string, userMsgId: string): Promise<boolean> => {
     const normalized = bnToEn(query);
+    const lastAssistant = [...chatMessages].reverse().find((m) => m.role === 'assistant');
+    const lastAssistantText = lastAssistant ? (lastAssistant.text || lastAssistant.answer?.reply || '') : '';
     // Any of these words signals a booking conversation ("serial", "book", "appointment"…).
     const bookingKeyword =
       /(বুকিং|বুক\s*করা|বুক\s*কর|বুক\s*কর্তে|বুক\s*করে|বুক\s*করতে|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল|\bbook(?:ing|ed)?\b|\bbok(?:e|te|bo|ben|be)?\b|\bbuk(?:e|te|bo|ben)?\b|\bappoint(?:ment)?\b|\bserial\b|\bsirial\b|\bsrial\b)/i;
@@ -878,18 +880,27 @@ export default function Home({
     // "serial niye dao", "book kore din", "সিরিয়াল নিয়ে দেন" — a phrasal booking request.
     const bookingPhrase =
       /(?:বুকিং|সিরিয়াল|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|\bbook\w*|\bbok\w*|\bbuk\w*|\bserial\w*|\bsirial\w*|\bsrial\w*)\s*[-–]?\s*(?:niye|nite|nibo|nebo|niba|nebe|neoya|den|din|dao|diyo|dibe|debe|kore|koro|korte|নিয়ে|নিতে|নেব|নিব|নিও|দেন|দিন|দাও|দিয়ো|দিবে|দেবে|করে|করো|করতে)/i;
-    // Patient explicitly asks how to book or for the format → hand the template back.
+    // Only an explicit request for the booking format gives the template.
+    // "serial nibo kivabe" / "কিভাবে সিরিয়াল নেব" is a how-to-book question → hotline first.
     const asksForTemplate =
-      /(ফরম্যাট|format|কি\s*কি\s*লাগবে|ki\s*ki\s*lagbe|কি\s*কি\s*দিতে\s*হবে|ki\s*ki\s*dite\s*hobe|কিভাবে\s*বুক|kivabe\s*book)/i.test(normalized) ||
-      (/(kivabe|kibhabe|কিভাবে|কীভাবে)/i.test(normalized) && bookingKeyword.test(normalized));
+      /(ফরম্যাট|format|কি\s*কি\s*লাগবে|ki\s*ki\s*lagbe|কি\s*কি\s*দিতে\s*হবে|ki\s*ki\s*dite\s*hobe)/i.test(normalized);
     const bookingIntent = bookingKeyword.test(normalized);
-    const wantsBookingAction = bookingIntent && (bookingAction.test(normalized) || bookingPhrase.test(normalized));
-    // "এখন থেকেই", "চ্যাট থেকে", "এখানে" or "তুমি দিয়ে দাও" — the patient wants it done right here.
+    // "এখন থেকেই", "এখন থেকে", "চ্যাট থেকে", "এখানে" or "তুমি দিয়ে দাও" — done right here.
     const botActionPhrase =
       /(?:niye|kore|niye\s*de|দিয়ে|করে)\s*(?:dao|din|den|diyo|dibe|debe|দাও|দিন|দেন|দিয়ো|দিবে|দেবে)/i;
     const explicitChatIntent =
-      /(chat|চ্যাট|এখান|ekhane|ekhanei|eikhane|ikhane|ekan\b|ekhon\b|tumi|tmi|তুমি)/i.test(normalized) ||
+      /(chat|চ্যাট|এখান|ekhane|ekhanei|eikhane|ikhane|ekan\b|ekhon\b|tumi|tmi|তুমি|এখনই|এখন\s*থেকেই|এখন\s*থেকে)/i.test(normalized) ||
       botActionPhrase.test(normalized);
+    // The previous bot reply was only the hotline and the patient now names what to do
+    // ("ekan theke nibo") → treat it as the in-chat booking request.
+    const answeringHotline =
+      /09638/.test(lastAssistantText) &&
+      !/মোবাইল নম্বর:/.test(lastAssistantText) &&
+      explicitChatIntent &&
+      bookingAction.test(normalized);
+    const wantsBookingAction =
+      (bookingIntent && (bookingAction.test(normalized) || bookingPhrase.test(normalized))) ||
+      answeringHotline;
     const cancelIntent = /(বাতিল|cancel|থাক\s*না)/i.test(query);
     const looksLikeQuestion = /[?？]|কত|কোথায়|কখন|কেন|কী|কি\s*$|কিভাবে|কীভাবে/.test(query);
 
@@ -926,8 +937,6 @@ export default function Home({
     // If the AI itself already asked for booking details, treat the patient's next answer
     // (even a partial one) as the start of the in-chat booking flow instead of answering
     // it as a fresh treatment question.
-    const lastAssistant = [...chatMessages].reverse().find((m) => m.role === 'assistant');
-    const lastAssistantText = lastAssistant ? (lastAssistant.text || lastAssistant.answer?.reply || '') : '';
     const aiAskedForBooking =
       /(অ্যাপয়েন্টমেন্ট|বুকিং|সিরিয়াল|appointment|booking|serial)/i.test(lastAssistantText) &&
       /(আপনার\s*নাম|নাম,|ফোন|কোন\s*শাখায়|শাখা|চিকিৎসা|তারিখ|সময়|name|phone|branch|treatment|date|time)/i.test(lastAssistantText);
