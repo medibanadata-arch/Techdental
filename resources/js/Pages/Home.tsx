@@ -499,14 +499,23 @@ export default function Home({
   // same answer: call the hotline, or open the online booking form with the button below.
   const handleChatBookingTurn = (query: string, userMsgId: string): boolean => {
     const bookingKeyword =
-      /(বুকিং|বুক\s*করা|বুক\s*কর|বুক\s*কর্তে|বুক\s*করে|বুক\s*করতে|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল|\bbook(?:ing|ed)?\b|\bbok(?:e|te|bo|ben|be)?\b|\bbuk(?:e|te|bo|ben)?\b|\bappoint(?:ment)?\b|\bserial\b|\bsirial\b|\bsrial\b)/i;
+      /(বুকিং|বুক\s*করা|বুক\s*কর|বুক\s*কর্তে|বুক\s*করে|বুক\s*করতে|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল|\bbook\w*\b|\bbok(?:ing|ed|e|te|bo|ben|be)?\b|\bbuk(?:e|te|bo|ben)?\b|\bappoint\w*\b|\bs[ei]r[iy]?[ae]?l\b|\bsrial\b)/i;
+
+    // People often type repeated letters ("boook", "booooking"). Collapse them before checking.
+    const normalized = query.toLowerCase().replace(/(.)\1+/g, "$1");
+
+    // "buke betha" (chest pain) must not be mistaken for "book".
+    const chestPain = /\bbuke?\s*(betha|byatha|batha|byetha|bêtha)\b/i.test(query);
 
     // Someone may still paste an old fill-in-the-blank booking format. Never parse or save it -
     // treat it as a booking request so they still get the two options.
     const bookingLabels = ['নাম:', 'মোবাইল নম্বর:', 'শাখা:', 'চিকিৎসা:', 'তারিখ:', 'ঠিকানা:'];
     const pastedBooking = bookingLabels.filter((label) => query.includes(label)).length >= 2;
 
-    if (!bookingKeyword.test(query) && !pastedBooking) return false;
+    const bookingIntent =
+      bookingKeyword.test(query) || bookingKeyword.test(normalized) || pastedBooking;
+
+    if (!bookingIntent || chestPain) return false;
 
     pushBookingReply(BOOKING_REPLY, userMsgId);
     return true;
@@ -605,6 +614,8 @@ export default function Home({
             actionUrl: data.action_url,
           },
           timestamp: replyTime,
+          // If the AI answered a booking question itself, still offer the one-tap booking button.
+          bookingButtons: /অনলাইন বুকিং/.test(cleanReplyText),
         };
         setChatMessages((prev) => [...prev, aiMsg]);
         setIsAiLoading(false);
@@ -630,6 +641,7 @@ export default function Home({
         actionUrl: "/appointment",
       },
       timestamp: fallbackTime,
+      bookingButtons: true,
     };
     setChatMessages((prev) => [...prev, fallbackMsg]);
     setIsAiLoading(false);
