@@ -30,4 +30,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Serve an archived old URL when a current entity route (doctor, service,
+        // blog, medicine...) no longer resolves for that slug. This keeps the old
+        // permalink alive at its exact path instead of returning 404.
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, Request $request) {
+            if (!$request->isMethod('GET') && !$request->isMethod('HEAD')) {
+                return null;
+            }
+            if ($request->is('api/*')) {
+                return null;
+            }
+
+            return \App\Http\Controllers\LegacyPageController::serveIfExists($request->getPathInfo());
+        });
     })->create();

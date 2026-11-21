@@ -194,8 +194,10 @@ Route::get('/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.pu
 Route::get('/bn/blog/{slug}', [BlogController::class, 'publicShow'])->name('blog.public.show.bn');
 
 // ---------- 301 Redirects for Old WordPress Dental Blog URLs ----------
+// If an archived copy of the exact old URL exists, it is served at that URL;
+// otherwise the old URL keeps its original 301 fallback.
 Route::get('/dental/{slug}', function ($slug) {
-    return redirect("/blog/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/dental/{$slug}", "/blog/{$slug}");
 });
 Route::get('/blog-en/dental/{slug?}', function ($slug = null) {
     return $slug ? redirect("/blog/{$slug}", 301) : redirect('/blog', 301);
@@ -204,18 +206,18 @@ Route::get('/bn/blog/dental/{slug?}', function ($slug = null) {
     return $slug ? redirect("/bn/blog/{$slug}", 301) : redirect('/bn/blog', 301);
 });
 Route::get('/bn/dentistry/{slug}', function ($slug) {
-    return redirect("/bn/blog/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/bn/dentistry/{$slug}", "/bn/blog/{$slug}");
 });
 
 // ---------- 301 Redirects for Old WordPress Medicine & Medical URLs ----------
 Route::get('/medicine/{slug}', function ($slug) {
-    return redirect("/medicines/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/medicine/{$slug}", "/medicines/{$slug}");
 });
 Route::get('/bn/medicine/{slug}', function ($slug) {
-    return redirect("/bn/medicines/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/bn/medicine/{$slug}", "/bn/medicines/{$slug}");
 });
 Route::get('/bn/medication/{slug}', function ($slug) {
-    return redirect("/bn/medicines/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/bn/medication/{$slug}", "/bn/medicines/{$slug}");
 });
 Route::get('/blog-en/medical/{slug?}', function ($slug = null) {
     return $slug ? redirect("/medicines/{$slug}", 301) : redirect('/medicines', 301);
@@ -224,22 +226,22 @@ Route::get('/bn/blog/medical/{slug?}', function ($slug = null) {
     return $slug ? redirect("/bn/medicines/{$slug}", 301) : redirect('/medicines', 301);
 });
 Route::get('/physician/{slug}', function ($slug) {
-    return redirect("/blog/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/physician/{$slug}", "/blog/{$slug}");
 });
 Route::get('/update/case-study/{slug}', function ($slug) {
-    return redirect("/blog/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/update/case-study/{$slug}", "/blog/{$slug}");
 });
 Route::get('/update/centres/{slug}', function ($slug) {
-    return redirect("/blog/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/update/centres/{$slug}", "/blog/{$slug}");
 });
 Route::get('/update/{slug}', function ($slug) {
-    return redirect("/blog/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/update/{$slug}", "/blog/{$slug}");
 });
 Route::get('/uncategorized-en/{slug}', function ($slug) {
-    return redirect("/blog/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/uncategorized-en/{$slug}", "/blog/{$slug}");
 });
 Route::get('/tech-physio/{slug}', function ($slug) {
-    return redirect("/blog/{$slug}", 301);
+    return \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), "/tech-physio/{$slug}", "/blog/{$slug}");
 });
 
 // ---------- About ----------
@@ -309,7 +311,7 @@ Route::get('/mirpur', fn() => redirect('/branch/mirpur', 301));
 Route::get('/uttara', fn() => redirect('/branch/uttara', 301));
 Route::get('/badda', fn() => redirect('/branch/badda', 301));
 Route::get('/jatrabari', fn() => redirect('/branch/jatrabari', 301));
-Route::get('/mirpur-branch', fn() => redirect('/branch/mirpur', 301));
+Route::get('/mirpur-branch', fn() => \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), '/mirpur-branch', '/branch/mirpur'));
 Route::get('/uttara-branch', fn() => redirect('/branch/uttara', 301));
 Route::get('/badda-branch', fn() => redirect('/branch/badda', 301));
 Route::get('/jatrabari-branch', fn() => redirect('/branch/jatrabari', 301));
@@ -321,7 +323,7 @@ Route::get('/branch-jatrabari', fn() => redirect('/branch/jatrabari', 301));
 // Legal & Policy Direct Aliases
 Route::get('/about-us', fn() => redirect('/about', 301));
 Route::get('/aboutus', fn() => redirect('/about', 301));
-Route::get('/contact', fn() => redirect('/branches', 301));
+Route::get('/contact', fn() => \App\Http\Controllers\LegacyPageController::resolveOrRedirect(request(), '/contact', '/branches'));
 Route::get('/contact-us', fn() => redirect('/branches', 301));
 Route::get('/contacts', fn() => redirect('/branches', 301));
 Route::get('/our-doctors', fn() => redirect('/doctors', 301));
@@ -437,3 +439,12 @@ Route::post('ai-assistant/fetch-models', [AiAssistantController::class, 'fetchMo
 });
 
 require __DIR__.'/auth.php';
+
+// ============================================================
+// LEGACY EXACT-URL PAGES (old WordPress permalinks)
+// Must stay last: serves an archived page at its original URL when no
+// current route matches, so the URL never changes or 404s.
+// ============================================================
+Route::get('/{legacyPath}', [\App\Http\Controllers\LegacyPageController::class, 'show'])
+    ->where('legacyPath', '.*')
+    ->name('legacy.page');

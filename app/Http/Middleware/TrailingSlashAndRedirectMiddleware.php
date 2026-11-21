@@ -34,13 +34,48 @@ class TrailingSlashAndRedirectMiddleware
         }
 
         // 1. Trailing Slash Consistency Check
-        // If URI path ends with a slash (e.g. /services/ or /mirpur/), 301 redirect to non-trailing slash version
+        // If URI path ends with a slash (e.g. /services/ or /mirpur/), 301 redirect to non-trailing slash version.
+        // Archived legacy pages keep the exact URL they were published with (slash included).
         $rawPath = $request->getPathInfo();
         if (strlen($rawPath) > 1 && str_ends_with($rawPath, '/')) {
             $cleanPath = rtrim($rawPath, '/');
-            $queryString = $request->getQueryString();
-            $targetUrl = $cleanPath . ($queryString ? '?' . $queryString : '');
-            return redirect($targetUrl, 301);
+            $decodedRaw = rawurldecode($rawPath);
+            $decodedClean = rtrim($decodedRaw, '/');
+            $isLegacyPage = false;
+            try {
+                $isLegacyPage = \App\Models\LegacyPage::where('is_active', true)
+                    ->where(function ($q) use ($rawPath, $cleanPath, $decodedRaw, $decodedClean) {
+                        $q->where('path', $rawPath)
+                            ->orWhere('path', $cleanPath)
+                            ->orWhere('path', $decodedRaw)
+                            ->orWhere('path', $decodedClean);
+                    })
+                    ->exists();
+            } catch (\Throwable $e) {
+                // Table not migrated yet.
+            }
+
+            if (!$isLegacyPage) {
+                // If a managed redirect exists for this path, let the redirect
+                // manager below send the visitor straight to the final target
+                // instead of chaining through a trailing-slash hop.
+                $hasManagedRedirect = false;
+                try {
+                    $hasManagedRedirect = \App\Models\Redirect::where('is_active', true)
+                        ->where(function ($q) use ($cleanPath, $rawPath) {
+                            $q->where('source_url', $cleanPath)->orWhere('source_url', $rawPath);
+                        })
+                        ->exists();
+                } catch (\Throwable $e) {
+                    // Table not migrated yet.
+                }
+
+                if (!$hasManagedRedirect) {
+                    $queryString = $request->getQueryString();
+                    $targetUrl = $cleanPath . ($queryString ? '?' . $queryString : '');
+                    return redirect($targetUrl, 301);
+                }
+            }
         }
 
         // 2. Custom 301 / 302 Redirect Manager Check
@@ -55,8 +90,23 @@ class TrailingSlashAndRedirectMiddleware
                 ->first();
 
             if ($redirect && !empty($redirect->target_url)) {
+                // An archived legacy page wins over a fallback redirect so the
+                // old URL keeps resolving at the exact same path.
+                $hasLegacy = false;
+                try {
+                    $hasLegacy = \App\Models\LegacyPage::where('is_active', true)
+                        ->where(function ($q) use ($path, $rawPath) {
+                            $q->where('path', $path)
+                                ->orWhere('path', $rawPath)
+                                ->orWhere('path', $path . '/');
+                        })
+                        ->exists();
+                } catch (\Throwable $e) {
+                    // Table not migrated yet.
+                }
+
                 // Prevent infinite redirect loops
-                if (rtrim($redirect->target_url, '/') !== rtrim($path, '/')) {
+                if (!$hasLegacy && rtrim($redirect->target_url, '/') !== rtrim($path, '/')) {
                     $redirect->increment('hits');
                     $code = in_array((int)$redirect->status_code, [301, 302]) ? (int)$redirect->status_code : 301;
                     return redirect($redirect->target_url, $code);
