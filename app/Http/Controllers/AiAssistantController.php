@@ -29,19 +29,13 @@ class AiAssistantController extends Controller
 • সাধারণ উত্তরে কখনোই হোয়াটসঅ্যাপ নম্বর দেওয়া যাবে না।
 • শুধুমাত্র যদি রোগী সুনির্দিষ্টভাবে WhatsApp বা মোবাইল নম্বর জানতে চান, তখনই WhatsApp নম্বর 01400-786162 জানাতে হবে।
 
-[ONLINE CHAT BOOKING FORMAT / চ্যাটে বুকিং ফরম্যাট]
-• রোগী সিরিয়াল বা বুকিং নিতে চাইলে প্রথমে শুধুমাত্র হটলাইন 09638-000505 জানাবে।
-• শুধুমাত্র যদি রোগী বলে যে সে এখন এখান থেকেই / চ্যাট থেকেই সিরিয়াল নিতে চায় (যেমন: এখন থেকেই সিরিয়াল নিতে চাই, chat theke book korte chai, তুমি সিরিয়াল দিয়ে দাও), তখনই নিচের ফরম্যাটটি হুবহু দেবে — প্রতিটি লাইন আলাদা করে।
-• রোগীকে বলবে: নিচের ফরম্যাটটি কপি করে প্রতিটি ঘর পূরণ করে একসাথে পাঠিয়ে দিন — পাঠানোর সাথে সাথেই বুকিং কনফার্ম হবে এবং আমাদের একজন প্রতিনিধি কল দিয়ে কনফার্ম করবেন।
-• নিজে থেকে বুকিং কনফার্ম বলে দেবে না, এবং রোগীর তথ্য নোট করা হয়েছে বা সিস্টেমে সেভ হয়েছে বলবে না।
-
-নাম:
-মোবাইল নম্বর:
-শাখা:
-চিকিৎসা:
-তারিখ:
-সময়:
-ঠিকানা:
+[BOOKING POLICY / বুকিং নীতি (STRICT)]
+• রোগী সিরিয়াল বা বুকিং নিতে চাইলে (সরাসরি চাইলেও, অথবা “কিভাবে নেব” জিজ্ঞেস করলেও) শুধুমাত্র দুটি উপায় জানাবে:
+  ১. হটলাইন 09638-000505 নম্বরে কল করা।
+  ২. অনলাইন বুকিং ফর্ম পূরণ করা — উত্তরের নিচে “অনলাইন বুকিং” বাটন থাকে, সেটিতে চাপ দিলে বুকিং পেজ খুলবে।
+• চ্যাটে কোনো বুকিং ফরম্যাট, ফাঁকা ঘর বা টেমপ্লেট কখনোই দেবে না।
+• চ্যাটে রোগীর নাম, মোবাইল, শাখা, তারিখ, সময়, চিকিৎসা বা ঠিকানা চাইবে না এবং গ্রহণ করবে না।
+• নিজে থেকে বুকিং কনফার্ম বলে দেবে না, এবং রোগীর তথ্য নোট করা হয়েছে বা সিস্টেমে সেভ হয়েছে বলবে না — চ্যাট থেকে বুকিং সেভ হয় না।
 
 # DOCTOR DIRECTORY & BRANCH-WISE DUTY SCHEDULE
 
@@ -419,7 +413,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
 6. YOUTUBE VIDEOS: If the training data contains a YouTube video link (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...) related to the treatment, procedure, or topic the patient is inquiring about, include the full YouTube link on its own line so the patient can watch the video directly in the chat box.
 7. CRITICAL: Output ONLY the final polite Bengali message to the patient. NEVER output internal thoughts, checklists, reasoning, or self-verifications (such as '(2-4 bullet points)? Yes' or 'Checked').
 8. DOCTOR ROSTER RULE: For any question about doctor names, branches, duty times or day-wise schedules, use ONLY the 'DOCTOR DIRECTORY & BRANCH-WISE DUTY SCHEDULE' section above. NEVER guess or invent a doctor name or schedule. If a specific detail (e.g. the orthodontist's exact time) is not confirmed in that section, say it should be confirmed on hotline 09638-000505.
-9. BOOKING RULE: If the patient wants an appointment or serial, first give ONLY the official hotline 09638-000505. A how-to question such as 'সিরিয়াল কিভাবে নেব', 'serial nibo kivabe', 'serial nite chai' is still a general request — reply with the hotline only, no format. Only when the patient says they want to book right here in the chat (e.g. 'এখন থেকেই সিরিয়াল নিতে চাই', 'chat theke book korte chai', 'তুমি সিরিয়াল দিয়ে দাও'), give this exact fill-in-the-blank format, each label on its own line: নাম: / মোবাইল নম্বর: / শাখা: / চিকিৎসা: / তারিখ: / সময়: / ঠিকানা: . Tell the patient to copy the format, fill every line and send it back in one message — the booking is then confirmed automatically and a representative will call to confirm. Never claim a booking is confirmed yourself. NEVER say the patient's details have been 'noted', 'recorded' or 'saved in the system' — you cannot save bookings yourself.";
+9. BOOKING RULE: If the patient wants an appointment or serial - including how-to questions such as 'সিরিয়াল কিভাবে নেব', 'serial nibo kivabe', 'serial nite chai' - there are exactly TWO options: (a) call the official hotline 09638-000505, or (b) fill the online booking form on the appointment page (the 'অনলাইন বুকিং' button shown with the reply). NEVER provide any booking format or fill-in-the-blank template. NEVER ask for or accept name, phone, branch, date, time, service or address in the chat. NEVER claim a booking is confirmed and NEVER say the patient's details have been 'noted', 'recorded' or 'saved in the system' - the chat cannot save bookings.";
 
                 $candidateModels = array_values(array_unique(array_merge(
                     [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],
@@ -741,7 +735,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
 6. YOUTUBE VIDEOS: If the training data contains a YouTube video link (e.g. https://youtu.be/... or https://www.youtube.com/watch?v=...) related to the treatment, procedure, or topic the patient is inquiring about, include the full YouTube link on its own line so the patient can watch the video directly in the chat box.
 7. CRITICAL: Output ONLY the final polite Bengali message to the patient. NEVER output internal thoughts, checklists, reasoning, or self-verifications (such as '(2-4 bullet points)? Yes' or 'Checked').
 8. DOCTOR ROSTER RULE: For any question about doctor names, branches, duty times or day-wise schedules, use ONLY the 'DOCTOR DIRECTORY & BRANCH-WISE DUTY SCHEDULE' section above. NEVER guess or invent a doctor name or schedule. If a specific detail (e.g. the orthodontist's exact time) is not confirmed in that section, say it should be confirmed on hotline 09638-000505.
-9. BOOKING RULE: If the patient wants an appointment or serial, first give ONLY the official hotline 09638-000505. A how-to question such as 'সিরিয়াল কিভাবে নেব', 'serial nibo kivabe', 'serial nite chai' is still a general request — reply with the hotline only, no format. Only when the patient says they want to book right here in the chat (e.g. 'এখন থেকেই সিরিয়াল নিতে চাই', 'chat theke book korte chai', 'তুমি সিরিয়াল দিয়ে দাও'), give this exact fill-in-the-blank format, each label on its own line: নাম: / মোবাইল নম্বর: / শাখা: / চিকিৎসা: / তারিখ: / সময়: / ঠিকানা: . Tell the patient to copy the format, fill every line and send it back in one message — the booking is then confirmed automatically and a representative will call to confirm. Never claim a booking is confirmed yourself. NEVER say the patient's details have been 'noted', 'recorded' or 'saved in the system' — you cannot save bookings yourself.";
+9. BOOKING RULE: If the patient wants an appointment or serial - including how-to questions such as 'সিরিয়াল কিভাবে নেব', 'serial nibo kivabe', 'serial nite chai' - there are exactly TWO options: (a) call the official hotline 09638-000505, or (b) fill the online booking form on the appointment page (the 'অনলাইন বুকিং' button shown with the reply). NEVER provide any booking format or fill-in-the-blank template. NEVER ask for or accept name, phone, branch, date, time, service or address in the chat. NEVER claim a booking is confirmed and NEVER say the patient's details have been 'noted', 'recorded' or 'saved in the system' - the chat cannot save bookings.";
 
             $candidateModels = array_values(array_unique(array_merge(
                 [$settings->gemini_model ?? 'gemini-3.1-flash-lite'],
