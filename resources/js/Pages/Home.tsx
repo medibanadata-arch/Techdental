@@ -65,7 +65,7 @@ export interface ChatMessage {
 
 // The chat never takes a booking itself — patients get exactly two options.
 const BOOKING_REPLY =
-  'সিরিয়াল বা অ্যাপয়েন্টমেন্ট নিতে চাইলে দুটি উপায় আছে — সরাসরি হটলাইন নম্বরে কল করুন 09638000505\n\nঅথবা নিচের “অনলাইন বুকিং” বাটনে গিয়ে ফর্মটি পূরণ করুন।';
+  'সিরিয়াল বা অ্যাপয়েন্টমেন্ট নিতে চাইলে দুটি উপায় আছে — সরাসরি হটলাইন নম্বরে কল করুন 09638000505 অথবা ';
 
 // Helper: Extract YouTube 11-char Video ID from any YouTube URL
 export const extractYouTubeId = (url: string): string | null => {
@@ -823,18 +823,16 @@ export default function Home({
         <div className="bg-[#f8fafc] text-slate-800 p-4 sm:p-5 rounded-[22px] border border-slate-200/80 shadow-xs max-w-[92%] sm:max-w-[88%] font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
           <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide space-y-2">
             {renderFormattedReply(msg.answer?.reply || "")}
-          </div>
-          {msg.bookingButtons && (
-            <div className="pt-3 mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/60">
+            {msg.bookingButtons && (
               <a
                 href="/appointment"
-                className="inline-flex items-center gap-2 bg-[#881337] hover:bg-[#6f0f2d] active:scale-95 text-white px-4 py-2.5 rounded-full text-[12px] sm:text-[13px] font-semibold shadow-xs transition"
+                className="inline-flex items-center gap-1.5 bg-[#881337] hover:bg-[#6f0f2d] active:scale-95 text-white px-3.5 py-2 rounded-full text-[12px] sm:text-[13px] font-semibold shadow-xs transition align-middle ml-0.5"
               >
                 <i className="fa-regular fa-calendar-check text-[11px]" />
                 <span>অনলাইন বুকিং</span>
               </a>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div className="text-[11px] text-slate-400 mt-1 ml-2 select-none">
           {msg.timestamp || getFormattedTime()}
