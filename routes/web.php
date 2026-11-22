@@ -23,63 +23,14 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\PatientRightsController;
+use App\Http\Controllers\PublicHomeController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\PaymentMethodsController;
 use App\Http\Controllers\SitemapController;
 use Inertia\Inertia;
 
-$homeHandler = function () {
-    $homeContent = \App\Models\HomeContent::first();
-    $aiSettings = \Illuminate\Support\Facades\DB::table('ai_chat_settings')->first();
-    $aiChips = $aiSettings && !empty($aiSettings->chips) ? json_decode($aiSettings->chips, true) : null;
-
-    return Inertia::render('Home', [
-        'locations' => \Illuminate\Support\Facades\DB::table('locations')->orderBy('sort_order')->orderBy('id')->get(),
-        'services' => \Illuminate\Support\Facades\DB::table('pricing')->orderBy('sort_order')->orderBy('id')->get(),
-        'doctors' => \Illuminate\Support\Facades\DB::table('doctors')->orderBy('rank_order')->orderBy('id')->get(),
-        'posts' => \Illuminate\Support\Facades\DB::table('posts')
-            ->where(function ($q) {
-                $q->whereNull('status')->orWhere('status', '!=', 'trash');
-            })
-            ->orderBy('published_at', 'desc')
-            ->orderBy('id', 'desc')
-            ->get(),
-        'featured_images' => \Illuminate\Support\Facades\DB::table('featured_images')
-            ->where('is_active', 1)
-            ->where(function ($q) {
-                $q->where('branch', 'homepage')
-                  ->orWhere('branch', 'all')
-                  ->orWhereNull('branch')
-                  ->orWhere('branch', '');
-            })
-            ->orderBy('sort_order')
-            ->get()
-            ->unique('src')
-            ->values(),
-        'nav_menu' => \App\Models\NavMenu::first(),
-        'videos' => \Illuminate\Support\Facades\DB::table('home_videos')
-            ->where('is_active', 1)
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get(),
-        'home_content' => $homeContent,
-        'ai_chips' => $aiChips,
-        'ai_settings' => [
-            'bot_name' => $aiSettings->bot_name ?? 'Tech Dental Agent',
-            'bot_avatar' => $aiSettings->bot_avatar ?? null,
-            'starter_questions' => !empty($aiSettings->starter_questions) ? json_decode($aiSettings->starter_questions, true) : [
-                'ফিলিং চিকিৎসার খরচ কত?',
-                'দাঁতে গর্ত হলে কি করা উচিৎ?',
-                'রুট ক্যানেল করতে কত খরচ হয়?',
-                'দাঁত সোজা করার উপায় কি?'
-            ],
-            'gemini_enabled' => (bool)($aiSettings->gemini_enabled ?? false),
-        ],
-    ]);
-};
-
-Route::get('/', $homeHandler)->name('home');
-Route::get('/home', $homeHandler)->name('home.alias');
+Route::get('/', [PublicHomeController::class, 'index'])->name('home');
+Route::get('/home', [PublicHomeController::class, 'index'])->name('home.alias');
 
 // SEO: XML sitemap (English + Bangla URLs with hreflang alternates)
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');

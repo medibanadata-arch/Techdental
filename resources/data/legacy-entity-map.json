@@ -1366,5 +1366,41 @@
         "id": 0,
         "slug": "about",
         "lang": "en"
+    },
+    "/doctors/dr-hasna-hena-bhuiy-nishi/": {
+        "type": "doctor",
+        "id": 14,
+        "slug": "14",
+        "lang": "en"
+    },
+    "/doctors/dr-sayera-tabassum-elmee/": {
+        "type": "doctor",
+        "id": 4,
+        "slug": "4",
+        "lang": "en"
+    },
+    "/dr-aysha-siddika/": {
+        "type": "doctor",
+        "id": 1,
+        "slug": "1",
+        "lang": "en"
+    },
+    "/en/service/dental-scaling/": {
+        "type": "service",
+        "id": 16,
+        "slug": "teeth-scaling-polishing-price-bd",
+        "lang": "en"
+    },
+    "/en/teeth-scaling-bangladesh/": {
+        "type": "service",
+        "id": 16,
+        "slug": "teeth-scaling-polishing-price-bd",
+        "lang": "en"
+    },
+    "/medication-to-reduce-swollen-gums-and-pain/": {
+        "type": "post",
+        "id": 37,
+        "slug": "medication-and-treatment-to-reduce-swollen-gums-and-pain",
+        "lang": "en"
     }
 }

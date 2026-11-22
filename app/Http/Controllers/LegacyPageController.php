@@ -88,11 +88,7 @@ class LegacyPageController extends Controller
                 case 'appointment':
                     return app(AppointmentController::class)->publicBook();
                 case 'home':
-                    $route = app('router')->getRoutes()->getByName('home');
-                    if ($route) {
-                        return app()->call($route->getAction('uses'));
-                    }
-                    break;
+                    return app(PublicHomeController::class)->index();
             }
         } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
             return null;
