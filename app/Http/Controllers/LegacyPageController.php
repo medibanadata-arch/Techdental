@@ -70,6 +70,10 @@ class LegacyPageController extends Controller
         $key = rtrim($path, '/');
         $entry = $map[$key] ?? $map[$key . '/'] ?? null;
         if (!$entry) {
+            $decodedKey = rtrim(rawurldecode($path), '/');
+            $entry = $map[$decodedKey] ?? $map[$decodedKey . '/'] ?? null;
+        }
+        if (!$entry) {
             return null;
         }
 
@@ -89,6 +93,16 @@ class LegacyPageController extends Controller
                     return app(AppointmentController::class)->publicBook();
                 case 'home':
                     return app(PublicHomeController::class)->index();
+                case 'about':
+                    return app(AboutContentController::class)->publicShow();
+                case 'branches':
+                    return app(BranchController::class)->publicIndex();
+                case 'branch':
+                    return app(BranchController::class)->publicShow($entry['slug']);
+                case 'doctors':
+                    return app(DoctorController::class)->publicIndex();
+                case 'price_list':
+                    return app(PriceListController::class)->publicShow();
             }
         } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
             return null;
@@ -136,9 +150,16 @@ class LegacyPageController extends Controller
             return false;
         }
 
-        $key = rtrim('/' . trim($path, '/'), '/');
+        // Paths may arrive percent-encoded (e.g. Bengali slugs) from the raw
+        // request URI, so check both the decoded and raw forms.
+        foreach (array_unique([$path, rawurldecode($path)]) as $candidate) {
+            $key = rtrim('/' . trim($candidate, '/'), '/');
+            if (isset($decoded[$key]) || isset($decoded[$key . '/'])) {
+                return true;
+            }
+        }
 
-        return isset($decoded[$key]) || isset($decoded[$key . '/']);
+        return false;
     }
 
     private function findByPath(string $path): ?LegacyPage
