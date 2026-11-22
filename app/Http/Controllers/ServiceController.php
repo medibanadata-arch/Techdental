@@ -149,7 +149,7 @@ class ServiceController extends Controller
         return null;
     }
 
-    public function publicShow(Request $request, $slug)
+    public function publicShow(Request $request, $slug, bool $legacy = false)
     {
         $isBn = $request->is('bn/*');
         $item = $this->resolveService((string) $slug, $isBn);
@@ -161,7 +161,7 @@ class ServiceController extends Controller
         $canonicalSlug = $isBn ? ($item->slug_bn ?: $item->slug) : $item->slug;
         $prefix = $isBn ? '/bn/service/' : '/service/';
 
-        if ((string) $slug !== (string) $canonicalSlug) {
+        if (!$legacy && (string) $slug !== (string) $canonicalSlug) {
             return redirect($prefix . $canonicalSlug, 301);
         }
 

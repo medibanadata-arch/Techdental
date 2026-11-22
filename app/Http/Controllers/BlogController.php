@@ -57,7 +57,7 @@ class BlogController extends Controller
         ]);
     }
 
-    public function publicShow(Request $request, $slug)
+    public function publicShow(Request $request, $slug, bool $legacy = false)
     {
         // 301 redirects for previous long slugs to clean original canonical slugs
         $slugRedirects = [
@@ -73,7 +73,7 @@ class BlogController extends Controller
             'toothache-relief-tips' => 'toothache-relief',
         ];
 
-        if (isset($slugRedirects[$slug])) {
+        if (!$legacy && isset($slugRedirects[$slug])) {
             $prefix = $request->is('bn/*') ? '/bn/blog/' : '/blog/';
             return redirect($prefix . $slugRedirects[$slug], 301);
         }
@@ -89,12 +89,12 @@ class BlogController extends Controller
 
         // Untranslated articles: keep the Bangla URL working by sending it to the English one
         // instead of rendering an empty page.
-        if ($isBn && trim((string) $post->content_bn) === '') {
+        if (!$legacy && $isBn && trim((string) $post->content_bn) === '') {
             return redirect("/blog/{$post->slug}", 301);
         }
 
         // Bangla-only articles: send the English URL to the Bangla version instead of an empty page.
-        if (!$isBn && trim((string) $post->content) === '' && trim((string) $post->content_bn) !== '') {
+        if (!$legacy && !$isBn && trim((string) $post->content) === '' && trim((string) $post->content_bn) !== '') {
             return redirect("/bn/blog/{$post->slug}", 301);
         }
 

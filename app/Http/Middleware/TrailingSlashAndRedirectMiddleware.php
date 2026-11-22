@@ -56,6 +56,10 @@ class TrailingSlashAndRedirectMiddleware
             }
 
             if (!$isLegacyPage) {
+                // Old URLs whose page already exists in the current site also
+                // keep their exact path, trailing slash included.
+                $isMapped = \App\Http\Controllers\LegacyPageController::hasMappedEntity($rawPath);
+
                 // If a managed redirect exists for this path, let the redirect
                 // manager below send the visitor straight to the final target
                 // instead of chaining through a trailing-slash hop.
@@ -70,7 +74,7 @@ class TrailingSlashAndRedirectMiddleware
                     // Table not migrated yet.
                 }
 
-                if (!$hasManagedRedirect) {
+                if (!$hasManagedRedirect && !$isMapped) {
                     $queryString = $request->getQueryString();
                     $targetUrl = $cleanPath . ($queryString ? '?' . $queryString : '');
                     return redirect($targetUrl, 301);
@@ -90,8 +94,9 @@ class TrailingSlashAndRedirectMiddleware
                 ->first();
 
             if ($redirect && !empty($redirect->target_url)) {
-                // An archived legacy page wins over a fallback redirect so the
-                // old URL keeps resolving at the exact same path.
+                // An archived legacy page (or an old URL that now serves an existing
+                // page) wins over a fallback redirect so the old URL keeps resolving
+                // at the exact same path.
                 $hasLegacy = false;
                 try {
                     $hasLegacy = \App\Models\LegacyPage::where('is_active', true)
@@ -103,6 +108,11 @@ class TrailingSlashAndRedirectMiddleware
                         ->exists();
                 } catch (\Throwable $e) {
                     // Table not migrated yet.
+                }
+
+                if (!$hasLegacy) {
+                    $hasLegacy = \App\Http\Controllers\LegacyPageController::hasMappedEntity($path)
+                        || \App\Http\Controllers\LegacyPageController::hasMappedEntity($rawPath);
                 }
 
                 // Prevent infinite redirect loops

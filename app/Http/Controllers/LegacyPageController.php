@@ -19,6 +19,12 @@ class LegacyPageController extends Controller
             return redirect('/', 301);
         }
 
+        // Old URLs whose page already exists in the current site render that
+        // existing page (same component, design and content) at the old URL.
+        if ($response = $this->serveMappedEntity($request, $clean)) {
+            return $response;
+        }
+
         $page = $this->findByPath($clean);
 
         if (!$page) {
@@ -29,18 +35,114 @@ class LegacyPageController extends Controller
     }
 
     /**
-     * Used by the old-URL redirect routes: serve the archived page when we have
-     * it, otherwise fall back to the original 301 target.
+     * Used by the old-URL redirect routes: serve the matching current page or
+     * archived page when we have it, otherwise fall back to the 301 target.
      */
     public static function resolveOrRedirect(Request $request, string $path, string $fallback)
     {
-        $page = (new self())->findByPath('/' . trim($path, '/'));
+        $clean = '/' . trim($path, '/');
+        $controller = new self();
+
+        if ($response = $controller->serveMappedEntity($request, $clean)) {
+            return $response;
+        }
+
+        $page = $controller->findByPath($clean);
 
         if ($page) {
-            return (new self())->serve($page);
+            return $controller->serve($page);
         }
 
         return redirect($fallback, 301);
+    }
+
+    /**
+     * Old URL -> existing entity map (generated from the archived WordPress
+     * paths). Returns null when the URL is legacy-only.
+     */
+    private function serveMappedEntity(Request $request, string $path)
+    {
+        $map = $this->entityMap();
+        if (!$map) {
+            return null;
+        }
+
+        $key = rtrim($path, '/');
+        $entry = $map[$key] ?? $map[$key . '/'] ?? null;
+        if (!$entry) {
+            return null;
+        }
+
+        try {
+            switch ($entry['type']) {
+                case 'medicine':
+                    return app(MedicineController::class)->publicShow($request, $entry['slug'], true);
+                case 'post':
+                    return app(BlogController::class)->publicShow($request, $entry['slug'], true);
+                case 'service':
+                    return app(ServiceController::class)->publicShow($request, $entry['slug'], true);
+                case 'doctor':
+                    return app(DoctorController::class)->publicShow($entry['id']);
+                case 'page':
+                    return app(PageController::class)->publicShow($entry['slug'], true);
+                case 'appointment':
+                    return app(AppointmentController::class)->publicBook();
+                case 'home':
+                    $route = app('router')->getRoutes()->getByName('home');
+                    if ($route) {
+                        return app()->call($route->getAction('uses'));
+                    }
+                    break;
+            }
+        } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
+            return null;
+        }
+
+        return null;
+    }
+
+    private function entityMap(): array
+    {
+        static $map = null;
+        if ($map !== null) {
+            return $map;
+        }
+
+        $file = resource_path('data/legacy-entity-map.json');
+        if (!is_file($file)) {
+            return $map = [];
+        }
+
+        $decoded = json_decode((string) file_get_contents($file), true);
+        if (!is_array($decoded)) {
+            return $map = [];
+        }
+
+        // Normalise keys so "/napa-500mg/" and "/napa-500mg" both resolve.
+        $map = [];
+        foreach ($decoded as $p => $entry) {
+            $map[rtrim((string) $p, '/')] = $entry;
+        }
+
+        return $map;
+    }
+
+    /** True when an old URL is served by an existing page of the current site. */
+    public static function hasMappedEntity(string $path): bool
+    {
+        $file = resource_path('data/legacy-entity-map.json');
+        if (!is_file($file)) {
+            return false;
+        }
+
+        $decoded = json_decode((string) file_get_contents($file), true);
+        if (!is_array($decoded)) {
+            return false;
+        }
+
+        $key = rtrim('/' . trim($path, '/'), '/');
+
+        return isset($decoded[$key]) || isset($decoded[$key . '/']);
     }
 
     private function findByPath(string $path): ?LegacyPage
@@ -94,11 +196,40 @@ class LegacyPageController extends Controller
         ]);
     }
 
-    /** Archived HTML: keep internal links relative and normalise headings/images. */
+    /** Archived HTML: keep text and images only, never archived buttons/forms. */
     private function prepareBody(string $html): string
     {
         $html = preg_replace('#https?://web\.archive\.org/web/\d+(?:[a-z_]{0,4})?/#i', '', $html);
         $html = preg_replace('#(href=["\'])(?:https?:)?//techdentalcare\.com#i', '$1', $html);
+
+        // Only text, images, lists and tables are wanted from the old pages.
+        // Drop every archived button, form and call-to-action widget: those were
+        // the old site's controls and do not belong in the current design.
+        $html = preg_replace('#<(script|style|noscript|form|button|input|select|textarea|iframe)\b[^>]*>.*?</\1>#is', '', $html);
+        $html = preg_replace('#<(input|select|textarea|button|iframe)\b[^>]*/?>#i', '', $html);
+
+        // Elementor button / CTA / form widgets (nested, so loop until stable).
+        for ($i = 0; $i < 6; $i++) {
+            $before = $html;
+            $html = preg_replace(
+                '#<div\b[^>]*class="[^"]*(?:elementor-widget-button|elementor-widget-form|elementor-widget-call-to-action|elementor-widget-nav-menu|elementor-widget-search-form)[^"]*"[^>]*>.*?</div>#is',
+                '',
+                $html
+            );
+            if ($html === $before) break;
+        }
+
+        // Anchors that are styled as buttons keep their text but lose the button look.
+        $html = preg_replace_callback('#<a\b([^>]*)>(.*?)</a>#is', function ($m) {
+            $attrs = $m[1];
+            if (preg_match('#class="[^"]*(?:btn|button|elementor-button|add-to-cart|order-now|book-online|call-now)[^"]*"#i', $attrs)) {
+                return '<span>' . $m[2] . '</span>';
+            }
+            return $m[0];
+        }, $html);
+
+        // Old floating hotline / sticky CTA strips.
+        $html = preg_replace('#<div\b[^>]*(?:elementor-widget-fixed|sticky|floating|hotline-box|call-now-box)[^>]*>.*?</div>#is', '', $html);
 
         // One H1 per page: the page template prints the archived H1, so demote
         // every H1 inside the archived body to H2 (text is preserved).
@@ -123,6 +254,11 @@ class LegacyPageController extends Controller
         }
 
         $controller = new self();
+
+        if ($response = $controller->serveMappedEntity(request(), $clean)) {
+            return $response;
+        }
+
         $page = $controller->findByPath($clean);
         if (!$page) {
             return null;

@@ -99,10 +99,10 @@ class PageController extends Controller
         ]);
     }
 
-    public function publicShow($slug)
+    public function publicShow($slug, bool $legacy = false)
     {
         // 301 Redirect legacy "best-dentist-in-dhaka" page to the official "/doctors" module
-        if (in_array($slug, ['best-dentist-in-dhaka', 'best-dentist', 'best-dentist-in-dhaka-bangladesh'])) {
+        if (!$legacy && in_array($slug, ['best-dentist-in-dhaka', 'best-dentist', 'best-dentist-in-dhaka-bangladesh'])) {
             return redirect()->to('/doctors', 301);
         }
 
@@ -124,8 +124,7 @@ class PageController extends Controller
         }
 
         // Rich About Page handler for about-tech-dental-care, about-us, about
-        if (in_array($page->slug, ['about-tech-dental-care', 'about-us', 'about'])) {
-            $content = \App\Models\AboutContent::first();
+        if (in_array($page->slug, ['about-tech-dental-care', 'about-us', 'about'])) {            $content = \App\Models\AboutContent::first();
             if (!$content) {
                 (new \Database\Seeders\AboutSeeder())->run();
                 $content = \App\Models\AboutContent::first();
@@ -162,7 +161,7 @@ class PageController extends Controller
             'appointment' => '/appointment',
         ];
 
-        if (isset($redirectMap[$page->slug])) {
+        if (!$legacy && isset($redirectMap[$page->slug])) {
             return redirect($redirectMap[$page->slug]);
         }
 

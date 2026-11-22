@@ -144,13 +144,14 @@ class MedicineController extends Controller
         ]);
     }
 
-    public function publicShow(Request $request, $slug)
+    public function publicShow(Request $request, $slug, bool $legacy = false)
     {
         $isBn = $request->is('bn/*');
 
         // Blog articles that were imported into the medicines table must not appear as
         // duplicate medicine pages — send them to their real blog URL instead.
-        $post = \App\Models\Post::where('slug', $slug)->first();
+        // (Skipped when the old URL itself is serving this content.)
+        $post = $legacy ? null : \App\Models\Post::where('slug', $slug)->first();
         if ($post) {
             $toBn = $isBn && trim((string) $post->content_bn) !== '';
             return redirect(($toBn ? '/bn/blog/' : '/blog/') . $slug, 301);
@@ -160,7 +161,7 @@ class MedicineController extends Controller
 
         // Deactivated duplicates stay in the database for history but must not
         // render. Send visitors to the canonical medicine when one is set.
-        if (!$item->is_active) {
+        if (!$item->is_active && !$legacy) {
             $canonical = (string) $item->canonical_url;
             $path = $canonical !== '' ? parse_url($canonical, PHP_URL_PATH) : null;
 

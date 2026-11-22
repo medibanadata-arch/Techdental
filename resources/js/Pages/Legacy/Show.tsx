@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { Link } from "@inertiajs/react";
-import { Phone, CalendarCheck, MapPin, Clock } from "lucide-react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 
@@ -28,29 +27,13 @@ const LegacyShow: React.FC<LegacyProps> = ({ legacy, locations = [], nav_menu })
     const L = isBn
         ? {
               home: "হোম",
-              call: "কল করুন",
-              book: "অনলাইন বুকিং",
               updated: "সর্বশেষ আপডেট",
               faq: "সচরাচর জিজ্ঞাসা (FAQ)",
-              talk: "সরাসরি কথা বলুন",
-              hours: "সকাল ৯টা – রাত ৯টা",
-              hotline: "হটলাইন",
-              branches: "শাখা",
-              need: "সিরিয়াল বা অ্যাপয়েন্টমেন্ট নিতে চান?",
-              needSub: "হটলাইনে কল করুন অথবা অনলাইন বুকিং ফর্ম পূরণ করুন।",
           }
         : {
               home: "Home",
-              call: "Call Now",
-              book: "Book Online",
               updated: "Last updated",
               faq: "Frequently Asked Questions",
-              talk: "Talk to us directly",
-              hours: "Open 9:00 AM – 9:00 PM",
-              hotline: "Hotline",
-              branches: "Branches",
-              need: "Need an appointment?",
-              needSub: "Call our hotline or fill in the online booking form.",
           };
 
     // Hide archived images whose file no longer exists on the old host.
@@ -98,9 +81,8 @@ const LegacyShow: React.FC<LegacyProps> = ({ legacy, locations = [], nav_menu })
                     <span className="text-gray-400">{legacy.h1 || legacy.title}</span>
                 </nav>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-                    <article className="min-w-0">
-                        <h1 className="mb-3 text-[26px] font-extrabold leading-tight text-gray-900 sm:text-[32px] lg:text-[38px]">
+                <article className="mx-auto w-full max-w-4xl">
+                    <h1 className="mb-3 text-[26px] font-extrabold leading-tight text-gray-900 sm:text-[32px] lg:text-[38px]">
                             {legacy.h1 || legacy.title}
                         </h1>
                         <div className="mb-6 border-b border-gray-200 pb-3 text-[13px] text-gray-500">
@@ -115,86 +97,23 @@ const LegacyShow: React.FC<LegacyProps> = ({ legacy, locations = [], nav_menu })
                         {legacy.faqs?.length > 0 && (
                             <section className="mt-10">
                                 <h2 className="mb-4 text-[24px] font-bold text-gray-900">{L.faq}</h2>
-                                <div className="space-y-2.5">
+                                <div className="space-y-5">
                                     {legacy.faqs.map((faq, i) => (
-                                        <details
-                                            key={i}
-                                            className="group rounded-xl border border-gray-200 bg-white px-4 py-3 open:shadow-sm"
-                                        >
-                                            <summary className="cursor-pointer list-none pr-6 text-[15px] font-semibold text-gray-900 marker:hidden">
+                                        <div key={i}>
+                                            <h3 className="text-[16px] font-semibold text-gray-900">
                                                 {faq.q}
-                                            </summary>
-                                            <p className="mt-2 text-[15px] leading-relaxed text-gray-600">
-                                                {faq.a}
-                                            </p>
-                                        </details>
+                                            </h3>
+                                            <p
+                                                className="mt-1.5 text-[15px] leading-relaxed text-gray-600"
+                                                dangerouslySetInnerHTML={{ __html: faq.a }}
+                                            />
+                                        </div>
                                     ))}
                                 </div>
                             </section>
                         )}
 
-                        <div className="mt-9 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-rose-900 to-rose-800 px-5 py-5 text-white sm:px-6">
-                            <div>
-                                <h3 className="text-lg font-bold sm:text-xl">{L.need}</h3>
-                                <p className="mt-1 text-sm text-rose-100">{L.needSub}</p>
-                            </div>
-                            <div className="flex flex-wrap gap-2.5">
-                                <a
-                                    href="tel:09638000505"
-                                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-rose-900 transition hover:bg-rose-50"
-                                >
-                                    <Phone className="h-4 w-4" /> 09638 000505
-                                </a>
-                                <Link
-                                    href="/appointment"
-                                    className="inline-flex items-center gap-2 rounded-full border border-white/70 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-white/10"
-                                >
-                                    <CalendarCheck className="h-4 w-4" /> {L.book}
-                                </Link>
-                            </div>
-                        </div>
                     </article>
-
-                    <aside className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:sticky lg:top-24">
-                        <div className="bg-rose-900 px-5 py-4 text-white">
-                            <strong className="block text-[17px]">{L.talk}</strong>
-                            <span className="text-[13px] text-rose-100">{L.hours}</span>
-                        </div>
-                        <div className="px-5 pb-5 pt-4 text-sm">
-                            <p className="mb-1 text-gray-500">{L.hotline}</p>
-                            <a
-                                href="tel:09638000505"
-                                className="mb-4 block text-xl font-extrabold text-rose-900"
-                            >
-                                09638 000505
-                            </a>
-                            <p className="mb-2 text-gray-500">{L.branches}</p>
-                            <ul className="mb-4 space-y-1.5 text-[13.5px] text-gray-600">
-                                {[
-                                    ["Mirpur", "Shewrapara"],
-                                    ["Uttara", "Sector 10"],
-                                    ["Badda", "Merul Badda"],
-                                    ["Jatrabari", "Dhaka"],
-                                ].map(([b, area]) => (
-                                    <li
-                                        key={b}
-                                        className="flex items-center gap-2 border-b border-dashed border-gray-200 pb-1.5"
-                                    >
-                                        <MapPin className="h-3.5 w-3.5 text-rose-900" />
-                                        <span className="font-medium text-gray-800">{b}</span>
-                                        <span className="text-gray-400">— {area}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Link
-                                href="/appointment"
-                                className="flex w-full items-center justify-center gap-2 rounded-full bg-rose-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-800"
-                            >
-                                <Clock className="h-4 w-4" /> {L.book}
-                            </Link>
-                        </div>
-                    </aside>
-                </div>
             </main>
 
             <GlobalFooter />
