@@ -8,6 +8,20 @@ use Illuminate\Http\Request;
 class LegacyPageController extends Controller
 {
     /**
+     * Old URLs that were permanently deleted. They must return 404 instead of
+     * being normalised, redirected or mapped to a current page.
+     */
+    private const REMOVED_PATHS = ['/en/home-en', '/bn/home'];
+
+    /** True when an old URL has been deleted on purpose. */
+    public static function isRemovedPath(string $path): bool
+    {
+        $normalized = '/' . trim(rawurldecode($path), '/');
+
+        return in_array($normalized, self::REMOVED_PATHS, true);
+    }
+
+    /**
      * Serve an old techdentalcare.com URL at its exact original path with the
      * original title, meta description, Open Graph/Twitter tags and JSON-LD.
      * These rows are imported from the archived WordPress pages.
@@ -17,6 +31,10 @@ class LegacyPageController extends Controller
         $clean = '/' . trim((string) $path, '/');
         if ($clean === '/') {
             return redirect('/', 301);
+        }
+
+        if (self::isRemovedPath($clean)) {
+            abort(404);
         }
 
         // Old URLs whose page already exists in the current site render that

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\UsesLocalizedContent;
 use App\Models\HomeContent;
 use App\Models\NavMenu;
 use Illuminate\Support\Facades\DB;
@@ -10,16 +9,13 @@ use Inertia\Inertia;
 
 class PublicHomeController extends Controller
 {
-    use UsesLocalizedContent;
-
     /**
-     * Public homepage. Also used by old URLs that map to the homepage so they
-     * render the same page at their original path.
+     * Public homepage. This is the only homepage: the old /en/home-en/ and
+     * /bn/home/ URLs were removed, so there is no Bangla homepage variant.
      */
     public function index()
     {
         $homeContent = HomeContent::first();
-        $this->applyBanglaContent($homeContent, ['about_text']);
         $aiSettings = DB::table('ai_chat_settings')->first();
         $aiChips = $aiSettings && !empty($aiSettings->chips) ? json_decode($aiSettings->chips, true) : null;
 

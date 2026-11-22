@@ -33,10 +33,18 @@ class TrailingSlashAndRedirectMiddleware
             return $next($request);
         }
 
+        // Permanently removed old URLs must return 404. Skip trailing-slash and
+        // managed-redirect handling so the request reaches the legacy route
+        // unchanged instead of chaining through a 301.
+        $rawPath = $request->getPathInfo();
+        if (\App\Http\Controllers\LegacyPageController::isRemovedPath($path)
+            || \App\Http\Controllers\LegacyPageController::isRemovedPath($rawPath)) {
+            return $next($request);
+        }
+
         // 1. Trailing Slash Consistency Check
         // If URI path ends with a slash (e.g. /services/ or /mirpur/), 301 redirect to non-trailing slash version.
         // Archived legacy pages keep the exact URL they were published with (slash included).
-        $rawPath = $request->getPathInfo();
         if (strlen($rawPath) > 1 && str_ends_with($rawPath, '/')) {
             $cleanPath = rtrim($rawPath, '/');
             $decodedRaw = rawurldecode($rawPath);
