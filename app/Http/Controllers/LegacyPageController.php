@@ -77,6 +77,13 @@ class LegacyPageController extends Controller
             return null;
         }
 
+        // Some old Bangla URLs do not start with /bn/ (for example
+        // /tech-dental-treatment-price-list-bn/). Trust the archived page's
+        // language so the Bangla content columns are used at those paths too.
+        if (($entry['lang'] ?? 'en') === 'bn') {
+            app()->setLocale('bn');
+        }
+
         try {
             switch ($entry['type']) {
                 case 'medicine':

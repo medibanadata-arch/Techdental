@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\UsesLocalizedContent;
 use App\Models\Doctor;
 use App\Models\FeaturedImage;
 use App\Models\Location;
@@ -9,6 +10,8 @@ use Inertia\Inertia;
 
 class BranchController extends Controller
 {
+    use UsesLocalizedContent;
+
     /** Public branch page — /branch/{slug} */
     public function publicShow($slug)
     {
@@ -22,6 +25,8 @@ class BranchController extends Controller
             ->orWhere('name', 'like', "%{$cleanSlug}%")
             ->orWhere('id', $slug)
             ->firstOrFail();
+
+        $this->applyBanglaContent($branch, ['seo_content']);
 
         $branchKey = strtolower(trim(str_ireplace(['branch', '-'], ['', ''], $branch->slug ?? $branch->short_name ?? $branch->name)));
 

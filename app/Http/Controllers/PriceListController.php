@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\UsesLocalizedContent;
 use App\Models\PriceCategory;
 use App\Models\PriceRow;
 use App\Models\PriceSetting;
@@ -11,6 +12,8 @@ use Inertia\Inertia;
 
 class PriceListController extends Controller
 {
+    use UsesLocalizedContent;
+
     // ---------- Public page ----------
 
     public function publicShow()
@@ -19,6 +22,7 @@ class PriceListController extends Controller
         if (!$settings) {
             $settings = PriceSetting::create([]);
         }
+        $this->applyBanglaContent($settings, ['seo_content']);
         $categories = PriceCategory::with('rows')->orderBy('sort_order')->get();
         return Inertia::render('PriceList/PublicIndex', [
             'categories' => $categories,

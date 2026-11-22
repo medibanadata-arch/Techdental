@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\UsesLocalizedContent;
 use App\Models\Doctor;
 use App\Models\DoctorSetting;
 use Illuminate\Http\Request;
@@ -9,6 +10,8 @@ use Inertia\Inertia;
 
 class DoctorController extends Controller
 {
+    use UsesLocalizedContent;
+
     public function index()
     {
         $data = Doctor::orderBy('rank_order', 'asc')->orderBy('id', 'asc')->get();
@@ -178,6 +181,7 @@ class DoctorController extends Controller
     {
         $data = Doctor::orderBy('rank_order', 'asc')->orderBy('id', 'asc')->get();
         $settings = DoctorSetting::firstOrCreate([]);
+        $this->applyBanglaContent($settings, ['seo_content']);
         return Inertia::render('Doctors/PublicIndex', [
             'data' => $data,
             'settings' => $settings,
@@ -196,6 +200,8 @@ class DoctorController extends Controller
                 ->orWhere('id', $id)
                 ->firstOrFail();
         }
+
+        $this->applyBanglaContent($item, ['bio', 'seo_content']);
 
         $hotline = $item->hotline ?: '09638000505';
         return Inertia::render('Doctors/PublicSingle', [
