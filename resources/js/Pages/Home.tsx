@@ -51,6 +51,8 @@ export interface AiAnswer {
   actionType?: string;
   actionLabel?: string;
   actionUrl?: string;
+  /** Optional chart shown under the reply (e.g. gap-teeth / veneer cost). */
+  image?: { url: string; alt?: string };
 }
 
 export interface ChatMessage {
@@ -612,6 +614,9 @@ export default function Home({
             actionType: data.action_type || "appointment",
             actionLabel: data.action_label || "অনলাইন সিরিয়াল নিন",
             actionUrl: data.action_url,
+            image: data.image?.url
+              ? { url: data.image.url, alt: data.image.alt }
+              : undefined,
           },
           timestamp: replyTime,
           // If the AI answered a booking question itself, still offer the one-tap booking button.
@@ -835,6 +840,22 @@ export default function Home({
         <div className="bg-[#f8fafc] text-slate-800 p-4 sm:p-5 rounded-[22px] border border-slate-200/80 shadow-xs max-w-[92%] sm:max-w-[88%] font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
           <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide space-y-2">
             {renderFormattedReply(msg.answer?.reply || "")}
+            {msg.answer?.image?.url && (
+              <a
+                href={msg.answer.image.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 block w-full max-w-[380px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs"
+                title={msg.answer.image.alt || "খরচের চার্ট"}
+              >
+                <img
+                  src={msg.answer.image.url}
+                  alt={msg.answer.image.alt || "দাঁতের ফাঁকা অংশের চিকিৎসায় কম্পোজিট ভিনিয়ার খরচ"}
+                  className="block h-auto w-full"
+                  loading="lazy"
+                />
+              </a>
+            )}
             {msg.bookingButtons && (
               <a
                 href="/appointment"

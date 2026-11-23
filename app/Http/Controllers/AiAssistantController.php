@@ -515,6 +515,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                             $sendEvent([
                                 'done' => true,
                                 'full_text' => $cleanFull,
+                                'image' => $this->chatReplyImage($query, $cleanFull),
                                 'source' => 'gemini',
                                 'title' => 'টেক ডেন্টাল',
                                 'icon' => 'fa-sparkles',
@@ -565,6 +566,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                 $sendEvent([
                     'done' => true,
                     'full_text' => $replyText,
+                    'image' => $this->chatReplyImage($query, $replyText),
                     'source' => 'gemini',
                     'title' => $kbReply['title'],
                     'icon' => 'fa-sparkles',
@@ -610,6 +612,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                         $sendEvent([
                             'done' => true,
                             'full_text' => $rule->reply,
+                            'image' => $this->chatReplyImage($query, $rule->reply),
                             'source' => 'keyword',
                             'title' => $rule->title,
                             'icon' => $rule->icon ?: 'fa-tooth',
@@ -645,6 +648,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
             $sendEvent([
                 'done' => true,
                 'full_text' => $fallback,
+                'image' => $this->chatReplyImage($query, $fallback),
                 'source' => 'fallback',
                 'title' => 'টেক ডেন্টাল',
                 'icon' => 'fa-circle-question',
@@ -818,6 +822,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                                 'source' => 'gemini',
                                 'title' => 'টেক ডেন্টাল',
                                 'reply' => $aiText,
+                                'image' => $this->chatReplyImage($query, $aiText),
                                 'icon' => 'fa-sparkles',
                                 'icon_color' => 'text-blue-600',
                                 'icon_bg' => 'bg-blue-100',
@@ -855,6 +860,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                 'source' => 'gemini',
                 'title' => $kbReply['title'],
                 'reply' => $kbReply['reply'],
+                'image' => $this->chatReplyImage($query, $kbReply['reply']),
                 'icon' => 'fa-sparkles',
                 'icon_color' => 'text-blue-600',
                 'icon_bg' => 'bg-blue-100',
@@ -895,6 +901,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                         'source' => 'keyword',
                         'title' => $rule->title,
                         'reply' => $rule->reply,
+                        'image' => $this->chatReplyImage($query, $rule->reply),
                         'icon' => $rule->icon ?: 'fa-tooth',
                         'icon_color' => $rule->icon_color ?: 'text-blue-600',
                         'icon_bg' => $rule->icon_bg ?: 'bg-blue-100',
@@ -923,6 +930,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
             'source' => 'fallback',
             'title' => 'টেক ডেন্টাল',
             'reply' => $fallback,
+            'image' => $this->chatReplyImage($query, $fallback),
             'icon' => 'fa-circle-question',
             'icon_color' => 'text-blue-600',
             'icon_bg' => 'bg-blue-100',
@@ -1022,6 +1030,36 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
         return [
             'title' => 'টেক ডেন্টাল',
             'reply' => $reply,
+        ];
+    }
+
+    /**
+     * Price chart that should appear under an answer about the cost of closing
+     * gaps between teeth or composite veneers. Returns null for other topics.
+     */
+    private function chatReplyImage(string $query, string $reply): ?array
+    {
+        $haystack = mb_strtolower($query . "\n" . $reply, 'UTF-8');
+
+        $topic = (bool) preg_match(
+            '/ফাঁকা\s*দাঁত|দাঁতের\s*ফাঁকা|দাঁতে\s*ফাঁকা|ফাঁকা\s*অংশ|দাঁতের\s*ফাঁক|দাঁতের\s*গ্যাপ|গ্যাপ\s*ক্লোজার|gap\s*teeth|tooth\s*gap|teeth\s*gap|ভিনিয়ার|ভিনিয়ার|veneer|কম্পোজিট\s*ভিনিয়ার|কম্পোজিট\s*ভিনিয়ার/ui',
+            $haystack
+        );
+
+        $cost = (bool) preg_match('/খরচ|মূল্য|দাম|প্রাইস|price|cost|টাকা|৳|khoroch|khorch|khoros|daam|\btk\b/ui', $haystack);
+
+        // Braces / aligner answers can mention gaps too, but the chart is about
+        // composite veneers, so only suppress it when no veneer is mentioned.
+        $ortho = (bool) preg_match('/ব্রেসেস|braces|অ্যালাইনার|aligner|ইনভিজিবল|invisalign/ui', $haystack);
+        $veneer = (bool) preg_match('/ভিনিয়ার|ভিনিয়ার|veneer/ui', $haystack);
+
+        if (!$topic || !$cost || ($ortho && !$veneer)) {
+            return null;
+        }
+
+        return [
+            'url' => '/uploads/ai/faka-dat-composite-veneer-cost.webp',
+            'alt' => 'দাঁতের ফাঁকা অংশের চিকিৎসায় কম্পোজিট ভিনিয়ার খরচের চার্ট',
         ];
     }
 
