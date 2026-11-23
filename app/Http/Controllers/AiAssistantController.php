@@ -515,7 +515,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                             $sendEvent([
                                 'done' => true,
                                 'full_text' => $cleanFull,
-                                'image' => $this->chatReplyImage($query),
+                                'image' => $this->chatReplyImage($query, $cleanFull),
                                 'source' => 'gemini',
                                 'title' => 'টেক ডেন্টাল',
                                 'icon' => 'fa-sparkles',
@@ -566,7 +566,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                 $sendEvent([
                     'done' => true,
                     'full_text' => $replyText,
-                    'image' => $this->chatReplyImage($query),
+                    'image' => $this->chatReplyImage($query, $replyText),
                     'source' => 'gemini',
                     'title' => $kbReply['title'],
                     'icon' => 'fa-sparkles',
@@ -612,7 +612,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                         $sendEvent([
                             'done' => true,
                             'full_text' => $rule->reply,
-                            'image' => $this->chatReplyImage($query),
+                            'image' => $this->chatReplyImage($query, $rule->reply),
                             'source' => 'keyword',
                             'title' => $rule->title,
                             'icon' => $rule->icon ?: 'fa-tooth',
@@ -648,7 +648,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
             $sendEvent([
                 'done' => true,
                 'full_text' => $fallback,
-                'image' => $this->chatReplyImage($query),
+                'image' => $this->chatReplyImage($query, $fallback),
                 'source' => 'fallback',
                 'title' => 'টেক ডেন্টাল',
                 'icon' => 'fa-circle-question',
@@ -822,7 +822,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                                 'source' => 'gemini',
                                 'title' => 'টেক ডেন্টাল',
                                 'reply' => $aiText,
-                                'image' => $this->chatReplyImage($query),
+                                'image' => $this->chatReplyImage($query, $aiText),
                                 'icon' => 'fa-sparkles',
                                 'icon_color' => 'text-blue-600',
                                 'icon_bg' => 'bg-blue-100',
@@ -860,7 +860,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                 'source' => 'gemini',
                 'title' => $kbReply['title'],
                 'reply' => $kbReply['reply'],
-                'image' => $this->chatReplyImage($query),
+                'image' => $this->chatReplyImage($query, $kbReply['reply']),
                 'icon' => 'fa-sparkles',
                 'icon_color' => 'text-blue-600',
                 'icon_bg' => 'bg-blue-100',
@@ -901,7 +901,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
                         'source' => 'keyword',
                         'title' => $rule->title,
                         'reply' => $rule->reply,
-                        'image' => $this->chatReplyImage($query),
+                        'image' => $this->chatReplyImage($query, $rule->reply),
                         'icon' => $rule->icon ?: 'fa-tooth',
                         'icon_color' => $rule->icon_color ?: 'text-blue-600',
                         'icon_bg' => $rule->icon_bg ?: 'bg-blue-100',
@@ -930,7 +930,7 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
             'source' => 'fallback',
             'title' => 'টেক ডেন্টাল',
             'reply' => $fallback,
-            'image' => $this->chatReplyImage($query),
+            'image' => $this->chatReplyImage($query, $fallback),
             'icon' => 'fa-circle-question',
             'icon_color' => 'text-blue-600',
             'icon_bg' => 'bg-blue-100',
@@ -1034,27 +1034,27 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
     }
 
     /**
-     * Price chart shown under a chat answer only when the patient explicitly
-     * asks about the cost of closing gaps between teeth or composite veneers.
-     * A treatment question without a cost word gets no image.
+     * Price chart shown under an answer when the reply itself quotes an amount
+     * for closing gaps between teeth or composite veneers.
      */
-    private function chatReplyImage(string $query): ?array
+    private function chatReplyImage(string $query, string $reply = ''): ?array
     {
-        $q = mb_strtolower($query, 'UTF-8');
+        $haystack = mb_strtolower($query . "\n" . $reply, 'UTF-8');
 
         $topic = (bool) preg_match(
             '/ফাঁকা\s*দাঁত|দাঁতের\s*ফাঁকা|দাঁতে\s*ফাঁকা|ফাঁকা\s*অংশ|দাঁতের\s*ফাঁক|দাঁতের\s*গ্যাপ|গ্যাপ\s*ক্লোজার|faka\s*da+[nt]h?|\bgap\b|gap\s*teeth|tooth\s*gap|teeth\s*gap|ভিনিয়ার|ভিনিয়ার|veneer|কম্পোজিট\s*ভিনিয়ার|কম্পোজিট\s*ভিনিয়ার/ui',
-            $q
+            $haystack
         );
 
-        $cost = (bool) preg_match('/খরচ|মূল্য|দাম|প্রাইস|price|cost|টাকা|৳|khoroch|khorch|khoros|daam|\btk\b/ui', $q);
+        // Show the chart only when the answer text contains an actual amount.
+        $amount = (bool) preg_match('/[০-৯0-9]/u', $reply)
+            && (bool) preg_match('/৳|টাকা|taka|\btk\b|\bbdt\b/ui', $reply);
 
-        // Braces / aligner questions can mention gaps too, but the chart is
-        // about composite veneers, so suppress it when no veneer is mentioned.
-        $ortho = (bool) preg_match('/ব্রেসেস|braces|অ্যালাইনার|aligner|ইনভিজিবল|invisalign/ui', $q);
-        $veneer = (bool) preg_match('/ভিনিয়ার|ভিনিয়ার|veneer/ui', $q);
+        // Braces / aligner questions are not composite-veneer pricing.
+        $ortho = (bool) preg_match('/ব্রেসেস|braces|অ্যালাইনার|aligner|ইনভিজিবল|invisalign/ui', $query);
+        $veneer = (bool) preg_match('/ভিনিয়ার|ভিনিয়ার|veneer/ui', $haystack);
 
-        if (!$topic || !$cost || ($ortho && !$veneer)) {
+        if (!$topic || !$amount || ($ortho && !$veneer)) {
             return null;
         }
 
