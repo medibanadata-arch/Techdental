@@ -8,6 +8,7 @@ import { handleAdminRoute } from './lib/admin/router';
 import { authUserFromRequest } from './lib/auth';
 import { isAdminPath, isAuthPath, isGuestPath } from './lib/admin/paths';
 import { filamentTarget } from './lib/admin/filament';
+import { notFoundResponse } from './lib/notFound';
 
 /**
  * Mirrors app/Http/Middleware/TrailingSlashAndRedirectMiddleware.php and serves
@@ -81,6 +82,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (handled) return handled;
 
   if (method !== 'GET' && method !== 'HEAD') return next();
+
+  // Laravel's API exception handler answers unknown API routes with JSON.
+  if (pathname.startsWith('/api/')) {
+    return new Response('{\n    "message": ""\n}', {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   if (shouldSkip(pathname)) return next();
 
@@ -157,5 +166,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  return next();
+  return withErrorPage(await next());
 });
+
+/**
+ * Laravel renders the default error page for every unmatched GET, so page-level
+ * 404s (e.g. an unknown dynamic slug) are swapped for the same HTML document.
+ */
+function withErrorPage(response: Response): Response {
+  return response.status === 404 ? notFoundResponse() : response;
+}

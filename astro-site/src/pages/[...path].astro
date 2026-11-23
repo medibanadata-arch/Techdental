@@ -1,5 +1,6 @@
 ---
 import LegacyEntity from '../components/LegacyEntity.astro';
+import { notFoundResponse } from '../lib/notFound';
 import { materializeLegacy, type LegacyRenderResult } from '../lib/legacyRender';
 import {
   encodeLocation,
@@ -15,7 +16,7 @@ import {
 
 const rawPath = Astro.url.pathname;
 
-const notFound = () => new Response('Not Found', { status: 404 });
+const notFound = () => notFoundResponse();
 const go = (location: string, status = 301) =>
   new Response(null, { status, headers: { Location: encodeLocation(location) } });
 
