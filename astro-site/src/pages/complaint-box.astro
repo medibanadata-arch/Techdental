@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Page from '../app/wrappers/Complaints_PublicShowPage';
+import { pagePayload } from '../lib/shared';
+import { complaintProps, complaintSeo } from '../lib/pages/info';
+
+const props = complaintProps();
+const page = pagePayload('Complaints/PublicShow', props, '/complaint-box');
+const seo = complaintSeo();
+---
+
+<BaseLayout seo={seo} lang="en">
+  <Page client:load page={page} />
+</BaseLayout>

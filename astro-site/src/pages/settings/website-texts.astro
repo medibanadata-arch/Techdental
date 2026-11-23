@@ -1,0 +1,13 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Settings_WebsiteTextsPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { settingsPageModel, settingsRowForWebsiteTexts } from '../../lib/admin/handlers/settings';
+
+const settings = settingsPageModel(settingsRowForWebsiteTexts());
+const page = adminPagePayload(Astro.request, 'Settings/WebsiteTexts', { settings });
+---
+
+<AdminShell title="Website Texts - Admin">
+  <Page client:load page={page} />
+</AdminShell>

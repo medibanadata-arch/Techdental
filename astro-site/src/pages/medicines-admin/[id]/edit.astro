@@ -1,0 +1,17 @@
+---
+import AdminShell from '../../../layouts/AdminShell.astro';
+import Page from '../../../app/wrappers/Medicines_AdminEditPage';
+import { adminPagePayload } from '../../../lib/admin/http';
+import { get, model } from '../../../lib/db';
+
+const { id } = Astro.params;
+const row = get('SELECT * FROM medicines WHERE id = ?', [Number(id)]);
+if (!row) return new Response('Not Found', { status: 404 });
+
+const item = model('medicines', row);
+const page = adminPagePayload(Astro.request, 'Medicines/AdminEdit', { item });
+---
+
+<AdminShell title={`Edit Medicine - Tech Dental`}>
+  <Page client:load page={page} />
+</AdminShell>

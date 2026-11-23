@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.data/
+public/uploads
+public/fonts
+public/robots.txt
+public/favicon.ico
+.env
+*.log

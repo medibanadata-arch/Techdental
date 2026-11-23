@@ -1,0 +1,18 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/PatientRights_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { patientRightsAdminProps } from '../../lib/admin/handlers/patientrights';
+import { model, models } from '../../lib/db';
+
+const { settings, rights, responsibilities } = patientRightsAdminProps();
+const page = adminPagePayload(Astro.request, 'PatientRights/AdminIndex', {
+  settings: model('patient_rights_settings', settings),
+  rights: models('patient_rights', rights),
+  responsibilities: models('patient_responsibilities', responsibilities),
+});
+---
+
+<AdminShell title="Patient Rights CMS - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

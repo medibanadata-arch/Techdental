@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Page from '../app/wrappers/PatientRights_PublicShowPage';
+import { pagePayload } from '../lib/shared';
+import { patientRightsProps, patientRightsSeo } from '../lib/pages/info';
+
+const props = patientRightsProps(false);
+const page = pagePayload('PatientRights/PublicShow', props, '/patient-rights');
+const seo = patientRightsSeo(props.settings, false);
+---
+
+<BaseLayout seo={seo} lang="en">
+  <Page client:load page={page} />
+</BaseLayout>

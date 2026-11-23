@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HomePage from '../app/wrappers/HomePage';
+import { pagePayload } from '../lib/shared';
+import { homeProps, homeSeo } from '../lib/pages/home';
+
+const props = homeProps();
+const page = pagePayload('Home', props, '/', 'en');
+const seo = homeSeo(props);
+---
+
+<BaseLayout seo={seo} lang="en">
+  <HomePage client:load page={page} />
+</BaseLayout>

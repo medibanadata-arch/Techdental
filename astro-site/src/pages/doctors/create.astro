@@ -1,0 +1,11 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Doctors_CreatePage';
+import { adminPagePayload } from '../../lib/admin/http';
+
+const page = adminPagePayload(Astro.request, 'Doctors/Create', {});
+---
+
+<AdminShell title="Add Doctor - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

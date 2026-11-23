@@ -1,0 +1,15 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Settings_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { homeSettingsRow, mediaList, settingsPageModel } from '../../lib/admin/handlers/settings';
+import { models } from '../../lib/db';
+
+const settings = settingsPageModel(homeSettingsRow());
+const media = models('media', mediaList());
+const page = adminPagePayload(Astro.request, 'Settings/AdminIndex', { settings, mediaList: media });
+---
+
+<AdminShell title="Site & Brand Settings - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

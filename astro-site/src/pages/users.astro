@@ -1,0 +1,13 @@
+---
+import AdminShell from '../layouts/AdminShell.astro';
+import Page from '../app/wrappers/Users_IndexPage';
+import { adminPagePayload } from '../lib/admin/http';
+import { all, models } from '../lib/db';
+
+const users = models('users', all('SELECT * FROM users ORDER BY created_at DESC'));
+const page = adminPagePayload(Astro.request, 'Users/Index', { users });
+---
+
+<AdminShell title="User & Role Access Management - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

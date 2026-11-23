@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Page from '../app/wrappers/HowToPay_PublicShowPage';
+import { pagePayload } from '../lib/shared';
+import { howToPayProps, howToPaySeo } from '../lib/pages/info';
+
+const branch = Astro.url.searchParams.get('branch') || '';
+const props = howToPayProps(branch);
+const page = pagePayload('HowToPay/PublicShow', props, '/how-to-pay');
+const seo = howToPaySeo(props.payment_settings);
+---
+
+<BaseLayout seo={seo} lang="en">
+  <Page client:load page={page} />
+</BaseLayout>

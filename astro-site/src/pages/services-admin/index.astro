@@ -1,0 +1,13 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Services_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const data = models('services', all('SELECT * FROM services ORDER BY rank_order'));
+const page = adminPagePayload(Astro.request, 'Services/AdminIndex', { data });
+---
+
+<AdminShell title="Services Management - Admin Dashboard">
+  <Page client:load page={page} />
+</AdminShell>

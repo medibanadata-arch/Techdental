@@ -1,0 +1,22 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/HomeContent_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { homepagePageProps } from '../../lib/admin/handlers/homepage';
+import { model, models } from '../../lib/db';
+
+const { content, gallery, branches, doctors, services, videos, posts } = homepagePageProps();
+const page = adminPagePayload(Astro.request, 'HomeContent/AdminIndex', {
+  content: model('home_content', content),
+  gallery: models('featured_images', gallery),
+  branches: models('locations', branches),
+  doctors: models('doctors', doctors),
+  services,
+  videos: models('home_videos', videos),
+  posts,
+});
+---
+
+<AdminShell title="Homepage CMS - Full Management">
+  <Page client:load page={page} />
+</AdminShell>

@@ -1,0 +1,11 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Services_AdminEditPage';
+import { adminPagePayload } from '../../lib/admin/http';
+
+const page = adminPagePayload(Astro.request, 'Services/AdminEdit', { item: null });
+---
+
+<AdminShell title="Create New Service">
+  <Page client:load page={page} />
+</AdminShell>

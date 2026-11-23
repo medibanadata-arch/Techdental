@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Page from '../../../app/wrappers/Blog_PublicIndexPage';
+import { pagePayload } from '../../../lib/shared';
+import { blogOthersProps, blogIndexSeo, blogIndexSchema } from '../../../lib/pages/blog';
+
+const props = blogOthersProps(true);
+const page = pagePayload('Blog/PublicIndex', props, '/bn/blog/others', 'bn');
+const seo = { ...blogIndexSeo(true, true), schema: blogIndexSchema(props.posts, true, true) };
+---
+
+<BaseLayout seo={seo} lang="bn">
+  <Page client:load page={page} />
+</BaseLayout>

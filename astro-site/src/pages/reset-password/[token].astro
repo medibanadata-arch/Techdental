@@ -1,0 +1,16 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Auth_ResetPasswordPage';
+import { pagePayload } from '../../lib/shared';
+import { currentAdmin } from '../../lib/admin/http';
+
+if (currentAdmin(Astro.request)) return Astro.redirect('/dashboard', 302);
+
+const { token = '' } = Astro.params;
+const email = Astro.url.searchParams.get('email') || '';
+const page = pagePayload('Auth/ResetPassword', { token, email }, `/reset-password/${token}`);
+---
+
+<AdminShell title="Reset Password">
+  <Page client:load page={page} />
+</AdminShell>

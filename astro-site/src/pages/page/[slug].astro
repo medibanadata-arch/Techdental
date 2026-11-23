@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AboutPage from '../../app/wrappers/About_PublicIndexPage';
+import CustomPage from '../../app/wrappers/CustomPages_ShowPage';
+import { pagePayload } from '../../lib/shared';
+import { pageShow } from '../../lib/pages/custom';
+
+const { slug = '' } = Astro.params;
+const result = pageShow(String(slug));
+if (!result) return new Response('Not Found', { status: 404 });
+if (result.kind === 'redirect') return Astro.redirect(result.location, result.status || 301);
+
+const isAbout = result.component === 'About/PublicIndex';
+const page = pagePayload(result.component, result.props, `/page/${slug}`);
+---
+
+<BaseLayout seo={result.seo} lang="en">
+  {isAbout ? <AboutPage client:load page={page} /> : <CustomPage client:load page={page} />}
+</BaseLayout>

@@ -1,0 +1,10 @@
+import { PageProvider } from '../../lib/inertia';
+import Page from '../Pages/Services/AdminEdit';
+
+export default function Services_AdminEditPage({ page }: { page: any }) {
+  return (
+    <PageProvider page={page}>
+      <Page {...page.props} />
+    </PageProvider>
+  );
+}

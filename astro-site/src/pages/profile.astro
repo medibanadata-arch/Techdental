@@ -1,0 +1,17 @@
+---
+import AdminShell from '../layouts/AdminShell.astro';
+import Page from '../app/wrappers/Profile_EditPage';
+import { adminPagePayload, guardAuth } from '../lib/admin/http';
+
+const denied = guardAuth(Astro.request);
+if (denied) return denied;
+
+const page = adminPagePayload(Astro.request, 'Profile/Edit', {
+  mustVerifyEmail: false,
+  status: null,
+});
+---
+
+<AdminShell title="Profile">
+  <Page client:load page={page} />
+</AdminShell>

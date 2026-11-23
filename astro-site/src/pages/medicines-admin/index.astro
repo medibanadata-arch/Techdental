@@ -1,0 +1,22 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Medicines_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const postSlugs = all<{ slug: string }>('SELECT slug FROM posts WHERE slug IS NOT NULL').map((row) => row.slug);
+const data = models(
+  'medicines',
+  all(
+    postSlugs.length
+      ? `SELECT * FROM medicines WHERE slug NOT IN (${postSlugs.map(() => '?').join(', ')}) ORDER BY sort_order`
+      : 'SELECT * FROM medicines ORDER BY sort_order',
+    postSlugs
+  )
+);
+const page = adminPagePayload(Astro.request, 'Medicines/AdminIndex', { data });
+---
+
+<AdminShell title="Medicines Management - Tech Dental Admin">
+  <Page client:load page={page} />
+</AdminShell>

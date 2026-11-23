@@ -1,0 +1,35 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Posts_IndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const posts = models(
+  'posts',
+  all(
+    `SELECT * FROM posts
+      WHERE (category IS NULL OR category <> 'Dental')
+        AND (category_id IS NULL OR category_id <> 7)
+      ORDER BY created_at DESC`
+  )
+);
+const counts = {
+  all: posts.filter((p: any) => p.status !== 'trash').length,
+  published: posts.filter((p: any) => p.status === 'published').length,
+  drafts: posts.filter((p: any) => p.status === 'draft').length,
+  trash: posts.filter((p: any) => p.status === 'trash').length,
+};
+
+const page = adminPagePayload(Astro.request, 'Posts/Index', {
+  posts,
+  data: posts,
+  counts,
+  pageTitle: 'Others — Articles, News & Case Studies',
+  badgeLabel: `${counts.all} Articles`,
+  isOthers: true,
+});
+---
+
+<AdminShell title="Others — Articles, News & Case Studies - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

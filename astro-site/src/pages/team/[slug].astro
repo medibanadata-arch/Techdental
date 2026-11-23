@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Page from '../../app/wrappers/Team_PublicSinglePage';
+import { pagePayload } from '../../lib/shared';
+import { teamMemberProps, teamMemberSeo } from '../../lib/pages/people';
+
+const { slug = '' } = Astro.params;
+const props = teamMemberProps(String(slug));
+if (!props) return new Response('Not Found', { status: 404 });
+const page = pagePayload('Team/PublicSingle', props, `/team/${slug}`);
+const seo = teamMemberSeo(props.member);
+---
+
+<BaseLayout seo={seo} lang="en">
+  <Page client:load page={page} />
+</BaseLayout>

@@ -1,0 +1,20 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Posts_ShowPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { get, model } from '../../lib/db';
+
+const { id } = Astro.params;
+const row = /^\d+$/.test(String(id))
+  ? get('SELECT * FROM posts WHERE id = ?', [Number(id)])
+  : get('SELECT * FROM posts WHERE slug = ?', [String(id)]);
+
+if (!row) return new Response('Not Found', { status: 404 });
+
+const item = model('posts', row);
+const page = adminPagePayload(Astro.request, 'Posts/Show', { item }, {});
+---
+
+<AdminShell title={String(item.title ?? 'Post')}>
+  <Page client:load page={page} />
+</AdminShell>

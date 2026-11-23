@@ -1,0 +1,12 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Team_AdminEditPage';
+import { adminPagePayload } from '../../lib/admin/http';
+
+const defaultSection = Astro.url.searchParams.get('section') || 'management';
+const page = adminPagePayload(Astro.request, 'Team/AdminEdit', { item: null, defaultSection });
+---
+
+<AdminShell title="Add New Team Member - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

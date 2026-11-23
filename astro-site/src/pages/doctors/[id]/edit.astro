@@ -1,0 +1,17 @@
+---
+import AdminShell from '../../../layouts/AdminShell.astro';
+import Page from '../../../app/wrappers/Doctors_EditPage';
+import { adminPagePayload } from '../../../lib/admin/http';
+import { get, model } from '../../../lib/db';
+
+const { id } = Astro.params;
+const row = get('SELECT * FROM doctors WHERE id = ?', [Number(id)]);
+if (!row) return new Response('Not Found', { status: 404 });
+
+const doctor = model('doctors', row);
+const page = adminPagePayload(Astro.request, 'Doctors/Edit', { doctor });
+---
+
+<AdminShell title={`Edit Doctor — ${doctor.name}`}>
+  <Page client:load page={page} />
+</AdminShell>

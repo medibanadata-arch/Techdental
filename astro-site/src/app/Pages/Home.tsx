@@ -1,0 +1,1806 @@
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { Link, usePage } from "@inertiajs/react";
+import { TopHeader } from "@/Components/TopHeader";
+import { GlobalFooter } from "@/Components/GlobalFooter";
+import Seo from "@/Components/Seo";
+import { BranchPickerModal } from "@/Components/BranchPickerModal";
+import { AppointmentModal } from "@/Components/AppointmentModal";
+import { BRANCHES_DATA } from "@/data/dentalData";
+import type { BranchInfo } from "@/data/dentalData";
+import { getHomepageCopy } from "@/data/homepageCopy";
+import { getBranchStatus } from "@/utils/branchStatus";
+import { HOTLINE, WHATSAPP, buildWhatsAppUrl } from "@/utils/contact";
+import type { PageProps } from '@inertiajs/core';
+
+interface HomeProps extends PageProps {
+  locations?: any[];
+  services?: any[];
+  doctors?: any[];
+  posts?: any[];
+  featured_images?: any[];
+  videos?: any[];
+  nav_menu?: any;
+  home_content?: any;
+  ai_chips?: string[];
+  ai_settings?: {
+    bot_name?: string;
+    bot_avatar?: string;
+    starter_questions?: string[];
+    gemini_enabled?: boolean;
+  };
+}
+
+interface ModalState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  icon: string;
+  iconColor: string;
+  iconBg: string;
+  actionUrl?: string;
+  actionText?: string;
+  onAction?: () => void;
+}
+
+export interface AiAnswer {
+  title: string;
+  reply: string;
+  icon?: string;
+  iconColor?: string;
+  iconBg?: string;
+  source?: 'keyword' | 'gemini' | 'fallback';
+  actionType?: string;
+  actionLabel?: string;
+  actionUrl?: string;
+  /** Optional chart shown under the reply (e.g. gap-teeth / veneer cost). */
+  image?: { url: string; alt?: string };
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text?: string;
+  answer?: AiAnswer;
+  timestamp?: string;
+  /** When true, the bubble shows the hotline call button and the online booking button. */
+  bookingButtons?: boolean;
+}
+
+// The chat never takes a booking itself — patients get exactly two options.
+const BOOKING_REPLY =
+  'সিরিয়াল বা অ্যাপয়েন্টমেন্ট নিতে চাইলে দুটি উপায় আছে — সরাসরি হটলাইন নম্বরে কল করুন 09638000505 অথবা ';
+
+// Helper: Extract YouTube 11-char Video ID from any YouTube URL
+export const extractYouTubeId = (url: string): string | null => {
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+  return match ? match[1] : null;
+};
+
+// YouTube Inline Embed Player Component
+export const ChatYouTubeEmbed: React.FC<{ videoId: string; title?: string; watchLabel?: string; clickTitle?: string }> = ({ videoId, title, watchLabel = 'ভিডিও দেখুন', clickTitle = 'ভিডিও দেখতে ক্লিক করুন' }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  return (
+    <div className="my-3 w-full max-w-sm sm:max-w-md rounded-2xl overflow-hidden border border-slate-200/90 shadow-sm bg-slate-950 transition-all">
+      {isPlaying ? (
+        <div className="relative w-full aspect-video bg-black">
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
+            title={title || "YouTube video player"}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <div
+          onClick={() => setIsPlaying(true)}
+          className="relative w-full aspect-video cursor-pointer overflow-hidden bg-slate-900 group"
+          title={clickTitle}
+        >
+          {/* Thumbnail */}
+          <img
+            src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+            alt={title || "YouTube video"}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            onError={(e: any) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+            }}
+          />
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/30 group-hover:via-black/20 transition-all" />
+
+          {/* Top Badge */}
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/70 backdrop-blur-xs text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-white/15 shadow-xs">
+            <i className="fa-brands fa-youtube text-red-500 text-xs" />
+            <span>{watchLabel}</span>
+          </div>
+
+          {/* Center Play Button */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-600/95 hover:bg-red-600 text-white flex items-center justify-center shadow-lg shadow-red-950/50 group-hover:scale-110 active:scale-95 transition-all">
+              <i className="fa-solid fa-play text-base sm:text-lg ml-0.5" />
+            </div>
+          </div>
+
+          {/* Bottom Title if provided */}
+          {title && (
+            <div className="absolute bottom-2.5 left-3 right-3 text-white text-xs sm:text-sm font-semibold truncate drop-shadow-md">
+              {title}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default function Home({
+  locations = [],
+  services = [],
+  doctors = [],
+  posts = [],
+  featured_images = [],
+  videos = [],
+  nav_menu,
+  home_content,
+  ai_chips = [],
+  ai_settings,
+}: HomeProps) {
+  const page = usePage();
+  const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
+  const copy = useMemo(() => getHomepageCopy(home_content?.homepage_texts), [home_content?.homepage_texts]);
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [aiInputValue, setAiInputValue] = useState("");
+  const [modalInputValue, setModalInputValue] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [isWidgetOpen, setIsWidgetOpen] = useState(false);
+  const [isFullModalOpen, setIsFullModalOpen] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isAiFocused, setIsAiFocused] = useState(false);
+
+  const safeFaqs = useMemo(() => {
+    if (!home_content?.faqs) return [];
+    if (Array.isArray(home_content.faqs)) return home_content.faqs;
+    try {
+      const parsed = typeof home_content.faqs === "string" ? JSON.parse(home_content.faqs) : home_content.faqs;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, [home_content?.faqs]);
+
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const modalChatScrollRef = useRef<HTMLDivElement>(null);
+
+  // Gallery & Video Preview State
+  const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
+  const [chatImagePreview, setChatImagePreview] = useState<{ url: string; alt?: string } | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<string | number | null>(null);
+  const [isVideosExpanded, setIsVideosExpanded] = useState(false);
+  // Mobile (<768px) expands to 7 videos, desktop to 9.
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobileViewport(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  // Modal State for external actions
+  const [modal, setModal] = useState<ModalState>({
+    isOpen: false,
+    title: "",
+    message: "",
+    icon: "fa-tooth",
+    iconColor: "text-blue-600",
+    iconBg: "bg-blue-100",
+  });
+
+  const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
+  const [isBranchPickerOpen, setIsBranchPickerOpen] = useState(false);
+
+  // Format branches dynamically
+  const branchesData = useMemo(() => {
+    const data: Record<string, BranchInfo> = {};
+    Object.entries(BRANCHES_DATA).forEach(([k, b]) => {
+      const st = getBranchStatus({ shortName: b.shortName, time: b.time });
+      data[k] = {
+        ...b,
+        isOpenNow: st.isOpenNow,
+        statusText: st.statusText,
+      };
+    });
+
+    if (Array.isArray(locations) && locations.length > 0) {
+      locations.forEach((loc) => {
+        const key = loc.location_id || loc.id || loc.slug;
+        const bStatus = getBranchStatus({
+          shortName: loc.short_name || loc.name,
+          time: loc.time || loc.hours_text,
+        });
+        const rawName = loc.name || loc.branch_name || loc.city || data[key]?.name || "Mirpur Branch";
+        const fullName = rawName.includes("Branch") ? rawName : `${rawName} Branch`;
+        if (key) {
+          data[key] = {
+            id: String(key),
+            name: fullName,
+            shortName: (loc.short_name || rawName).replace(/\bbranch\b/gi, '').trim(),
+            address: loc.address || data[key]?.address || "",
+            time: loc.time || data[key]?.time || "10:00 AM – 9:00 PM",
+            phone: loc.phone || data[key]?.phone || HOTLINE,
+            whatsapp: loc.whatsapp || data[key]?.whatsapp || WHATSAPP,
+            bookingUrl: loc.booking_url || data[key]?.bookingUrl || "/appointment",
+            callLabel: loc.call_label || data[key]?.callLabel || "Call",
+            directionsLabel: loc.directions_label || data[key]?.directionsLabel || "Directions",
+            whatsappLabel: loc.whatsapp_label || data[key]?.whatsappLabel || "WhatsApp",
+            bookLabel: loc.book_label || data[key]?.bookLabel || "Book",
+            mapUrl: loc.map_url || data[key]?.mapUrl || "#",
+            reviewUrl: loc.review_url || data[key]?.reviewUrl || "#",
+            statusText: loc.status_text || bStatus.statusText,
+            isOpenNow: loc.is_open_now !== undefined ? Boolean(loc.is_open_now) : bStatus.isOpenNow,
+          };
+        }
+      });
+    }
+    return data;
+  }, [locations]);
+
+  const currentBranch = (selectedBranch && branchesData[selectedBranch]) || branchesData["mirpur"] || Object.values(branchesData)[0];
+  const hotline = currentBranch?.phone || home_content?.contact_phone || HOTLINE;
+  const rawWa = currentBranch?.whatsapp || WHATSAPP;
+  const waUrl = buildWhatsAppUrl(rawWa, "হ্যালো টেক ডেন্টাল, আমি চিকিৎসার বিষয়ে জানতে চাচ্ছি।");
+
+  // Top Chips above the search bar: editable from AI Assistant → Chips
+  const topChips = useMemo(() => [
+    "শাখার ঠিকানা কোথায়?",
+    "ফাঁকা দাঁতের চিকিৎসা",
+    "দাঁত ব্যথার চিকিৎসা",
+  ], []);
+
+  const chipList = useMemo(() => {
+    const fromBackend = Array.isArray(ai_chips)
+      ? ai_chips.filter((chip) => typeof chip === 'string' && chip.trim() !== '')
+      : [];
+    return fromBackend.length > 0 ? fromBackend : topChips;
+  }, [ai_chips, topChips]);
+
+  // Search box placeholder questions with timed slide-in sequence:
+  // 0s: ফিলিং চিকিৎসার খরচ কত?
+  // +1s: দাঁতে গর্ত হলে কি করা উচিৎ?
+  // +2s: রুট ক্যানেল করতে কত খরচ হয়?
+  // +3s: দাঁত সোজা করার উপায় কি?
+  const searchQuestions = useMemo(() => {
+    const saved = Array.isArray(ai_settings?.starter_questions)
+      ? ai_settings!.starter_questions!.filter((q) => typeof q === 'string' && q.trim() !== '')
+      : [];
+    return saved.length > 0 ? saved : [
+      "ফিলিং চিকিৎসার খরচ কত?",
+      "দাঁতে গর্ত হলে কি করা উচিৎ?",
+      "রুট ক্যানেল করতে কত খরচ হয়?",
+      "দাঁত সোজা করার উপায় কি?",
+    ];
+  }, [ai_settings?.starter_questions]);
+
+  const [animatedPlaceholderIdx, setAnimatedPlaceholderIdx] = useState(0);
+
+  // Suggested Chips from backend or fallback
+  const suggestedChips = useMemo(() => {
+    return topChips;
+  }, [topChips]);
+
+  const isChatActive = isWidgetOpen && (chatMessages.length > 0 || isAiLoading);
+
+  // Timed slide-in sequence for search box placeholder:
+  // 0s (idx 0), +1s (idx 1), +2s (idx 2), +3s (idx 3), then cycles every 2.5s
+  useEffect(() => {
+    if (aiInputValue || isAiFocused) return;
+
+    const t1 = setTimeout(() => setAnimatedPlaceholderIdx(1), 1000);
+    const t2 = setTimeout(() => setAnimatedPlaceholderIdx(2), 2000);
+    const t3 = setTimeout(() => setAnimatedPlaceholderIdx(3), 3000);
+
+    let interval: any = null;
+    const loopTimer = setTimeout(() => {
+      interval = setInterval(() => {
+        setAnimatedPlaceholderIdx((prev) => (prev + 1) % searchQuestions.length);
+      }, 2500);
+    }, 3000);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(loopTimer);
+      if (interval) clearInterval(interval);
+    };
+  }, [aiInputValue, isAiFocused, searchQuestions]);
+
+  // Gallery items are fully managed in Homepage CMS → Hero Slider & Gallery
+  // Show each photo once even if the same image is attached to several branches.
+  const galleryItems = useMemo(() => {
+    const seen = new Set<string>();
+    return (Array.isArray(featured_images) ? featured_images : []).filter((img: any) => {
+      const raw = String(img?.src || img?.image || img?.url || '').trim();
+      const key = raw.replace(/^https?:\/\/[^/]+/i, '').replace(/\/+$/, '').toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [featured_images]);
+
+  // Homepage always shows the first 8 gallery images; "See More" opens the full /gallery page.
+  const displayedImages = galleryItems.slice(0, 8);
+
+  // Video gallery items are fully managed in Homepage CMS → Video Gallery
+  const videoGalleryItems = useMemo(
+    () =>
+      (Array.isArray(videos) ? videos : [])
+        .map((item: any) => ({
+          id: item.id,
+          videoId: item.video_id || extractYouTubeId(item.youtube_url || '') || '',
+          title: item.title || '',
+          branch: item.branch || '',
+        }))
+        .filter((item: any) => item.videoId),
+    [videos]
+  );
+
+  // 3 videos collapsed; "See More" adds 4 more on mobile (7 total) and 6 more on desktop (9 total).
+  const expandedVideoCount = isMobileViewport ? 7 : 9;
+  const displayedVideos = videoGalleryItems.slice(0, isVideosExpanded ? expandedVideoCount : 3);
+
+  // Keyboard navigation for image lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!previewImage) return;
+      if (e.key === "Escape") {
+        setPreviewImage(null);
+      } else if (e.key === "ArrowLeft") {
+        const newIdx = (previewImage.index - 1 + galleryItems.length) % galleryItems.length;
+        const prevItem = galleryItems[newIdx];
+        setPreviewImage({
+          src: prevItem.src || prevItem.image || prevItem.url,
+          title: prevItem.title || "",
+          index: newIdx,
+        });
+      } else if (e.key === "ArrowRight") {
+        const newIdx = (previewImage.index + 1) % galleryItems.length;
+        const nextItem = galleryItems[newIdx];
+        setPreviewImage({
+          src: nextItem.src || nextItem.image || nextItem.url,
+          title: nextItem.title || "",
+          index: newIdx,
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewImage, galleryItems]);
+
+  // Close the AI chat image preview with Escape
+  useEffect(() => {
+    if (!chatImagePreview) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setChatImagePreview(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [chatImagePreview]);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2200);
+  };
+
+  const scrollChatToQuestion = (userMsgId: string) => {
+    const doScroll = () => {
+      if (chatScrollRef.current) {
+        const targetEl = chatScrollRef.current.querySelector<HTMLElement>(`[data-msg-id="${userMsgId}"]`);
+        if (targetEl) {
+          const containerRect = chatScrollRef.current.getBoundingClientRect();
+          const targetRect = targetEl.getBoundingClientRect();
+          const relativeTop = targetRect.top - containerRect.top + chatScrollRef.current.scrollTop;
+          chatScrollRef.current.scrollTo({
+            top: Math.max(0, relativeTop - 12),
+            behavior: "smooth"
+          });
+        }
+      }
+      if (modalChatScrollRef.current) {
+        const targetEl = modalChatScrollRef.current.querySelector<HTMLElement>(`[data-msg-id="${userMsgId}"]`);
+        if (targetEl) {
+          const containerRect = modalChatScrollRef.current.getBoundingClientRect();
+          const targetRect = targetEl.getBoundingClientRect();
+          const relativeTop = targetRect.top - containerRect.top + modalChatScrollRef.current.scrollTop;
+          modalChatScrollRef.current.scrollTo({
+            top: Math.max(0, relativeTop - 12),
+            behavior: "smooth"
+          });
+        }
+      }
+    };
+
+    setTimeout(doScroll, 40);
+    setTimeout(doScroll, 180);
+  };
+
+  const handleSelectSuggestion = (text: string) => {
+    processAIQuestion(text);
+  };
+
+  const handleAISubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const query = aiInputValue.trim() || searchQuestions[animatedPlaceholderIdx];
+    if (!query) {
+      const el = document.getElementById("primarySearchInput");
+      el?.focus();
+      return;
+    }
+    processAIQuestion(query);
+  };
+
+  const handleModalSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!modalInputValue.trim()) return;
+    processAIQuestion(modalInputValue.trim());
+  };
+
+  const handleResetConversation = () => {
+    setChatMessages([]);
+    setIsWidgetOpen(true);
+    showToast("চ্যাট রিসেট করা হয়েছে");
+    processAIQuestion("ডেন্টাল ইমপ্ল্যান্ট ও খরচ");
+  };
+
+  const handleCloseWidget = () => {
+    setIsWidgetOpen(false);
+  };
+
+  const handleAnswerAction = (ans: AiAnswer) => {
+    if (ans.actionType === "directions") {
+      setIsBranchPickerOpen(true);
+    } else if (ans.actionType === "call") {
+      window.location.href = `tel:${hotline}`;
+    } else if (ans.actionType === "whatsapp") {
+      window.open(waUrl, "_blank");
+    } else if (ans.actionUrl && ans.actionUrl.startsWith("http")) {
+      window.open(ans.actionUrl, "_blank");
+    } else {
+      setIsAppointmentOpen(true);
+    }
+  };
+
+  const getFormattedTime = () => {
+    const d = new Date();
+    let hours = d.getHours();
+    const minutes = d.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const minStr = minutes < 10 ? '0' + minutes : minutes;
+    return `${hours}:${minStr} ${ampm}`;
+  };
+
+  // ===== Chat booking: two options only (hotline call or the online form) =====
+  const pushBookingReply = (reply: string, userMsgId: string) => {
+    const msg: ChatMessage = {
+      id: `ai-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      role: 'assistant',
+      answer: {
+        title: ai_settings?.bot_name || 'Tech Dental Agent',
+        reply,
+        source: 'keyword',
+      },
+      timestamp: getFormattedTime(),
+      bookingButtons: true,
+    };
+    setChatMessages((prev) => [...prev, msg]);
+    setTimeout(() => scrollChatToQuestion(userMsgId), 60);
+  };
+
+  // The chat never collects or saves booking details any more. Any booking request gets the
+  // same answer: call the hotline, or open the online booking form with the button below.
+  const handleChatBookingTurn = (query: string, userMsgId: string): boolean => {
+    const bookingKeyword =
+      /(বুকিং|বুক\s*করা|বুক\s*কর|বুক\s*কর্তে|বুক\s*করে|বুক\s*করতে|অ্যাপয়েন্টমেন্ট|এপয়েন্টমেন্ট|অ্যাপয়েন্ট|সিরিয়াল|\bbook\w*\b|\bbok(?:ing|ed|e|te|bo|ben|be)?\b|\bbuk(?:e|te|bo|ben)?\b|\bappoint\w*\b|\bs[ei]r[iy]?[ae]?l\b|\bsrial\b)/i;
+
+    // People often type repeated letters ("boook", "booooking"). Collapse them before checking.
+    const normalized = query.toLowerCase().replace(/(.)\1+/g, "$1");
+
+    // "buke betha" (chest pain) must not be mistaken for "book".
+    const chestPain = /\bbuke?\s*(betha|byatha|batha|byetha|bêtha)\b/i.test(query);
+
+    // Someone may still paste an old fill-in-the-blank booking format. Never parse or save it -
+    // treat it as a booking request so they still get the two options.
+    const bookingLabels = ['নাম:', 'মোবাইল নম্বর:', 'শাখা:', 'চিকিৎসা:', 'তারিখ:', 'ঠিকানা:'];
+    const pastedBooking = bookingLabels.filter((label) => query.includes(label)).length >= 2;
+
+    const bookingIntent =
+      bookingKeyword.test(query) || bookingKeyword.test(normalized) || pastedBooking;
+
+    if (!bookingIntent || chestPain) return false;
+
+    pushBookingReply(BOOKING_REPLY, userMsgId);
+    return true;
+  };
+
+  // Connected to Backend API: checks admin keywords first, then Gemini AI, then fallback
+  const processAIQuestion = async (query: string) => {
+    if (!query.trim()) return;
+    const cleanQuery = query.trim();
+    setAiInputValue("");
+    setModalInputValue("");
+    setIsWidgetOpen(true);
+
+    const userMsgId = `user-${Date.now()}`;
+    const currentTime = getFormattedTime();
+    const userMsg: ChatMessage = {
+      id: userMsgId,
+      role: "user",
+      text: cleanQuery,
+      timestamp: currentTime,
+    };
+
+    setChatMessages((prev) => [...prev, userMsg]);
+    setIsAiLoading(true);
+    scrollChatToQuestion(userMsgId);
+
+    // Chat-based booking: collect all details inside the chat and save automatically.
+    try {
+      const handledByBooking = handleChatBookingTurn(cleanQuery, userMsgId);
+      if (handledByBooking) {
+        setIsAiLoading(false);
+        return;
+      }
+    } catch (e) {
+      console.error("Chat booking error:", e);
+    }
+
+    const startTime = Date.now();
+    const TARGET_DELAY_MS = 2500; // Realistic conversational pacing
+
+    const ensureThreeSeconds = async () => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, TARGET_DELAY_MS - elapsed);
+      if (remaining > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remaining));
+      }
+    };
+
+    const history = chatMessages
+      .slice(-10)
+      .map((m) => ({
+        role: m.role,
+        text: (m.text || m.answer?.reply || "").trim(),
+      }))
+      .filter((m) => m.text);
+
+    try {
+      const res = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ query: cleanQuery, history }),
+      });
+
+      const data = await res.json();
+
+      // Guarantee smooth reply timing before presenting answer
+      await ensureThreeSeconds();
+
+      if (data && data.reply) {
+        let cleanReplyText = data.reply;
+        const isAskingWhatsapp = /whatsapp|হোয়াটসঅ্যাপ|হোয়াটসএপ|হোয়াটসঅ্যাপ|watsapp|what\'s app/i.test(cleanQuery);
+        if (!isAskingWhatsapp) {
+          cleanReplyText = cleanReplyText
+            .replace(/01400[- ]?786162\s*(?:\/|বা|,)\s*/g, '')
+            .replace(/\s*(?:\/|বা|,)?\s*(?:WhatsApp:\s*)?01400[- ]?786162/gi, '')
+            .replace(/কল করুন:\s*$/g, 'কল করুন: 09638-000505')
+            .trim();
+        }
+
+        const replyTime = getFormattedTime();
+        const aiMsg: ChatMessage = {
+          id: `ai-${Date.now()}`,
+          role: "assistant",
+          answer: {
+            title: data.title || (ai_settings?.bot_name || "Tech Dental Agent"),
+            reply: cleanReplyText,
+            icon: data.icon || "fa-sparkles",
+            iconColor: data.icon_color || "text-blue-600",
+            iconBg: data.icon_bg || "bg-blue-100",
+            source: data.source || "keyword",
+            actionType: data.action_type || "appointment",
+            actionLabel: data.action_label || "অনলাইন সিরিয়াল নিন",
+            actionUrl: data.action_url,
+            image: data.image?.url
+              ? { url: data.image.url, alt: data.image.alt }
+              : undefined,
+          },
+          timestamp: replyTime,
+          // If the AI answered a booking question itself, still offer the one-tap booking button.
+          bookingButtons: /অনলাইন বুকিং/.test(cleanReplyText),
+        };
+        setChatMessages((prev) => [...prev, aiMsg]);
+        setIsAiLoading(false);
+        scrollChatToQuestion(userMsgId);
+        return;
+      }
+    } catch (err) {
+      console.error("AI Chat Error:", err);
+      await ensureThreeSeconds();
+    }
+
+    // Fallback if offline/network issue
+    await ensureThreeSeconds();
+    const fallbackTime = getFormattedTime();
+    const fallbackMsg: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      role: "assistant",
+      answer: {
+        title: ai_settings?.bot_name || "Tech Dental Agent",
+        reply: `টেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (${hotline}) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
+        actionType: "appointment",
+        actionLabel: "অনলাইন সিরিয়াল নিন",
+        actionUrl: "/appointment",
+      },
+      timestamp: fallbackTime,
+      bookingButtons: true,
+    };
+    setChatMessages((prev) => [...prev, fallbackMsg]);
+    setIsAiLoading(false);
+    scrollChatToQuestion(userMsgId);
+  };
+
+  const bengaliToEnglishDigits = (str: string) => {
+    const bengaliNumbers = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return str.replace(/[০-৯]/g, (w) => bengaliNumbers.indexOf(w).toString());
+  };
+
+  const renderFormattedReply = (reply: string) => {
+    if (!reply) return null;
+
+    // Detect Bangladesh mobile/hotline numbers in English or Bengali digits
+    const phoneRegex = /((?:\+?(?:88|৮৮))?(?:0|০)[0-9০-৯]{2,4}[-\s]?[0-9০-৯]{3,4}[-\s]?[0-9০-৯]{3,4})/g;
+
+    // Helper: format phone numbers and raw URLs inside a plain text chunk
+    const formatPhonesAndUrls = (text: string, keyPrefix: string): React.ReactNode[] => {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const urlParts = text.split(urlRegex);
+
+      return urlParts.flatMap((uPart, uIdx) => {
+        const uKey = `${keyPrefix}-u-${uIdx}`;
+        if (uPart.match(/^https?:\/\//)) {
+          const cleanUrl = uPart.replace(/[.,;:)\]]+$/, '');
+          const ytId = extractYouTubeId(cleanUrl);
+          if (ytId) {
+            return <ChatYouTubeEmbed key={uKey} videoId={ytId} watchLabel={copy.video_watch_label} clickTitle={copy.video_click_title} />;
+          }
+          return (
+            <a
+              key={uKey}
+              href={uPart}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-blue-600 hover:text-blue-800 underline underline-offset-2 mx-0.5"
+            >
+              {uPart}
+            </a>
+          );
+        }
+
+        const phoneParts = uPart.split(phoneRegex);
+        return phoneParts.map((pPart, pIdx) => {
+          const pKey = `${uKey}-p-${pIdx}`;
+          if (pPart.match(phoneRegex)) {
+            const cleanTel = bengaliToEnglishDigits(pPart).replace(/[^0-9+]/g, '');
+            return (
+              <a
+                key={pKey}
+                href={`tel:${cleanTel}`}
+                className="inline-flex items-center gap-1.5 font-bold text-blue-700 hover:text-blue-900 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border border-blue-200/90 hover:border-blue-400 px-3 py-1 rounded-full shadow-2xs hover:shadow-xs transition-all duration-200 no-underline mx-1 align-middle group cursor-pointer"
+                title={`এখনই কল করুন: ${cleanTel}`}
+              >
+                <span className="w-5 h-5 rounded-full bg-blue-600 group-hover:bg-blue-700 text-white flex items-center justify-center text-[9px] group-hover:scale-110 transition-transform shadow-2xs shrink-0">
+                  <i className="fa-solid fa-phone text-[9px]" />
+                </span>
+                <span className="tracking-wide text-xs sm:text-[13px] font-bold font-sans">{pPart}</span>
+              </a>
+            );
+          }
+          return <React.Fragment key={pKey}>{pPart}</React.Fragment>;
+        });
+      });
+    };
+
+    // Helper: format markdown links [text](url)
+    const formatMarkdownLinks = (text: string, keyPrefix: string): React.ReactNode[] => {
+      const linkRegex = /(\[[^\]]+\]\([^)]+\))/g;
+      const linkParts = text.split(linkRegex);
+
+      return linkParts.flatMap((part, idx) => {
+        const lKey = `${keyPrefix}-ml-${idx}`;
+        const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (match) {
+          const [, label, href] = match;
+          const cleanHref = href.replace(/[.,;:)\]]+$/, '');
+          const ytId = extractYouTubeId(cleanHref);
+          if (ytId) {
+            return <ChatYouTubeEmbed key={lKey} videoId={ytId} title={label} watchLabel={copy.video_watch_label} clickTitle={copy.video_click_title} />;
+          }
+          return (
+            <a
+              key={lKey}
+              href={href}
+              target={href.startsWith('http') ? '_blank' : '_self'}
+              rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              className="font-semibold text-blue-600 hover:text-blue-800 underline underline-offset-2 mx-0.5"
+            >
+              {label}
+            </a>
+          );
+        }
+        return formatPhonesAndUrls(part, lKey);
+      });
+    };
+
+    // Helper: format italic (*text* or _text_)
+    const formatItalic = (text: string, keyPrefix: string): React.ReactNode[] => {
+      const italicRegex = /(\*[^\s*][^*]*?[^\s*]\*|_[^\s_][^_]*?[^\s_]_)/g;
+      const parts = text.split(italicRegex);
+
+      return parts.flatMap((part, idx) => {
+        const iKey = `${keyPrefix}-i-${idx}`;
+        if (
+          ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) &&
+          part.length >= 3
+        ) {
+          const inner = part.slice(1, -1);
+          return (
+            <em key={iKey} className="italic">
+              {formatMarkdownLinks(inner, iKey)}
+            </em>
+          );
+        }
+        return formatMarkdownLinks(part, iKey);
+      });
+    };
+
+    // Helper: format bold (**text** or __text__)
+    const formatBold = (text: string, keyPrefix: string): React.ReactNode[] => {
+      const boldRegex = /(\*\*[^*]+?\*\*|__[^_]+?__)/g;
+      const parts = text.split(boldRegex);
+
+      return parts.flatMap((part, idx) => {
+        const bKey = `${keyPrefix}-b-${idx}`;
+        if (
+          ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('__') && part.endsWith('__'))) &&
+          part.length >= 4
+        ) {
+          const inner = part.slice(2, -2);
+          return (
+            <strong key={bKey} className="font-bold text-slate-900">
+              {formatItalic(inner, bKey)}
+            </strong>
+          );
+        }
+        return formatItalic(part, bKey);
+      });
+    };
+
+    // Process line by line to handle markdown headings cleanly while preserving newlines
+    const lines = reply.split('\n');
+    return lines.map((line, lIdx) => {
+      const lKey = `line-${lIdx}`;
+      const isLast = lIdx === lines.length - 1;
+
+      // Check for markdown headings: ### Heading or ## Heading or # Heading
+      const headingMatch = line.match(/^#{1,4}\s+(.+)$/);
+      if (headingMatch) {
+        return (
+          <React.Fragment key={lKey}>
+            <strong className="block font-bold text-slate-900 text-[15px] sm:text-base mt-2 mb-1">
+              {formatBold(headingMatch[1], `${lKey}-h`)}
+            </strong>
+            {!isLast && '\n'}
+          </React.Fragment>
+        );
+      }
+
+      return (
+        <React.Fragment key={lKey}>
+          {formatBold(line, lKey)}
+          {!isLast && '\n'}
+        </React.Fragment>
+      );
+    });
+  };
+
+  const renderChatMessage = (msg: ChatMessage) => {
+    if (msg.role === "user") {
+      return (
+        <div key={msg.id} data-msg-id={msg.id} className="flex flex-col items-end pt-2">
+          <div className="bg-[#dbeafe] text-[#0f172a] font-normal px-4 py-2.5 rounded-[20px] rounded-br-[4px] text-[14px] sm:text-[15px] max-w-[85%] border border-blue-200/60 shadow-2xs whitespace-pre-line font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+            {msg.text}
+          </div>
+          <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-1 mr-1 select-none">
+            <span>{msg.timestamp || getFormattedTime()}</span>
+            <svg className="w-3.5 h-3.5 text-blue-600 inline ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="18 6 7 17 2 12" />
+              <polyline points="22 10 14.5 17.5 13 16" />
+            </svg>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={msg.id} data-msg-id={msg.id} className="flex flex-col items-start pt-2">
+        <div className="bg-[#f8fafc] text-slate-800 p-4 sm:p-5 rounded-[22px] border border-slate-200/80 shadow-xs max-w-[92%] sm:max-w-[88%] font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+          <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide space-y-2">
+            {renderFormattedReply(msg.answer?.reply || "")}
+            {msg.answer?.image?.url && (
+              <button
+                type="button"
+                onClick={() => setChatImagePreview(msg.answer?.image ?? null)}
+                className="mt-3 block w-full max-w-[380px] cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-white p-0 text-left shadow-xs transition hover:shadow-md"
+                title="বড় করে দেখুন"
+              >
+                <img
+                  src={msg.answer.image.url}
+                  alt={msg.answer.image.alt || "দাঁতের ফাঁকা অংশের চিকিৎসায় কম্পোজিট ভিনিয়ার খরচ"}
+                  className="block h-auto w-full"
+                  loading="lazy"
+                />
+              </button>
+            )}
+            {msg.bookingButtons && (
+              <a
+                href="/appointment"
+                className="inline-flex items-center gap-1.5 bg-[#881337] hover:bg-[#6f0f2d] active:scale-95 text-white px-3.5 py-2 rounded-full text-[12px] sm:text-[13px] font-semibold shadow-xs transition align-middle ml-0.5"
+              >
+                <i className="fa-regular fa-calendar-check text-[11px]" />
+                <span>অনলাইন বুকিং</span>
+              </a>
+            )}
+          </div>
+        </div>
+        <div className="text-[11px] text-slate-400 mt-1 ml-2 select-none">
+          {msg.timestamp || getFormattedTime()}
+        </div>
+      </div>
+    );
+  };
+
+  const getChipIcon = (chip: string, idx: number) => {
+    const text = (chip || "").toLowerCase();
+    if (text.includes("ঠিকানা") || text.includes("শাখা") || idx === 0) {
+      return <i className="fa-solid fa-location-dot text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("ফাঁকা") || text.includes("gap")) {
+      return <i className="fa-solid fa-tooth text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("ব্যথা") || text.includes("pain") || text.includes("চিকিৎসা")) {
+      return <i className="fa-solid fa-notes-medical text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("ফিলিং") || text.includes("filling")) {
+      return <i className="fa-solid fa-tooth text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("গর্ত") || text.includes("cavity")) {
+      return <i className="fa-solid fa-circle-exclamation text-amber-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    if (text.includes("সোজা") || text.includes("ব্রেসেস") || text.includes("braces")) {
+      return <i className="fa-solid fa-teeth text-indigo-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+    }
+    return <i className="fa-solid fa-tooth text-blue-500 w-4 text-center text-[13px] md:text-sm shrink-0" />;
+  };
+
+  // Action Buttons Modals
+  const handleActionModal = (type: "Call" | "Directions" | "WhatsApp" | "Book") => {
+    const fill = (text: string) => text.replace(/\{hotline\}/g, hotline);
+    if (type === "Call") {
+      window.location.href = `tel:${hotline}`;
+      setModal({
+        isOpen: true,
+        title: fill(copy.call_modal_title),
+        message: fill(copy.call_modal_message),
+        icon: "fa-phone",
+        iconColor: "text-blue-600",
+        iconBg: "bg-blue-100",
+        actionText: fill(copy.call_modal_action),
+        onAction: () => {
+          window.location.href = `tel:${hotline}`;
+        },
+      });
+    } else if (type === "Directions") {
+      setIsBranchPickerOpen(true);
+    } else if (type === "WhatsApp") {
+      window.open(waUrl, "_blank");
+    } else if (type === "Book") {
+      setIsAppointmentOpen(true);
+    }
+  };
+
+  const seoTitle = home_content?.seo_title || "Tech Dental Care | Best Dental Clinic in Dhaka, Bangladesh (2026)";
+  const seoDesc = home_content?.meta_desc || "টেক ডেন্টাল কেয়ার - মিরপুর, উত্তরা, বাড্ডা ও যাত্রাবাড়ী শাখায় অভিজ্ঞ ডেন্টাল সার্জনদের তত্ত্বাবধানে বিশ্বমানের ব্যথামুক্ত চিকিৎসা।";
+
+  return (
+    <div className="bg-gradient-to-b from-[#f4f7fc] to-[#dae9f6] md:from-sky-50/80 md:via-white md:to-blue-50/40 min-h-screen flex flex-col justify-between text-slate-800 antialiased selection:bg-blue-500 selection:text-white font-['Noto_Sans_Bengali','Anek_Bangla','Hind_Siliguri','Inter',sans-serif]">
+      <Seo
+        title={seoTitle}
+        description={seoDesc}
+        path="/"
+        noSuffix={true}
+        schema={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": `${siteUrl}#organization`,
+              "name": "Tech Dental Care",
+              "url": siteUrl,
+              "logo": `${siteUrl}/uploads/images/tech-dental-logo.webp`,
+              "telephone": "+8809638000505",
+              "email": "info@techdentalcare.com",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "827 (2nd Floor), Shewrapara, Begum Rokeya Sarani",
+                "addressLocality": "Mirpur, Dhaka",
+                "postalCode": "1216",
+                "addressCountry": "BD"
+              }
+            },
+            {
+              "@type": "Dentist",
+              "@id": `${siteUrl}#clinic`,
+              "name": "Tech Dental Care",
+              "url": siteUrl,
+              "image": `${siteUrl}/uploads/images/tech-dental-logo.webp`,
+              "telephone": "+8809638000505",
+              "priceRange": "৳৳",
+              "currenciesAccepted": "BDT",
+              "paymentAccepted": "Cash, Debit Card, Credit Card, bKash, Nagad, Rocket, Bangla QR",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "827 (2nd Floor), Shewrapara, Begum Rokeya Sarani",
+                "addressLocality": "Mirpur, Dhaka",
+                "postalCode": "1216",
+                "addressCountry": "BD"
+              },
+              "areaServed": [
+                { "@type": "City", "name": "Dhaka" },
+                { "@type": "Place", "name": "Mirpur" },
+                { "@type": "Place", "name": "Uttara" },
+                { "@type": "Place", "name": "Badda" },
+                { "@type": "Place", "name": "Jatrabari" }
+              ],
+              "parentOrganization": { "@id": `${siteUrl}#organization` }
+            },
+            {
+              "@type": "WebSite",
+              "@id": `${siteUrl}#website`,
+              "url": siteUrl,
+              "name": "Tech Dental Care",
+              "publisher": { "@id": `${siteUrl}#organization` },
+              "inLanguage": ["en", "bn"],
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": `${siteUrl}/medicines?search={search_term_string}`,
+                "query-input": "required name=search_term_string"
+              }
+            },
+            ...(safeFaqs.filter((f: any) => f && f.q).length > 0 ? [{
+              "@type": "FAQPage",
+              "@id": `${siteUrl}#faq`,
+              "mainEntity": safeFaqs.filter((f: any) => f && f.q).map((f: any) => ({
+                "@type": "Question",
+                "name": f.q,
+                "acceptedAnswer": { "@type": "Answer", "text": f.a || "" }
+              }))
+            }] : [])
+          ]
+        }}
+      />
+
+      {/* Top Header Navigation */}
+      <TopHeader
+        locations={locations}
+        selectedBranch={selectedBranch}
+        onBranchChange={(bId) => setSelectedBranch(bId)}
+        navMenu={nav_menu}
+      />
+
+      {/* Main Container */}
+      <div className="w-full max-w-5xl mx-auto px-4 py-6 md:py-10 flex-grow flex flex-col justify-between">
+
+        {/* Top Section: AI Assistant Box */}
+        <header className="w-full max-w-2xl mx-auto text-center flex flex-col items-center pt-2 md:pt-4">
+          <h1 className="sr-only">Tech Dental Care — Best Dental Clinic in Dhaka, Bangladesh</h1>
+
+          {/* Title - One Line */}
+          <h2 className={`text-xl sm:text-2xl md:text-4xl font-bold text-slate-900 tracking-tight leading-normal whitespace-nowrap ${isChatActive ? 'mb-4 md:mb-6' : 'mb-6 md:mb-8'}`}>
+            {copy.hero_title}
+          </h2>
+
+          {/* Top Chips above the search bar — editable in AI Assistant → Chips */}
+          {!isChatActive && (
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-start md:justify-center gap-2 md:gap-2.5 mb-6 w-full px-4 md:px-0 md:w-auto mx-auto md:max-w-none flex-wrap">
+              {chipList.map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSelectSuggestion(chip)}
+                  className="flex items-center justify-start gap-2.5 px-3.5 md:px-4 py-2 md:py-2.5 bg-white/90 hover:bg-white border border-slate-200/90 hover:border-blue-400 rounded-full text-xs md:text-sm font-medium text-slate-700 shadow-xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
+                >
+                  {getChipIcon(chip, idx)}
+                  <span>{chip}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* ========================================== */}
+          {/* EXPANDABLE GEMINI / CHATGPT AI RESPONSE PANEL */}
+          {/* Opens smoothly above the bottom search bar */}
+          {/* ========================================== */}
+          {isWidgetOpen && (chatMessages.length > 0 || isAiLoading) && (
+            <div id="aiResponseWidget" className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-[0_12px_40px_rgb(0,0,0,0.06)] overflow-hidden flex flex-col h-[480px] mb-4 transition-all duration-300 text-left font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+              {/* Top Chat Header Matching Image 1 */}
+              <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <div className="flex items-center gap-3">
+                  {ai_settings?.bot_avatar ? (
+                    <img
+                      src={ai_settings.bot_avatar}
+                      alt={ai_settings.bot_name || "Tech Dental Agent"}
+                      className="w-10 h-10 rounded-2xl object-cover shadow-xs border border-slate-100 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-2xl bg-[#1d63ed] text-white flex items-center justify-center shadow-xs shrink-0">
+                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 2C8.5 2 6 4.5 6 8c0 3.2 1.3 6.8 2 10 .4 1.8 1.4 3 2.5 3s1.7-1 2-3c.5-3.3.5-3.3 1-3.3s.5 0 1 3.3c.3 2 .9 3 2 3s2.1-1.2 2.5-3c.7-3.2 2-6.8 2-10 0-3.5-2.5-6-7-6z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="flex flex-col text-left">
+                    <span className="text-sm sm:text-[15px] font-bold text-slate-900 leading-tight">
+                      {ai_settings?.bot_name || "Tech Dental Agent"}
+                    </span>
+                    <span className="text-[11px] sm:text-xs text-slate-500 font-normal flex items-center gap-1.5 mt-0.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                      {copy.ai_online_label}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 text-slate-500">
+                  {/* Expand / Full View Modal Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsFullModalOpen(true)}
+                    title={copy.ai_expand_title}
+                    className="p-1.5 hover:bg-slate-100 rounded-full hover:text-blue-600 transition cursor-pointer"
+                  >
+                    <i className="fa-solid fa-up-right-and-down-left-from-center text-xs sm:text-sm" />
+                  </button>
+
+                  {/* Close Widget Button */}
+                  <button
+                    type="button"
+                    onClick={handleCloseWidget}
+                    title={copy.ai_close_title}
+                    className="p-1.5 hover:bg-red-50 rounded-full hover:text-red-500 transition ml-0.5 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-xmark text-sm" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Internal Thread (No Page Push) */}
+              <div ref={chatScrollRef} className="flex-1 overflow-y-auto custom-scroll p-5 space-y-4">
+                {chatMessages.map(renderChatMessage)}
+                {isAiLoading && (
+                  <div className="w-fit flex items-center gap-1.5 px-4 py-3 bg-slate-50/80 rounded-2xl border border-slate-100 shadow-2xs">
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                )}
+              </div>
+
+              {/* Widget Related Suggested Chips */}
+              <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/40 shrink-0 flex items-center gap-1.5 overflow-x-auto hide-scrollbar text-[11px]">
+                <span className="text-slate-400 whitespace-nowrap">{copy.ai_related_label}</span>
+                {chipList.map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectSuggestion(chip)}
+                    className="whitespace-nowrap px-2.5 py-1 rounded-full border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 text-slate-600 hover:text-blue-600 transition cursor-pointer"
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================== */}
+          {/* BOTTOM SEARCH BAR (Image 1 Default -> Image 2 Focused) */}
+          {/* ========================================== */}
+          <div className="w-full flex flex-col items-center">
+            <div
+              id="searchBarPill"
+              className={`search-pill-container w-full bg-white rounded-full pl-6 sm:pl-7 pr-3 sm:pr-4 py-3.5 sm:py-5 min-h-[64px] sm:min-h-[74px] flex items-center justify-between transition-all duration-200 ${
+                isAiFocused ? "is-focused" : ""
+              }`}
+            >
+              <div className="flex items-center flex-1 mr-3 sm:mr-4">
+                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500 mr-3.5 sm:mr-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+
+                <div className="relative w-full flex items-center h-full">
+                  {!aiInputValue && !isAiFocused && (
+                    <div className="absolute inset-y-0 left-0 flex items-center pointer-events-none overflow-hidden w-full select-none">
+                      <span
+                        key={animatedPlaceholderIdx}
+                        className="text-slate-400 text-base sm:text-lg animate-in slide-in-from-bottom-2 fade-in duration-300 truncate font-normal"
+                      >
+                        {searchQuestions[animatedPlaceholderIdx]}
+                      </span>
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    id="primarySearchInput"
+                    value={aiInputValue}
+                    onChange={(e) => setAiInputValue(e.target.value)}
+                    placeholder={isAiFocused ? copy.search_placeholder_focus : ""}
+                    className="w-full bg-transparent text-slate-800 placeholder-slate-400 text-base sm:text-lg outline-none font-normal border-0 ring-0 focus:ring-0 focus:outline-none transition-all relative z-10"
+                    onFocus={() => setIsAiFocused(true)}
+                    onBlur={() => setIsAiFocused(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAISubmit();
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Send / Search Button (Matches Image 1 & 2) */}
+              <button
+                type="button"
+                onClick={handleAISubmit}
+                id="searchSubmitBtn"
+                disabled={isAiLoading}
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#1d63ed] hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center transition shadow-md shadow-blue-500/25 shrink-0 cursor-pointer"
+                title={copy.search_button_title}
+              >
+                {isAiLoading ? (
+                  <i className="fa-solid fa-circle-notch fa-spin text-base" />
+                ) : (
+                  <svg className="w-6 h-6 translate-x-0.5 -rotate-45" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Quick Action CTA Buttons (Call, Directions, WhatsApp, Book) - Above Image Section */}
+        <div className="flex justify-between items-center max-w-[340px] mx-auto my-12 md:my-16 w-full px-2">
+
+          {/* Call CTA */}
+          <button
+            type="button"
+            onClick={() => handleActionModal("Call")}
+            className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
+          >
+            <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
+              <i className="fa-solid fa-phone text-[#1a73e8] text-xl" />
+            </div>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">{copy.quick_call_label}</span>
+          </button>
+
+          {/* Directions CTA */}
+          <button
+            type="button"
+            onClick={() => handleActionModal("Directions")}
+            className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
+          >
+            <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-[22px] h-[22px] text-[#1a73e8]"
+              >
+                <polygon points="3 11 22 2 13 21 11 13 3 11" />
+              </svg>
+            </div>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">{copy.quick_directions_label}</span>
+          </button>
+
+          {/* WhatsApp CTA */}
+          <button
+            type="button"
+            onClick={() => handleActionModal("WhatsApp")}
+            className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
+          >
+            <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
+              <i className="fa-brands fa-whatsapp text-[#25d366] text-2xl" />
+            </div>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">{copy.quick_whatsapp_label}</span>
+          </button>
+
+          {/* Book CTA */}
+          <button
+            type="button"
+            onClick={() => handleActionModal("Book")}
+            className="flex flex-col items-center gap-2 focus:outline-none group cursor-pointer"
+          >
+            <div className="w-[54px] h-[54px] rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-xs group-hover:shadow-sm group-active:bg-slate-50 transition">
+              <i className="fa-regular fa-calendar-check text-[#881337] text-xl" />
+            </div>
+            <span className="hidden sm:block text-[13px] font-semibold text-[#001d35]">{copy.quick_book_label}</span>
+          </button>
+
+        </div>
+
+        {/* ========================================== */}
+        {/* IMAGE GALLERY */}
+        {/* Always 8 images (2 cols mobile, 4 cols desktop), single See More -> /gallery */}
+        {/* ========================================== */}
+        {galleryItems.length > 0 && (
+        <section id="image-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
+              <i className="fa-solid fa-images text-blue-600" />
+              <span>{copy.image_gallery_title}</span>
+            </h2>
+          </div>
+
+          {/* 8 images on every breakpoint: 2 columns on mobile, 4 on desktop */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            {displayedImages.map((item: any, idx: number) => {
+              const titleBadge = item.badge || item.title || copy.gallery_alt_fallback;
+              const imgSrc = item.src || item.image || item.url || "";
+
+              return (
+                <div
+                  key={item.id || idx}
+                  onClick={() => {
+                    setPreviewImage({
+                      src: imgSrc,
+                      title: item.title || "",
+                      index: idx,
+                    });
+                  }}
+                  className="relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-100 aspect-[4/3] group cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+                  title={copy.image_click_title}
+                >
+                  <img
+                    src={imgSrc}
+                    alt={titleBadge}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Button Area: only "See More" (opens the full gallery page) */}
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <Link
+              href="/gallery"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-blue-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+            >
+              <span>{copy.see_more_label}</span>
+              <i className="fa-solid fa-arrow-right text-xs" />
+            </Link>
+          </div>
+        </section>
+        )}
+
+        {/* ========================================== */}
+        {/* VIDEO GALLERY */}
+        {/* 3 videos collapsed (all breakpoints), See More adds 6 more (9 total) */}
+        {/* ========================================== */}
+        {videoGalleryItems.length > 0 && (
+        <section id="video-gallery-section" className="w-full mb-8 md:mb-12 scroll-mt-20">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
+              <i className="fa-brands fa-youtube text-red-600" />
+              <span>{copy.video_gallery_title}</span>
+            </h2>
+          </div>
+
+          {/* 3 videos initially on every breakpoint (1 col mobile, 2 sm, 3 md) -> 7 when expanded */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 md:gap-4">
+            {displayedVideos.map((item, idx) => {
+              const videoKey = item.id || item.videoId || idx;
+              const isPlaying = playingVideo === videoKey;
+              return (
+                <div
+                  key={videoKey}
+                  className={`relative rounded-2xl md:rounded-[20px] overflow-hidden shadow-xs border border-slate-200/80 bg-slate-900 aspect-video group transition-all duration-300 ${
+                    isPlaying ? "z-10 shadow-lg" : "cursor-pointer hover:shadow-md hover:-translate-y-0.5"
+                  }`}
+                >
+                  {isPlaying ? (
+                    <>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${item.videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                        title={item.title || "Tech Dental Video"}
+                        className="absolute inset-0 w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPlayingVideo(null)}
+                        className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center backdrop-blur-sm transition cursor-pointer"
+                        title="বন্ধ করুন"
+                      >
+                        <i className="fa-solid fa-xmark text-sm" />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPlayingVideo(videoKey)}
+                      className="absolute inset-0 w-full h-full text-left cursor-pointer"
+                      title={copy.video_click_title}
+                      aria-label={`Play ${item.title || "video"}`}
+                    >
+                      <img
+                        src={`https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                        loading="lazy"
+                      />
+
+                      {/* Center Red Play Button */}
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <span className="w-12 h-12 rounded-full bg-red-600/95 text-white flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-600 transition-all">
+                          <i className="fa-solid fa-play text-sm translate-x-0.5" />
+                        </span>
+                      </span>
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Button(s) Area */}
+          <div className="mt-5 flex items-center justify-center gap-3">
+            {!isVideosExpanded ? (
+              <button
+                type="button"
+                onClick={() => setIsVideosExpanded(true)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <span>{copy.see_more_label}</span>
+                <i className="fa-solid fa-chevron-down text-xs" />
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsVideosExpanded(false);
+                    setPlayingVideo(null);
+                    setTimeout(() => {
+                      document.getElementById('video-gallery-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-red-600 font-medium text-xs sm:text-sm border border-slate-200/90 shadow-2xs hover:shadow-xs transition active:scale-95 cursor-pointer"
+                >
+                  <i className="fa-solid fa-chevron-up text-xs" />
+                  <span>{copy.see_less_label}</span>
+                </button>
+                <Link
+                  href="/gallery#videos"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium text-xs sm:text-sm shadow-xs hover:shadow-md transition active:scale-95 cursor-pointer"
+                >
+                  <span>{copy.see_more_label}</span>
+                  <i className="fa-solid fa-arrow-right text-xs" />
+                </Link>
+              </>
+            )}
+          </div>
+        </section>
+        )}
+
+        {/* Bottom Section: Call to Action (CTA) & More Accordion */}
+        <section className="w-full mb-6 md:mb-8 mt-auto">
+
+          {/* Very Bottom: More about Tech Dental Accordion Section */}
+          <div className={`mx-auto w-full transition-all duration-300 ${isMoreOpen ? 'w-full' : 'max-w-xl'}`}>
+            <div className="bg-white rounded-3xl shadow-xs border border-slate-200/80 overflow-hidden transition-all duration-300">
+
+              {/* Toggle Header Button */}
+              <h2 className="m-0">
+                <button
+                  type="button"
+                  onClick={() => setIsMoreOpen(!isMoreOpen)}
+                  className="w-full px-6 py-4 flex items-center justify-between text-slate-800 font-semibold text-base md:text-lg hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <span>{home_content?.about_caption || "More About Tech Dental Care — Dental Clinic in Dhaka"}</span>
+                  <i
+                    className={`fa-solid fa-chevron-down text-slate-500 transition-transform duration-300 ${isMoreOpen ? "rotate-180" : ""
+                      }`}
+                  />
+                </button>
+              </h2>
+
+              {/* Collapsible Content Box */}
+              {isMoreOpen && (
+                <div className="px-6 md:px-10 pb-8 pt-4 border-t border-slate-100 text-left text-slate-600 text-sm md:text-base leading-relaxed space-y-4 animate-in fade-in duration-300">
+                  {home_content?.about_text ? (
+                    <div
+                      className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed text-sm md:text-base"
+                      dangerouslySetInnerHTML={{ __html: home_content.about_text }}
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-bold text-rose-900 text-base md:text-lg mb-1">
+                          Tech Dental – ঢাকা শহরের অন্যতম বিশ্বস্ত ডেন্টাল নেটওয়ার্ক
+                        </h4>
+                        <p>
+                          টেক ডেন্টাল (Tech Dental) অভিজ্ঞ বিডিএস ও স্পেশালিস্ট ডেন্টাল সার্জনদের তত্ত্বাবধানে আন্তর্জাতিক মানের যন্ত্রপাতি এবং শতভাগ জীবাণুমুক্ত পরিবেশে উন্নত ডেন্টাল সেবা প্রদান করে আসছে।
+                        </p>
+                      </div>
+
+                      <div>
+                        <h5 className="font-semibold text-slate-900 mb-1.5 flex items-center gap-1.5">
+                          <i className="fa-solid fa-map-location-dot text-blue-600" />
+                          <span>আমাদের প্রধান শাখাসমূহ:</span>
+                        </h5>
+                        <ul className="space-y-1.5 text-xs md:text-sm list-disc list-inside text-slate-600">
+                          <li>
+                            <strong className="text-slate-800">মিরপুর শাখা:</strong> ৮২৭ (২য় তলা), শেওড়াপাড়া, বেগম রোকেয়া সরণি, মিরপুর, ঢাকা-১২১৬।
+                          </li>
+                          <li>
+                            <strong className="text-slate-800">বাড্ডা শাখা:</strong> হাজী আব্দুর রশিদ ম্যানশন (৩য় তলা), উত্তর বাড্ডা বাজার, ঢাকা-১২১২।
+                          </li>
+                          <li>
+                            <strong className="text-slate-800">উত্তরা শাখা:</strong> হাউস ১৮, রোড ১৪, সেক্টর ৩, উত্তরা, ঢাকা-১২৩০।
+                          </li>
+                          <li>
+                            <strong className="text-slate-800">যাত্রাবাড়ী শাখা:</strong> শহীদ ফারুক রোড, দক্ষিণ যাত্রাবাড়ী, ঢাকা-১২০৪।
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h5 className="font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
+                          <i className="fa-solid fa-tooth text-blue-600" />
+                          <span>প্রধান সেবাসমূহ:</span>
+                        </h5>
+                        <p className="text-xs md:text-sm text-slate-600">
+                          অর্থোডন্টিক ব্রেসেস, ব্যথামুক্ত রুট ক্যানেল, ফাইবার ব্রিজ, ভিনিয়ার্স, স্কেলিং ও পলিশিং এবং ডেন্টাল ইমপ্ল্যান্ট।
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Patient FAQs */}
+                  {safeFaqs.length > 0 && (
+                    <div className="pt-4 border-t border-slate-100 space-y-3">
+                      <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <span className="w-1.5 h-3.5 bg-rose-700 rounded-full" />
+                        {copy.faq_title}
+                      </h4>
+                      <div className="space-y-2">
+                        {safeFaqs.filter((f: any) => f && f.q).map((faq: any, i: number) => (
+                          <div key={i} className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                            <div className="font-bold text-xs md:text-sm text-slate-900 mb-1">Q: {faq.q}</div>
+                            <div className="text-xs md:text-sm text-slate-600 leading-relaxed">{faq.a}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      {/* Unified Global Footer */}
+      <GlobalFooter />
+
+      {/* Interactive Modal / Dialog Popup */}
+      {modal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center transform transition-all scale-100">
+            <div
+              className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 ${modal.iconBg} ${modal.iconColor}`}
+            >
+              <i className={`fa-solid ${modal.icon}`} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">{modal.title}</h3>
+            <p className="text-slate-600 mb-6 text-sm md:text-base leading-relaxed whitespace-pre-line text-left bg-slate-50 p-4 rounded-xl border border-slate-100">
+              {modal.message}
+            </p>
+            <div className="flex flex-col gap-2">
+              {modal.actionText && modal.onAction && (
+                <button
+                  type="button"
+                  onClick={modal.onAction}
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow-xs cursor-pointer"
+                >
+                  {modal.actionText}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setModal({ ...modal, isOpen: false })}
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition cursor-pointer"
+              >
+                {copy.ok_button_label}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BRANCH PICKER MODAL (FOR DIRECTIONS) */}
+      <BranchPickerModal
+        locations={locations}
+        isOpen={isBranchPickerOpen}
+        onClose={() => setIsBranchPickerOpen(false)}
+        actionType="directions"
+      />
+
+      {/* APPOINTMENT BOOKING MODAL */}
+      <AppointmentModal
+        locations={locations}
+        isOpen={isAppointmentOpen}
+        onClose={() => setIsAppointmentOpen(false)}
+        defaultBranch={selectedBranch || "mirpur"}
+      />
+
+      {/* FULLSCREEN IMAGE LIGHTBOX PREVIEW MODAL */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+          onClick={() => setPreviewImage(null)}
+        >
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={() => setPreviewImage(null)}
+            className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+            title="বন্ধ করুন (Esc)"
+          >
+            <i className="fa-solid fa-xmark text-xl" />
+          </button>
+
+          {/* Previous Image Button */}
+          {galleryItems.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const newIdx = (previewImage.index - 1 + galleryItems.length) % galleryItems.length;
+                const prevItem = galleryItems[newIdx];
+                setPreviewImage({
+                  src: prevItem.src || prevItem.image || prevItem.url,
+                  title: prevItem.title || "",
+                  index: newIdx,
+                });
+              }}
+              className="absolute left-3 sm:left-6 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+              title="আগের ছবি"
+            >
+              <i className="fa-solid fa-chevron-left text-lg" />
+            </button>
+          )}
+
+          {/* Next Image Button */}
+          {galleryItems.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const newIdx = (previewImage.index + 1) % galleryItems.length;
+                const nextItem = galleryItems[newIdx];
+                setPreviewImage({
+                  src: nextItem.src || nextItem.image || nextItem.url,
+                  title: nextItem.title || "",
+                  index: newIdx,
+                });
+              }}
+              className="absolute right-3 sm:right-6 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+              title="পরের ছবি"
+            >
+              <i className="fa-solid fa-chevron-right text-lg" />
+            </button>
+          )}
+
+          {/* Image & Caption Container */}
+          <div
+            className="relative max-w-4xl max-h-[90vh] flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewImage.src}
+              alt={previewImage.title || "Tech Dental Image"}
+              className="max-w-full max-h-[78vh] object-contain rounded-2xl shadow-2xl select-none"
+            />
+            <div className="mt-3.5 flex items-center justify-end w-full px-2 text-white/90 text-sm">
+              <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full text-white/80">
+                {previewImage.index + 1} / {galleryItems.length}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN AI CHAT IMAGE PREVIEW MODAL */}
+      {chatImagePreview && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+          onClick={() => setChatImagePreview(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setChatImagePreview(null)}
+            className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+            title="বন্ধ করুন (Esc)"
+          >
+            <i className="fa-solid fa-xmark text-xl" />
+          </button>
+
+          <img
+            src={chatImagePreview.url}
+            alt={chatImagePreview.alt || "খরচের চার্ট"}
+            className="max-w-full max-h-[92vh] w-auto object-contain rounded-2xl shadow-2xl select-none"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* EXPAND / FULL VIEW MODAL */}
+      {/* ========================================== */}
+      {isFullModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-3xl h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center gap-3">
+                {ai_settings?.bot_avatar ? (
+                  <img
+                    src={ai_settings.bot_avatar}
+                    alt={ai_settings.bot_name || "Tech Dental Agent"}
+                    className="w-10 h-10 rounded-2xl object-cover shadow-xs border border-slate-100 shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-2xl bg-[#1d63ed] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2C8.5 2 6 4.5 6 8c0 3.2 1.3 6.8 2 10 .4 1.8 1.4 3 2.5 3s1.7-1 2-3c.5-3.3.5-3.3 1-3.3s.5 0 1 3.3c.3 2 .9 3 2 3s2.1-1.2 2.5-3c.7-3.2 2-6.8 2-10 0-3.5-2.5-6-7-6z" />
+                    </svg>
+                  </div>
+                )}
+                <div className="flex flex-col text-left">
+                  <h4 className="font-bold text-sm sm:text-base text-slate-900 leading-tight">
+                    {ai_settings?.bot_name || "Tech Dental Agent"}
+                  </h4>
+                  <p className="text-[11px] sm:text-xs text-slate-500 font-normal flex items-center gap-1.5 mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    {copy.ai_online_label}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setIsFullModalOpen(false)}
+                  className="p-2 hover:bg-slate-200 rounded-full text-slate-600 transition cursor-pointer"
+                  title={copy.ai_close_title}
+                >
+                  <i className="fa-solid fa-xmark text-base" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Chat Scroll Area */}
+            <div ref={modalChatScrollRef} className="flex-1 overflow-y-auto custom-scroll p-6 space-y-4">
+              {chatMessages.map(renderChatMessage)}
+              {isAiLoading && (
+                <div className="w-fit flex items-center gap-1.5 px-4 py-3 bg-slate-50/80 rounded-2xl border border-slate-100 shadow-2xs">
+                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              )}
+            </div>
+
+            {/* Modal Search Input Bar */}
+            <div className="p-4 border-t border-slate-100 bg-white shrink-0">
+              <form
+                onSubmit={handleModalSubmit}
+                className="relative flex items-end bg-[#f0f4f9] rounded-2xl px-5 py-2.5 sm:py-3 border border-slate-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20"
+              >
+                <svg className="w-4 h-4 text-slate-400 mr-3 mb-1 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <textarea
+                  value={modalInputValue}
+                  onChange={(e) => {
+                    setModalInputValue(e.target.value);
+                    const el = e.currentTarget;
+                    el.style.height = 'auto';
+                    el.style.height = `${Math.min(el.scrollHeight, 132)}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    // Enter sends, Shift+Enter adds a new line (needed for the booking format).
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleModalSubmit();
+                    }
+                  }}
+                  rows={1}
+                  placeholder="আপনার পরবর্তী প্রশ্ন লিখুন..."
+                  className="w-full bg-transparent text-sm outline-none text-slate-800 border-0 ring-0 focus:ring-0 focus:outline-none resize-none max-h-[132px] leading-relaxed py-0.5"
+                />
+                <button
+                  type="submit"
+                  disabled={isAiLoading || !modalInputValue.trim()}
+                  className="ml-2 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white flex items-center justify-center shadow-xs transition cursor-pointer shrink-0 disabled:opacity-40"
+                  title="পাঠান"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="19" x2="12" y2="5" />
+                    <polyline points="5 12 12 5 19 12" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Minimal Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-300">
+          <div className="bg-slate-900 text-white text-xs px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+            <i className="fa-solid fa-check text-emerald-400 text-xs" />
+            <span>{toastMessage}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

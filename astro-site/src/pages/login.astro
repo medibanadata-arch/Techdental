@@ -1,0 +1,15 @@
+---
+import AdminShell from '../layouts/AdminShell.astro';
+import Page from '../app/wrappers/Auth_LoginPage';
+import { pagePayload } from '../lib/shared';
+import { currentAdmin } from '../lib/admin/http';
+
+// Laravel's `guest` middleware redirects signed-in users to the dashboard.
+if (currentAdmin(Astro.request)) return Astro.redirect('/dashboard', 302);
+
+const page = pagePayload('Auth/Login', { canResetPassword: true, status: null }, '/login');
+---
+
+<AdminShell title="Log in">
+  <Page client:load page={page} />
+</AdminShell>

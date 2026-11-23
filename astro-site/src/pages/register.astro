@@ -1,0 +1,14 @@
+---
+import AdminShell from '../layouts/AdminShell.astro';
+import Page from '../app/wrappers/Auth_RegisterPage';
+import { pagePayload } from '../lib/shared';
+import { currentAdmin } from '../lib/admin/http';
+
+if (currentAdmin(Astro.request)) return Astro.redirect('/dashboard', 302);
+
+const page = pagePayload('Auth/Register', {}, '/register');
+---
+
+<AdminShell title="Register">
+  <Page client:load page={page} />
+</AdminShell>

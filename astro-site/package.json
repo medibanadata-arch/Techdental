@@ -1,0 +1,37 @@
+{
+  "name": "tech-dental-astro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "link-assets": "node scripts/link-assets.mjs",
+    "predev": "node scripts/link-assets.mjs",
+    "dev": "astro dev --host 127.0.0.1 --port 4321",
+    "prebuild": "node scripts/link-assets.mjs",
+    "build": "astro build",
+    "preview": "node ./dist/server/entry.mjs",
+    "start": "node ./dist/server/entry.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.5.5",
+    "@astrojs/react": "^4.4.2",
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@headlessui/react": "^2.2.10",
+    "@tailwindcss/forms": "^0.5.3",
+    "astro": "^5.18.2",
+    "axios": "^1.20.0",
+    "bcryptjs": "^3.0.3",
+    "lucide-react": "^1.47.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^3.4.19"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,8 @@
+---
+import { resolveService } from '../../lib/pages/services';
+
+const { slug = '' } = Astro.params;
+const item = resolveService(String(slug), false);
+if (!item) return new Response('Not Found', { status: 404 });
+return Astro.redirect(`/service/${item.slug}`, 301);
+---

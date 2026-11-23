@@ -1,0 +1,18 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Menus_IndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { menusPageProps } from '../../lib/admin/handlers/menus';
+import { models } from '../../lib/db';
+
+const { menus, postsList, customPages } = menusPageProps();
+const page = adminPagePayload(Astro.request, 'Menus/Index', {
+  menus: models('nav_menus', menus),
+  postsList,
+  customPages,
+});
+---
+
+<AdminShell title="Menu & Navigation Builder">
+  <Page client:load page={page} />
+</AdminShell>

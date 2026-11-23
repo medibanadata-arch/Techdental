@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Page from '../../app/wrappers/Posts_ShowPage';
+import { pagePayload } from '../../lib/shared';
+import { postShow } from '../../lib/pages/custom';
+
+const { slug = '' } = Astro.params;
+const result = postShow(String(slug));
+if (!result) return new Response('Not Found', { status: 404 });
+const page = pagePayload('Posts/Show', result.props, `/post/${slug}`);
+---
+
+<BaseLayout seo={result.seo} lang="en">
+  <Page client:load page={page} />
+</BaseLayout>

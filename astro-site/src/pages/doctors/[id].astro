@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LegacyEntity from '../../components/LegacyEntity.astro';
+import Page from '../../app/wrappers/Doctors_PublicSinglePage';
+import { pagePayload } from '../../lib/shared';
+import { doctorProps, doctorSeo } from '../../lib/pages/people';
+import { resolveLegacyEntity } from '../../lib/legacyRender';
+
+const { id = '' } = Astro.params;
+const props = doctorProps(String(id));
+
+let legacyResult: any = null;
+if (!props) {
+  const legacy = resolveLegacyEntity(Astro.url.pathname);
+  if (legacy instanceof Response) return legacy;
+  legacyResult = legacy;
+}
+if (!props && !legacyResult) return new Response('Not Found', { status: 404 });
+
+const page = props ? pagePayload('Doctors/PublicSingle', props, `/doctors/${id}`) : null;
+const seo = props ? doctorSeo(props.item, props.hotline) : null;
+---
+
+{legacyResult ? (
+  <LegacyEntity result={legacyResult} />
+) : (
+  <BaseLayout seo={seo} lang="en">
+    <Page client:load page={page} />
+  </BaseLayout>
+)}

@@ -1,0 +1,13 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Posts_TagsPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const tags = models('tags', all('SELECT * FROM tags ORDER BY created_at DESC'));
+const page = adminPagePayload(Astro.request, 'Posts/Tags', { tags });
+---
+
+<AdminShell title="Tags - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

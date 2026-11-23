@@ -1,0 +1,31 @@
+﻿---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import LegacyEntity from '../../../components/LegacyEntity.astro';
+import Page from '../../../app/wrappers/Services_PublicSinglePage';
+import { pagePayload } from '../../../lib/shared';
+import { serviceProps, serviceSeo } from '../../../lib/pages/services';
+import { resolveLegacyEntity } from '../../../lib/legacyRender';
+
+const { slug = '' } = Astro.params;
+const data = serviceProps(slug, true);
+if (data && data.canonicalSlug !== slug) return Astro.redirect(`/bn/service/${data.canonicalSlug}`, 301);
+
+let legacyResult: any = null;
+if (!data) {
+  const legacy = resolveLegacyEntity(Astro.url.pathname);
+  if (legacy instanceof Response) return legacy;
+  legacyResult = legacy;
+}
+if (!data && !legacyResult) return new Response('Not Found', { status: 404 });
+
+const page = data ? pagePayload('Services/PublicSingle', data.props, `/bn/service/${slug}`, 'bn') : null;
+const seo = data ? serviceSeo(data.props.item, true) : null;
+---
+
+{legacyResult ? (
+  <LegacyEntity result={legacyResult} />
+) : (
+  <BaseLayout seo={seo} lang="bn">
+    <Page client:load page={page} />
+  </BaseLayout>
+)}

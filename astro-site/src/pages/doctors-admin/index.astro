@@ -1,0 +1,15 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Doctors_IndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { doctorSettingsRow } from '../../lib/admin/handlers/doctors';
+import { all, model, models } from '../../lib/db';
+
+const data = models('doctors', all('SELECT * FROM doctors ORDER BY rank_order ASC, id ASC'));
+const settings = model('doctor_settings', doctorSettingsRow());
+const page = adminPagePayload(Astro.request, 'Doctors/Index', { data, settings });
+---
+
+<AdminShell title="Doctor & Specialist CMS - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

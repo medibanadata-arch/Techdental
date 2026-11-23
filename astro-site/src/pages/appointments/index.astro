@@ -1,0 +1,16 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Appointments_IndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { appointmentsPageProps } from '../../lib/admin/handlers/appointments';
+import { models } from '../../lib/db';
+
+const { appointments } = appointmentsPageProps();
+const page = adminPagePayload(Astro.request, 'Appointments/Index', {
+  appointments: models('appointments', appointments),
+});
+---
+
+<AdminShell title="Appointments - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

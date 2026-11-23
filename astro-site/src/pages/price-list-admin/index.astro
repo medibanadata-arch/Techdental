@@ -1,0 +1,18 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/PriceList_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { priceSettingsRow } from '../../lib/admin/handlers/pricelist';
+import { all, model } from '../../lib/db';
+
+const categories = all('SELECT * FROM price_categories ORDER BY sort_order').map((category: any) => ({
+  ...category,
+  rows: all('SELECT * FROM price_rows WHERE category_id = ? ORDER BY sort_order', [category.id]),
+}));
+const settings = model('price_settings', priceSettingsRow());
+const page = adminPagePayload(Astro.request, 'PriceList/AdminIndex', { categories, settings });
+---
+
+<AdminShell title="Price List CMS - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

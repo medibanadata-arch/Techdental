@@ -1,0 +1,16 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Complaints_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { complaintsPageProps } from '../../lib/admin/handlers/complaints';
+import { models } from '../../lib/db';
+
+const { complaints } = complaintsPageProps();
+const page = adminPagePayload(Astro.request, 'Complaints/AdminIndex', {
+  complaints: models('complaints', complaints),
+});
+---
+
+<AdminShell title="Complaint Box - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

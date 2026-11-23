@@ -1,0 +1,29 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Settings_HeaderFooterPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import {
+  headerFooterProps,
+  mediaList,
+  settingsPageModel,
+  settingsRowForHeaderFooter,
+} from '../../lib/admin/handlers/settings';
+import { all, models } from '../../lib/db';
+
+const row = settingsRowForHeaderFooter();
+const settings = settingsPageModel(row);
+const { headerSettings, footerSettings } = headerFooterProps(row);
+const menus = models('nav_menus', all('SELECT * FROM nav_menus'));
+const media = models('media', mediaList());
+const page = adminPagePayload(Astro.request, 'Settings/HeaderFooter', {
+  settings,
+  headerSettings,
+  footerSettings,
+  menus,
+  mediaList: media,
+});
+---
+
+<AdminShell title="Header & Footer Management - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

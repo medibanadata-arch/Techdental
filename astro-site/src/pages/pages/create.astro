@@ -1,0 +1,11 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/CustomPages_CreatePage';
+import { adminPagePayload } from '../../lib/admin/http';
+
+const page = adminPagePayload(Astro.request, 'CustomPages/Create', {});
+---
+
+<AdminShell title="Add Page - Tech Dental WordPress Style">
+  <Page client:load page={page} />
+</AdminShell>

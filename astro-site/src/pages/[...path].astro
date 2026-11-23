@@ -1,0 +1,76 @@
+---
+import LegacyEntity from '../components/LegacyEntity.astro';
+import { materializeLegacy, type LegacyRenderResult } from '../lib/legacyRender';
+import {
+  encodeLocation,
+  findLegacyPage,
+  isRemovedPath,
+  lookupEntity,
+  matchOldPattern,
+  matchSpecialRedirect,
+  renderLegacyPage,
+  renderMappedEntity,
+  type LegacyRender,
+} from '../lib/legacy';
+
+const rawPath = Astro.url.pathname;
+
+const notFound = () => new Response('Not Found', { status: 404 });
+const go = (location: string, status = 301) =>
+  new Response(null, { status, headers: { Location: encodeLocation(location) } });
+
+let response: Response | null = null;
+let renderResult: LegacyRenderResult | null = null;
+let handled = false;
+
+const use = (result: LegacyRender): boolean => {
+  const materialized = materializeLegacy(result);
+  if (!materialized) return false;
+  handled = true;
+  if (materialized instanceof Response) {
+    response = materialized;
+    return true;
+  }
+  renderResult = materialized;
+  return true;
+};
+
+if (isRemovedPath(rawPath)) return notFound();
+
+const special = matchSpecialRedirect(rawPath);
+if (special) {
+  if (special.resolve) {
+    const entity = lookupEntity(rawPath);
+    if (!(entity && use(renderMappedEntity(rawPath, entity)))) {
+      const archived = findLegacyPage(rawPath);
+      if (archived) use(renderLegacyPage(rawPath, archived));
+    }
+  }
+  if (!handled) return go(special.location, 301);
+} else {
+  const oldPattern = matchOldPattern(rawPath);
+  if (oldPattern) {
+    const entity = lookupEntity(oldPattern.candidatePath);
+    if (!(entity && use(renderMappedEntity(oldPattern.candidatePath, entity)))) {
+      const archived = findLegacyPage(oldPattern.candidatePath) || findLegacyPage(rawPath);
+      if (archived) use(renderLegacyPage(rawPath, archived));
+    }
+    if (!handled) return go(oldPattern.fallback, 301);
+  } else {
+    const entity = lookupEntity(rawPath);
+    if (entity) use(renderMappedEntity(rawPath, entity));
+
+    if (!handled) {
+      const archived = findLegacyPage(rawPath);
+      if (archived) use(renderLegacyPage(rawPath, archived));
+    }
+
+    if (!handled) return notFound();
+  }
+}
+
+if (response) return response;
+if (!renderResult) return notFound();
+---
+
+<LegacyEntity result={renderResult} />

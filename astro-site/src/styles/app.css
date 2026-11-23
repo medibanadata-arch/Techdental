@@ -1,0 +1,830 @@
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+/* SolaimanLipi (সোলায়মান লিপি) font definitions - Self-hosted with Unicode Range strictly for Bengali */
+@font-face {
+  font-family: 'SolaimanLipi';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/solaiman-lipi/solaimanlipi-normal.woff2') format('woff2'),
+       url('/fonts/solaiman-lipi/solaimanlipi-normal.ttf') format('truetype');
+  unicode-range: U+0980-09FF, U+200C-U+200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/solaiman-lipi/solaimanlipi-normal.woff2') format('woff2'),
+       url('/fonts/solaiman-lipi/solaimanlipi-normal.ttf') format('truetype');
+  unicode-range: U+0980-09FF, U+200C-U+200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/solaiman-lipi/solaimanlipi-bold.woff2') format('woff2'),
+       url('/fonts/solaiman-lipi/solaimanlipi-bold.ttf') format('truetype');
+  unicode-range: U+0980-09FF, U+200C-U+200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/solaiman-lipi/solaimanlipi-bold.woff2') format('woff2'),
+       url('/fonts/solaiman-lipi/solaimanlipi-bold.ttf') format('truetype');
+  unicode-range: U+0980-09FF, U+200C-U+200D, U+25CC;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-maroon: #800038;
+  --primary-hover: #9c0c4a;
+  --primary-black: #111111;
+  --accent-blue: #1a73e8;
+  --bg-page: #f4f6f9;
+  --bg-card: #ffffff;
+  --border-color: #e5e9f0;
+  --text-main: #1f2937;
+  --text-muted: #64748b;
+  --success-green: #16a34a;
+  /* Font variables */
+  --font-plus-jakarta: 'Plus Jakarta Sans', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-solaiman: 'SolaimanLipi', sans-serif;
+  --font-hind-siliguri: 'Hind Siliguri', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: #f8fafc;
+  color: var(--text-main);
+  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  overflow-y: scroll;
+  /* Always show scrollbar to prevent layout shift on page load */
+}
+
+/* Explicit SolaimanLipi helper for Bangla text elements */
+.font-solaiman,
+.font-bangla {
+  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif !important;
+}
+
+/* Hide scrollbar for Chrome, Safari, Edge, Opera, Firefox */
+.no-scrollbar::-webkit-scrollbar,
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+.hide-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+/* User Defined Book Button */
+/* Sizing (height / padding / radius / text) comes from Tailwind classes on the element
+   so the header can match it with the language switcher at every breakpoint. */
+.book-btn {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  background: #8B1D41;
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.1s;
+  cursor: pointer;
+}
+.book-btn i {
+  font-size: 19px;
+}
+/* Keep the Book button compact on phones (matches the smaller mobile header buttons) */
+@media (max-width: 767px) {
+  .book-btn i {
+    font-size: 15px;
+  }
+}
+.book-btn:hover {
+  background: #741735;
+  color: #fff;
+}
+.book-btn:active {
+  transform: scale(0.97);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.22s ease-in-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* WordPress Classic Visual Editor, Blog Post, Medicines, Services & All Content Typography */
+.wp-editor-content,
+.blog-content-view,
+.blog-content-body,
+.medicine-content-view,
+.prose,
+.rich-content-view,
+.seo-content-view {
+  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', sans-serif !important;
+}
+
+.wp-editor-content h1,
+.wp-editor-content h1 *,
+.blog-content-view h1,
+.blog-content-view h1 *,
+.prose h1,
+.prose h1 *,
+.rich-content-view h1,
+.rich-content-view h1 *,
+.seo-content-view h1,
+.seo-content-view h1 * {
+  font-size: 30px !important;
+  font-weight: 700 !important;
+  line-height: 1.28 !important;
+  margin-top: 16px !important;
+  margin-bottom: 8px !important;
+  color: #0f172a !important;
+  display: block !important;
+}
+
+.wp-editor-content h2,
+.wp-editor-content h2 *,
+.blog-content-view h2,
+.blog-content-view h2 *,
+.prose h2,
+.prose h2 *,
+.rich-content-view h2,
+.rich-content-view h2 *,
+.seo-content-view h2,
+.seo-content-view h2 * {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  line-height: 1.32 !important;
+  margin-top: 16px !important;
+  margin-bottom: 7px !important;
+  color: #0f172a !important;
+  display: block !important;
+}
+
+.wp-editor-content h3,
+.wp-editor-content h3 *,
+.blog-content-view h3,
+.blog-content-view h3 *,
+.prose h3,
+.prose h3 *,
+.rich-content-view h3,
+.rich-content-view h3 *,
+.seo-content-view h3,
+.seo-content-view h3 * {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  margin-top: 14px !important;
+  margin-bottom: 6px !important;
+  color: #1e293b !important;
+  display: block !important;
+}
+
+.wp-editor-content h4,
+.wp-editor-content h4 *,
+.blog-content-view h4,
+.blog-content-view h4 *,
+.prose h4,
+.prose h4 *,
+.rich-content-view h4,
+.rich-content-view h4 *,
+.seo-content-view h4,
+.seo-content-view h4 * {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  margin-top: 12px !important;
+  margin-bottom: 4px !important;
+  color: #1e293b !important;
+  display: block !important;
+}
+
+.wp-editor-content h5,
+.wp-editor-content h5 *,
+.blog-content-view h5,
+.blog-content-view h5 *,
+.prose h5,
+.prose h5 *,
+.rich-content-view h5,
+.rich-content-view h5 *,
+.seo-content-view h5,
+.seo-content-view h5 * {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+  margin-top: 12px !important;
+  margin-bottom: 4px !important;
+  color: #334155 !important;
+  display: block !important;
+}
+
+.wp-editor-content h6,
+.wp-editor-content h6 *,
+.blog-content-view h6,
+.blog-content-view h6 *,
+.prose h6,
+.prose h6 *,
+.rich-content-view h6,
+.rich-content-view h6 *,
+.seo-content-view h6,
+.seo-content-view h6 * {
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  margin-top: 10px !important;
+  margin-bottom: 2px !important;
+  color: #475569 !important;
+  display: block !important;
+}
+
+.rich-content-view > :first-child,
+.seo-content-view > :first-child,
+.medicine-content-view > :first-child,
+.blog-content-view > :first-child {
+  margin-top: 0 !important;
+}
+
+.rich-content-view > :last-child,
+.seo-content-view > :last-child,
+.medicine-content-view > :last-child,
+.blog-content-view > :last-child {
+  margin-bottom: 0 !important;
+}
+
+.wp-editor-content p,
+.blog-content-view p,
+.prose p,
+.rich-content-view p,
+.seo-content-view p {
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  line-height: 1.7 !important;
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+  color: #1e293b !important;
+}
+
+.wp-editor-content strong,
+.blog-content-view strong,
+.prose strong,
+.rich-content-view strong,
+.seo-content-view strong,
+.wp-editor-content b,
+.blog-content-view b,
+.prose b,
+.rich-content-view b,
+.seo-content-view b {
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+.wp-editor-content a,
+.blog-content-view a,
+.prose a,
+.rich-content-view a,
+.seo-content-view a {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+
+.wp-editor-content a:hover,
+.blog-content-view a:hover,
+.prose a:hover,
+.rich-content-view a:hover,
+.seo-content-view a:hover {
+  color: #1d4ed8 !important;
+}
+
+.wp-editor-content ul,
+.blog-content-view ul,
+.prose ul,
+.rich-content-view ul,
+.seo-content-view ul {
+  list-style-type: disc !important;
+  padding-left: 24px !important;
+  margin: 10px 0 !important;
+}
+
+.wp-editor-content ol,
+.blog-content-view ol,
+.prose ol,
+.rich-content-view ol,
+.seo-content-view ol {
+  list-style-type: decimal !important;
+  padding-left: 24px !important;
+  margin: 10px 0 !important;
+}
+
+.wp-editor-content li,
+.blog-content-view li,
+.prose li,
+.rich-content-view li,
+.seo-content-view li {
+  display: list-item !important;
+  margin: 4px 0 !important;
+  line-height: 1.6 !important;
+  font-size: 16px !important;
+}
+
+.wp-editor-content blockquote,
+.blog-content-view blockquote,
+.blog-content-body blockquote,
+.prose blockquote,
+.rich-content-view blockquote,
+.seo-content-view blockquote {
+  border-left: 4px solid #881337 !important;
+  background-color: #fdf2f4 !important;
+  border-color: #fce7ea !important;
+  border-left-color: #881337 !important;
+  padding: 14px 20px !important;
+  font-style: italic !important;
+  color: #4c0519 !important;
+  margin: 18px 0 !important;
+  border-radius: 0 12px 12px 0 !important;
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+}
+
+.wp-editor-content pre,
+.blog-content-view pre,
+.blog-content-body pre,
+.prose pre,
+.rich-content-view pre,
+.seo-content-view pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 13px !important;
+  background-color: #f1f5f9 !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  margin: 12px 0 !important;
+  overflow-x: auto !important;
+}
+
+.wp-editor-content table,
+.blog-content-view table,
+.blog-content-body table,
+.prose table,
+.rich-content-view table,
+.seo-content-view table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  margin: 20px 0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+.wp-editor-content thead tr,
+.blog-content-body thead tr,
+.prose thead tr {
+  background: #fdf2f4 !important;
+}
+
+.wp-editor-content th,
+.blog-content-view th,
+.blog-content-body th,
+.wp-editor-content thead td,
+.blog-content-view thead td,
+.blog-content-body thead td,
+.prose th,
+.rich-content-view th,
+.seo-content-view th {
+  border-bottom: 2px solid #fce7ea !important;
+  border-right: 1px solid #e2e8f0 !important;
+  padding: 12px 14px !important;
+  background: #fdf2f4 !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  color: #881337 !important;
+  text-align: left !important;
+}
+
+.wp-editor-content th:last-child,
+.blog-content-body th:last-child,
+.wp-editor-content thead td:last-child,
+.blog-content-body thead td:last-child {
+  border-right: none !important;
+}
+
+.wp-editor-content td,
+.blog-content-view td,
+.blog-content-body td,
+.prose td,
+.rich-content-view td,
+.seo-content-view td {
+  border-bottom: 1px solid #f1f5f9 !important;
+  border-right: 1px solid #f1f5f9 !important;
+  padding: 12px 14px !important;
+  font-size: 14px !important;
+  color: #334155 !important;
+  line-height: 1.55 !important;
+}
+
+.wp-editor-content td:last-child,
+.blog-content-body td:last-child {
+  border-right: none !important;
+}
+
+.wp-editor-content tbody tr:last-child td,
+.blog-content-body tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+.wp-editor-content tbody tr:hover,
+.blog-content-body tbody tr:hover {
+  background-color: #fdfbfb !important;
+}
+
+figure.wp-caption,
+.wp-editor-content figure,
+.blog-content-body figure {
+  margin: 24px auto !important;
+  text-align: center !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+figure.wp-caption img,
+.wp-editor-content figure img,
+.blog-content-body figure img {
+  border-radius: 12px !important;
+  margin: 0 auto !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+  display: block !important;
+}
+
+figure.wp-caption figcaption,
+.wp-caption-text {
+  font-size: 13px !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+  margin-top: 8px !important;
+  text-align: center !important;
+  display: block !important;
+}
+
+.wp-editor-content img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.blog-content-view img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.blog-content-body img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.prose img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.rich-content-view img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img),
+.seo-content-view img:not(.grid img):not(.flex img):not([class*="grid"] img):not([class*="flex"] img) {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 12px !important;
+  margin: 16px auto !important;
+  display: block !important;
+}
+
+/* Multi-image side-by-side grid / flex support */
+.wp-editor-content .grid,
+.blog-content-body .grid,
+.blog-content-view .grid,
+.rich-content-view .grid {
+  display: grid !important;
+}
+
+.wp-editor-content .grid img,
+.blog-content-body .grid img,
+.blog-content-view .grid img,
+.rich-content-view .grid img {
+  display: block !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+}
+
+/* Paragraph containing 2 or more images: display side-by-side (pashapashi) */
+.wp-editor-content p:has(> img:nth-child(2)),
+.blog-content-body p:has(> img:nth-child(2)),
+.blog-content-view p:has(> img:nth-child(2)),
+.rich-content-view p:has(> img:nth-child(2)) {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin: 20px 0 !important;
+}
+
+.wp-editor-content p:has(> img:nth-child(2)) > img,
+.blog-content-body p:has(> img:nth-child(2)) > img,
+.blog-content-view p:has(> img:nth-child(2)) > img,
+.rich-content-view p:has(> img:nth-child(2)) > img {
+  display: block !important;
+  margin: 0 !important;
+  flex: 1 1 180px !important;
+  max-width: calc(33.333% - 12px) !important;
+  min-width: 140px !important;
+  height: auto !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+}
+
+/* Headings containing links: inherit typography with attractive link styling */
+.wp-editor-content h1 a,
+.wp-editor-content h2 a,
+.wp-editor-content h3 a,
+.wp-editor-content h4 a,
+.blog-content-body h1 a,
+.blog-content-body h2 a,
+.blog-content-body h3 a,
+.blog-content-body h4 a,
+.blog-content-view h1 a,
+.blog-content-view h2 a,
+.blog-content-view h3 a,
+.blog-content-view h4 a {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+  text-decoration-color: #93c5fd !important;
+  text-underline-offset: 4px !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  transition: all 0.2s ease !important;
+}
+
+.wp-editor-content h1 a:hover,
+.wp-editor-content h2 a:hover,
+.wp-editor-content h3 a:hover,
+.wp-editor-content h4 a:hover,
+.blog-content-body h1 a:hover,
+.blog-content-body h2 a:hover,
+.blog-content-body h3 a:hover,
+.blog-content-body h4 a:hover,
+.blog-content-view h1 a:hover,
+.blog-content-view h2 a:hover,
+.blog-content-view h3 a:hover,
+.blog-content-view h4 a:hover {
+  color: #881337 !important;
+  text-decoration-color: #881337 !important;
+}
+
+/* ---- Tech Dental Search Box (from search-box.html & screenshot) ---- */
+.ask-wrap {
+  width: min(720px, 92vw);
+  margin-left: auto;
+  margin-right: auto;
+  padding: 3px;                       /* gradient border thickness */
+  border-radius: 999px;
+  background: linear-gradient(120deg, #dbeafe, #fce7f3, #dbeafe);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, .12);
+  transition: box-shadow .3s ease, background .3s ease, border-radius .3s ease;
+  position: relative;
+  cursor: text;
+}
+
+/* Active / Focus / Clicked state - exactly matching screenshot */
+.ask-wrap:focus-within,
+.ask-wrap.is-focused {
+  background: linear-gradient(120deg, #2563eb 0%, #7c1d3f 50%, #2563eb 100%) !important;
+  box-shadow: 0 14px 40px rgba(37, 99, 235, .25) !important;
+}
+
+.ask-wrap.has-answer {
+  border-radius: 28px;
+}
+
+.ask-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 8px 8px 22px;
+  width: 100%;
+}
+
+.ask-wrap.has-answer .ask-box {
+  border-radius: 0 0 25px 25px;
+  border-top: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.ask-box .icon-search {
+  flex: none;
+  width: 22px; height: 22px;
+  color: #94a3b8;
+  transition: color .2s ease;
+}
+
+.ask-wrap:focus-within .icon-search,
+.ask-wrap.is-focused .icon-search {
+  color: #2563eb !important;
+}
+
+.ask-box input,
+.ask-box input:focus,
+.ask-box input:focus-visible,
+.ask-box input:active {
+  flex: 1;
+  min-width: 0;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-offset-shadow: none !important;
+  --tw-shadow: none !important;
+  --tw-ring-color: transparent !important;
+  background: transparent !important;
+  font: 500 18px 'Plus Jakarta Sans', 'SolaimanLipi', 'Hind Siliguri', sans-serif;
+  color: #0f172a;
+  padding: 12px 0;
+  caret-color: #2563eb;
+}
+
+.ask-box input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.send-btn {
+  flex: none;
+  width: 52px; height: 52px;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, .35);
+  transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+
+.send-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, .45);
+}
+
+.send-btn:active {
+  transform: scale(.96);
+}
+
+.send-btn svg {
+  width: 22px;
+  height: 22px;
+  margin-left: -2px;
+}
+
+@media (max-width: 480px) {
+  .ask-box { padding: 6px 6px 6px 16px; gap: 8px; }
+  .ask-box input { font-size: 16px; padding: 10px 0; }
+  .send-btn { width: 44px; height: 44px; }
+  .send-btn svg { width: 19px; height: 19px; }
+  .ask-wrap.has-answer { border-radius: 24px; }
+  .ask-wrap.has-answer .ask-box { border-radius: 0 0 21px 21px; }
+}
+
+/* Custom slim scrollbar (from minimal_dental_ai_search.html) */
+.custom-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+/* Default pill search state (Image 1 - minimal_dental_ai_search.html) */
+.search-pill-container {
+  border: 1.5px solid #e0e7ff;
+  box-shadow: 0 10px 30px -4px rgba(37, 99, 235, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focused active state (Image 2 - vibrant blue border) */
+.search-pill-container.is-focused,
+.search-pill-container:focus-within {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 1px #2563eb, 0 14px 34px -4px rgba(37, 99, 235, 0.16) !important;
+}
+
+/* Clear, visible link styling for article bodies, rich content, and blog single views */
+.rich-content-view a,
+.blog-content-body a,
+.prose a {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1.5px !important;
+  text-underline-offset: 3px !important;
+  font-weight: 600 !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.rich-content-view a:hover,
+.blog-content-body a:hover,
+.prose a:hover {
+  color: #881337 !important;
+  text-decoration-color: #881337 !important;
+}
+
+/* Ensure headings with links keep proper heading size but have link visual cues */
+.rich-content-view h1 a,
+.rich-content-view h2 a,
+.rich-content-view h3 a,
+.blog-content-body h1 a,
+.blog-content-body h2 a,
+.blog-content-body h3 a,
+.prose h1 a,
+.prose h2 a,
+.prose h3 a {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+}
+
+/* Side-by-side images in blog articles & rich content */
+.image-row-3,
+.blog-content-body .image-row-3,
+.rich-content-view .image-row-3 {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  margin: 24px 0 !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+}
+
+.image-row-3 > div,
+.blog-content-body .image-row-3 > div,
+.rich-content-view .image-row-3 > div {
+  flex: 1 1 calc(33.333% - 16px) !important;
+  min-width: 180px !important;
+  max-width: 100% !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  padding: 4px !important;
+}
+
+.image-row-3 img,
+.blog-content-body .image-row-3 img,
+.rich-content-view .image-row-3 img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 220px !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+}

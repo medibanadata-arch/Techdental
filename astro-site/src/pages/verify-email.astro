@@ -1,0 +1,14 @@
+---
+import AdminShell from '../layouts/AdminShell.astro';
+import Page from '../app/wrappers/Auth_VerifyEmailPage';
+import { adminPagePayload, guardAuth } from '../lib/admin/http';
+
+const denied = guardAuth(Astro.request);
+if (denied) return denied;
+
+const page = adminPagePayload(Astro.request, 'Auth/VerifyEmail', { status: null });
+---
+
+<AdminShell title="Email Verification">
+  <Page client:load page={page} />
+</AdminShell>

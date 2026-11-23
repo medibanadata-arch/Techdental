@@ -1,0 +1,14 @@
+---
+import AdminShell from '../layouts/AdminShell.astro';
+import Page from '../app/wrappers/DashboardPage';
+import { adminPagePayload, guardAdmin } from '../lib/admin/http';
+
+const denied = guardAdmin(Astro.request);
+if (denied) return denied;
+
+const page = adminPagePayload(Astro.request, 'Dashboard', {});
+---
+
+<AdminShell title="Dashboard">
+  <Page client:load page={page} />
+</AdminShell>

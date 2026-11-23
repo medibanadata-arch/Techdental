@@ -1,0 +1,38 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/FeaturedImages_IndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const branch = Astro.url.searchParams.get('branch') || 'all';
+const where: string[] = [];
+const params: any[] = [];
+
+if (branch && branch !== 'all') {
+  if (branch === 'homepage') {
+    where.push("(branch = 'homepage' OR branch IS NULL OR branch = '')");
+  } else {
+    const key = branch.toLowerCase().replace(/branch/gi, '').trim();
+    where.push('(branch = ? OR branch LIKE ?)');
+    params.push(branch, `%${key}%`);
+  }
+}
+
+const images = models(
+  'featured_images',
+  all(
+    `SELECT * FROM featured_images ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY sort_order ASC, id DESC`,
+    params
+  )
+);
+const locations = models('locations', all('SELECT * FROM locations ORDER BY sort_order ASC'));
+const page = adminPagePayload(Astro.request, 'FeaturedImages/Index', {
+  images,
+  locations,
+  selectedBranch: branch,
+});
+---
+
+<AdminShell title="Featured Sliders Management - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

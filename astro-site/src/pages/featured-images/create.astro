@@ -1,0 +1,14 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/FeaturedImages_CreatePage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const defaultBranch = Astro.url.searchParams.get('branch') || 'homepage';
+const locations = models('locations', all('SELECT * FROM locations ORDER BY sort_order ASC'));
+const page = adminPagePayload(Astro.request, 'FeaturedImages/Create', { locations, defaultBranch });
+---
+
+<AdminShell title="Add Slider Image - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

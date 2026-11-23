@@ -1,0 +1,14 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/About_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { aboutContentRow } from '../../lib/admin/handlers/about';
+import { model } from '../../lib/db';
+
+const content = model('about_content', aboutContentRow());
+const page = adminPagePayload(Astro.request, 'About/AdminIndex', { content });
+---
+
+<AdminShell title="About Page CMS - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

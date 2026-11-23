@@ -1,0 +1,17 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Redirects_IndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { redirectsPageProps } from '../../lib/admin/handlers/redirects';
+import { model } from '../../lib/db';
+
+const { redirects, filters } = redirectsPageProps(Astro.request);
+const page = adminPagePayload(Astro.request, 'Redirects/Index', {
+  redirects: { ...redirects, data: redirects.data.map((row: any) => model('redirects', row)) },
+  filters,
+});
+---
+
+<AdminShell title="301 / 302 Redirect Manager - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

@@ -1,0 +1,13 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/CustomPages_IndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const pages = models('pages', all('SELECT * FROM pages ORDER BY created_at DESC'));
+const page = adminPagePayload(Astro.request, 'CustomPages/Index', { pages });
+---
+
+<AdminShell title="Custom Pages & Frontend Portals - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

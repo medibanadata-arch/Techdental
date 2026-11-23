@@ -1,0 +1,13 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Media_IndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const media = models('media', all('SELECT * FROM media ORDER BY created_at DESC'));
+const page = adminPagePayload(Astro.request, 'Media/Index', { media });
+---
+
+<AdminShell title="Media Library - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

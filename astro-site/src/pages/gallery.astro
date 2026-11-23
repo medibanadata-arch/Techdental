@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Page from '../app/wrappers/Gallery_PublicIndexPage';
+import { pagePayload } from '../lib/shared';
+import { galleryProps, gallerySeo } from '../lib/pages/info';
+
+const props = galleryProps();
+const page = pagePayload('Gallery/PublicIndex', props, '/gallery');
+const seo = gallerySeo();
+---
+
+<BaseLayout seo={seo} lang="en">
+  <Page client:load page={page} />
+</BaseLayout>

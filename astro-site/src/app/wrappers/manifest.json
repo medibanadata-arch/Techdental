@@ -1,0 +1,294 @@
+[
+  {
+    "name": "About_AdminIndexPage",
+    "relative": "About/AdminIndex"
+  },
+  {
+    "name": "About_PublicIndexPage",
+    "relative": "About/PublicIndex"
+  },
+  {
+    "name": "AiAssistant_AdminIndexPage",
+    "relative": "AiAssistant/AdminIndex"
+  },
+  {
+    "name": "Appointments_IndexPage",
+    "relative": "Appointments/Index"
+  },
+  {
+    "name": "Auth_ConfirmPasswordPage",
+    "relative": "Auth/ConfirmPassword"
+  },
+  {
+    "name": "Auth_ForgotPasswordPage",
+    "relative": "Auth/ForgotPassword"
+  },
+  {
+    "name": "Auth_LoginPage",
+    "relative": "Auth/Login"
+  },
+  {
+    "name": "Auth_RegisterPage",
+    "relative": "Auth/Register"
+  },
+  {
+    "name": "Auth_ResetPasswordPage",
+    "relative": "Auth/ResetPassword"
+  },
+  {
+    "name": "Auth_VerifyEmailPage",
+    "relative": "Auth/VerifyEmail"
+  },
+  {
+    "name": "Blog_PublicIndexPage",
+    "relative": "Blog/PublicIndex"
+  },
+  {
+    "name": "Blog_PublicSinglePage",
+    "relative": "Blog/PublicSingle"
+  },
+  {
+    "name": "BookAppointment_PublicIndexPage",
+    "relative": "BookAppointment/PublicIndex"
+  },
+  {
+    "name": "Branch_AdminIndexPage",
+    "relative": "Branch/AdminIndex"
+  },
+  {
+    "name": "Branch_PublicIndexPage",
+    "relative": "Branch/PublicIndex"
+  },
+  {
+    "name": "Branch_PublicShowPage",
+    "relative": "Branch/PublicShow"
+  },
+  {
+    "name": "Complaints_AdminIndexPage",
+    "relative": "Complaints/AdminIndex"
+  },
+  {
+    "name": "Complaints_PublicShowPage",
+    "relative": "Complaints/PublicShow"
+  },
+  {
+    "name": "CustomPages_BestDentistPage",
+    "relative": "CustomPages/BestDentist"
+  },
+  {
+    "name": "CustomPages_BuilderPage",
+    "relative": "CustomPages/Builder"
+  },
+  {
+    "name": "CustomPages_CreatePage",
+    "relative": "CustomPages/Create"
+  },
+  {
+    "name": "CustomPages_EditPage",
+    "relative": "CustomPages/Edit"
+  },
+  {
+    "name": "CustomPages_IndexPage",
+    "relative": "CustomPages/Index"
+  },
+  {
+    "name": "CustomPages_ShowPage",
+    "relative": "CustomPages/Show"
+  },
+  {
+    "name": "DashboardPage",
+    "relative": "Dashboard"
+  },
+  {
+    "name": "Doctors_CreatePage",
+    "relative": "Doctors/Create"
+  },
+  {
+    "name": "Doctors_EditPage",
+    "relative": "Doctors/Edit"
+  },
+  {
+    "name": "Doctors_IndexPage",
+    "relative": "Doctors/Index"
+  },
+  {
+    "name": "Doctors_PublicIndexPage",
+    "relative": "Doctors/PublicIndex"
+  },
+  {
+    "name": "Doctors_PublicSinglePage",
+    "relative": "Doctors/PublicSingle"
+  },
+  {
+    "name": "FeaturedImages_CreatePage",
+    "relative": "FeaturedImages/Create"
+  },
+  {
+    "name": "FeaturedImages_EditPage",
+    "relative": "FeaturedImages/Edit"
+  },
+  {
+    "name": "FeaturedImages_IndexPage",
+    "relative": "FeaturedImages/Index"
+  },
+  {
+    "name": "Gallery_PublicIndexPage",
+    "relative": "Gallery/PublicIndex"
+  },
+  {
+    "name": "HomePage",
+    "relative": "Home"
+  },
+  {
+    "name": "HomeContent_AdminIndexPage",
+    "relative": "HomeContent/AdminIndex"
+  },
+  {
+    "name": "HowToPay_AdminIndexPage",
+    "relative": "HowToPay/AdminIndex"
+  },
+  {
+    "name": "HowToPay_PublicShowPage",
+    "relative": "HowToPay/PublicShow"
+  },
+  {
+    "name": "Legacy_ShowPage",
+    "relative": "Legacy/Show"
+  },
+  {
+    "name": "Media_IndexPage",
+    "relative": "Media/Index"
+  },
+  {
+    "name": "Medicines_AdminEditPage",
+    "relative": "Medicines/AdminEdit"
+  },
+  {
+    "name": "Medicines_AdminIndexPage",
+    "relative": "Medicines/AdminIndex"
+  },
+  {
+    "name": "Medicines_PublicIndexPage",
+    "relative": "Medicines/PublicIndex"
+  },
+  {
+    "name": "Medicines_PublicSinglePage",
+    "relative": "Medicines/PublicSingle"
+  },
+  {
+    "name": "Menus_IndexPage",
+    "relative": "Menus/Index"
+  },
+  {
+    "name": "PatientRights_AdminIndexPage",
+    "relative": "PatientRights/AdminIndex"
+  },
+  {
+    "name": "PatientRights_PublicShowPage",
+    "relative": "PatientRights/PublicShow"
+  },
+  {
+    "name": "Posts_CategoriesPage",
+    "relative": "Posts/Categories"
+  },
+  {
+    "name": "Posts_CreatePage",
+    "relative": "Posts/Create"
+  },
+  {
+    "name": "Posts_EditPage",
+    "relative": "Posts/Edit"
+  },
+  {
+    "name": "Posts_IndexPage",
+    "relative": "Posts/Index"
+  },
+  {
+    "name": "Posts_ShowPage",
+    "relative": "Posts/Show"
+  },
+  {
+    "name": "Posts_TagsPage",
+    "relative": "Posts/Tags"
+  },
+  {
+    "name": "PriceList_AdminIndexPage",
+    "relative": "PriceList/AdminIndex"
+  },
+  {
+    "name": "PriceList_PublicIndexPage",
+    "relative": "PriceList/PublicIndex"
+  },
+  {
+    "name": "Profile_EditPage",
+    "relative": "Profile/Edit"
+  },
+  {
+    "name": "Profile_Partials_DeleteUserFormPage",
+    "relative": "Profile/Partials/DeleteUserForm"
+  },
+  {
+    "name": "Profile_Partials_UpdatePasswordFormPage",
+    "relative": "Profile/Partials/UpdatePasswordForm"
+  },
+  {
+    "name": "Profile_Partials_UpdateProfileInformationFormPage",
+    "relative": "Profile/Partials/UpdateProfileInformationForm"
+  },
+  {
+    "name": "Redirects_IndexPage",
+    "relative": "Redirects/Index"
+  },
+  {
+    "name": "Services_AdminEditPage",
+    "relative": "Services/AdminEdit"
+  },
+  {
+    "name": "Services_AdminIndexPage",
+    "relative": "Services/AdminIndex"
+  },
+  {
+    "name": "Services_PublicIndexPage",
+    "relative": "Services/PublicIndex"
+  },
+  {
+    "name": "Services_PublicSinglePage",
+    "relative": "Services/PublicSingle"
+  },
+  {
+    "name": "Settings_AdminIndexPage",
+    "relative": "Settings/AdminIndex"
+  },
+  {
+    "name": "Settings_HeaderFooterPage",
+    "relative": "Settings/HeaderFooter"
+  },
+  {
+    "name": "Settings_WebsiteTextsPage",
+    "relative": "Settings/WebsiteTexts"
+  },
+  {
+    "name": "Team_AdminEditPage",
+    "relative": "Team/AdminEdit"
+  },
+  {
+    "name": "Team_AdminIndexPage",
+    "relative": "Team/AdminIndex"
+  },
+  {
+    "name": "Team_PublicIndexPage",
+    "relative": "Team/PublicIndex"
+  },
+  {
+    "name": "Team_PublicSinglePage",
+    "relative": "Team/PublicSingle"
+  },
+  {
+    "name": "Users_IndexPage",
+    "relative": "Users/Index"
+  },
+  {
+    "name": "WelcomePage",
+    "relative": "Welcome"
+  }
+]

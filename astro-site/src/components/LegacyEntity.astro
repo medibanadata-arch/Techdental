@@ -1,0 +1,44 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import type { LegacyRenderResult } from '../lib/legacyRender';
+
+import HomePage from '../app/wrappers/HomePage';
+import AboutPage from '../app/wrappers/About_PublicIndexPage';
+import AppointmentPage from '../app/wrappers/BookAppointment_PublicIndexPage';
+import BlogSinglePage from '../app/wrappers/Blog_PublicSinglePage';
+import BranchIndexPage from '../app/wrappers/Branch_PublicIndexPage';
+import BranchShowPage from '../app/wrappers/Branch_PublicShowPage';
+import CustomPage from '../app/wrappers/CustomPages_ShowPage';
+import DoctorsIndexPage from '../app/wrappers/Doctors_PublicIndexPage';
+import DoctorSinglePage from '../app/wrappers/Doctors_PublicSinglePage';
+import MedicineSinglePage from '../app/wrappers/Medicines_PublicSinglePage';
+import PriceListPage from '../app/wrappers/PriceList_PublicIndexPage';
+import ServiceSinglePage from '../app/wrappers/Services_PublicSinglePage';
+import LegacyShowPage from '../app/wrappers/Legacy_ShowPage';
+
+interface Props {
+  result: LegacyRenderResult;
+}
+
+const { result } = Astro.props as Props;
+if (!result) return new Response('Not Found', { status: 404 });
+
+const component = result.component;
+const page = result.page;
+---
+
+<BaseLayout seo={result.seo} lang={result.lang}>
+  {component === 'Home' && <HomePage client:load page={page} />}
+  {component === 'About/PublicIndex' && <AboutPage client:load page={page} />}
+  {component === 'BookAppointment/PublicIndex' && <AppointmentPage client:load page={page} />}
+  {component === 'Blog/PublicSingle' && <BlogSinglePage client:load page={page} />}
+  {component === 'Branch/PublicIndex' && <BranchIndexPage client:load page={page} />}
+  {component === 'Branch/PublicShow' && <BranchShowPage client:load page={page} />}
+  {component === 'CustomPages/Show' && <CustomPage client:load page={page} />}
+  {component === 'Doctors/PublicIndex' && <DoctorsIndexPage client:load page={page} />}
+  {component === 'Doctors/PublicSingle' && <DoctorSinglePage client:load page={page} />}
+  {component === 'Medicines/PublicSingle' && <MedicineSinglePage client:load page={page} />}
+  {component === 'PriceList/PublicIndex' && <PriceListPage client:load page={page} />}
+  {component === 'Services/PublicSingle' && <ServiceSinglePage client:load page={page} />}
+  {component === 'Legacy/Show' && <LegacyShowPage client:load page={page} />}
+</BaseLayout>

@@ -1,0 +1,21 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/Branch_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { all, models } from '../../lib/db';
+
+const branches = models('locations', all('SELECT * FROM locations ORDER BY sort_order'));
+const doctors = models('doctors', all('SELECT * FROM doctors ORDER BY rank_order'));
+const services = all('SELECT * FROM pricing');
+const gallery = all('SELECT * FROM featured_images ORDER BY sort_order');
+const page = adminPagePayload(Astro.request, 'Branch/AdminIndex', {
+  branches,
+  doctors,
+  services,
+  gallery,
+});
+---
+
+<AdminShell title="Branch Management - Tech Dental">
+  <Page client:load page={page} />
+</AdminShell>

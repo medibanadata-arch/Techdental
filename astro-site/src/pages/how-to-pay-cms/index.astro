@@ -1,0 +1,17 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/HowToPay_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { howToPayAdminProps } from '../../lib/admin/handlers/howtopay';
+import { model, models } from '../../lib/db';
+
+const { settings, locations } = howToPayAdminProps();
+const page = adminPagePayload(Astro.request, 'HowToPay/AdminIndex', {
+  settings: model('payment_methods_settings', settings),
+  locations: models('locations', locations),
+});
+---
+
+<AdminShell title="How to Pay CMS - Payment Methods & Branch Settings">
+  <Page client:load page={page} />
+</AdminShell>

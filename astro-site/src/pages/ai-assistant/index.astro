@@ -1,0 +1,17 @@
+---
+import AdminShell from '../../layouts/AdminShell.astro';
+import Page from '../../app/wrappers/AiAssistant_AdminIndexPage';
+import { adminPagePayload } from '../../lib/admin/http';
+import { aiAssistantAdminProps } from '../../lib/admin/handlers/ai';
+
+const { settings, rules, logs } = aiAssistantAdminProps();
+const page = adminPagePayload(Astro.request, 'AiAssistant/AdminIndex', {
+  settings,
+  rules,
+  logs,
+});
+---
+
+<AdminShell title="AI Chat Assistant - Admin Management">
+  <Page client:load page={page} />
+</AdminShell>
