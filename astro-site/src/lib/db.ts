@@ -113,21 +113,17 @@ const JSON_COLUMNS: Record<string, string[]> = {
 const BOOLEAN_COLUMNS: Record<string, string[]> = {
   doctors: ['verified', 'robots_index', 'robots_follow'],
   doctor_settings: ['robots_index', 'robots_follow'],
-  locations: ['is_open_now', 'robots_index', 'robots_follow'],
+  locations: ['robots_index', 'robots_follow'],
   medicines: ['is_active', 'robots_index', 'robots_follow'],
   pages: ['robots_index', 'robots_follow'],
-  posts: ['is_redirect', 'robots_index', 'robots_follow'],
+  posts: [],
   price_settings: ['robots_index', 'robots_follow'],
-  services: ['robots_index', 'robots_follow'],
   team_members: ['is_active'],
   home_videos: ['is_active'],
-  featured_images: ['is_active'],
-  about_content: ['robots_index', 'robots_follow'],
   patient_rights: ['is_active'],
   patient_responsibilities: ['is_active'],
   redirects: ['is_active'],
   legacy_pages: ['is_active'],
-  home_content: ['robots_index', 'robots_follow'],
 };
 
 const INTEGER_COLUMNS: Record<string, string[]> = {

@@ -13,10 +13,6 @@ export function blogIndexProps(isBn: boolean) {
     locations: locations(),
     nav_menu: navMenu(),
     is_bn: isBn,
-    page_title: null,
-    page_subtitle: null,
-    page_title_bn: null,
-    page_subtitle_bn: null,
   };
 }
 

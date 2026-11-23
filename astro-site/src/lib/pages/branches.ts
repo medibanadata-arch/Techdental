@@ -55,16 +55,19 @@ export function branchShowProps(slug: string, isBn = false) {
     .toLowerCase();
 
   const gallery = uniqueBy(
-    all('SELECT * FROM featured_images WHERE is_active = 1 ORDER BY sort_order').filter((row: any) => {
-      const value = String(row.branch ?? '');
-      return (
-        value === String(branch.short_name ?? '') ||
-        value === String(branch.name ?? '') ||
-        value === String(branch.slug ?? '') ||
-        (branchKey && value.toLowerCase().includes(branchKey)) ||
-        value === 'all'
-      );
-    }),
+    models(
+      'featured_images',
+      all('SELECT * FROM featured_images WHERE is_active = 1 ORDER BY sort_order').filter((row: any) => {
+        const value = String(row.branch ?? '');
+        return (
+          value === String(branch.short_name ?? '') ||
+          value === String(branch.name ?? '') ||
+          value === String(branch.slug ?? '') ||
+          (branchKey && value.toLowerCase().includes(branchKey)) ||
+          value === 'all'
+        );
+      })
+    ),
     'src'
   );
 
