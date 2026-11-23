@@ -82,7 +82,7 @@ interface MedicineItem {
   price_manufacturer: string;
   price_note?: { label: string; text: string }[];
   price_note_bn?: { label: string; text: string }[];
-  gallery: { src: string; caption: string }[];
+  gallery: { src: string; caption: string; lang?: string }[];
   faqs: FaqItem[];
   section_titles?: Record<string, string>;
   author: {
@@ -126,9 +126,31 @@ const toBnDigit = (num: number | string): string => {
   return String(num).replace(/\d/g, (d) => bnDigits[Number(d)] || d);
 };
 
-/** Imported Q&A text often still carries its original "1." / "১." prefix; the UI numbers items itself. */
+/** Imported Q&A text often still carries its original "Q:" / "প্রশ্ন:" or "1." prefix; the UI prints its own label. */
 const cleanQuestion = (text?: string): string =>
-  (text || '').replace(/^\s*(?:\d+|[০-৯]+)[.)।]\s*/, '').trim();
+  (text || '')
+    .replace(/^\s*(?:(?:প্রশ্ন|প্রশ্নঃ|Q|q)\s*[:：]\s*)+/u, '')
+    .replace(/^\s*(?:\d+|[০-৯]+)[.)।]\s*/, '')
+    .trim();
+
+/**
+ * Trailing dosage forms dropped from the "… সম্পর্কে বিস্তারিত" heading so the
+ * title reads "ইনটিমেট ১০ সম্পর্কে বিস্তারিত" instead of repeating "ট্যাবলেট".
+ * Words are NFC-normalised so both spellings of "য়" match.
+ */
+const DOSAGE_FORM_RE = new RegExp(
+  '(?:\\s+(?:' +
+    [
+      'Capsule/Suspension', 'Tablet', 'Capsule', 'Ointment', 'Suspension', 'Syrup',
+      'Injection', 'Cream', 'Gel', 'Drops',
+      'ট্যাবলেট', 'ক্যাপসুল', 'মলম', 'অয়েন্টমেন্ট', 'সাসপেনশন', 'সিরাপ',
+      'ইনজেকশন', 'ক্রিম', 'জেল', 'ড্রপস',
+    ]
+      .map((word) => word.normalize('NFC').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|') +
+    '))+$',
+  'iu',
+);
 
 /** True when an admin field contains HTML markup (links, headings, images, lists...). */
 const hasRichHtml = (value?: string): boolean => !!value && /<[a-z][\s\S]*>/i.test(value);
@@ -266,7 +288,8 @@ export default function MedicinesPublicSingle({
 
   // Format clean name for "More about {Name}" (e.g. "Xyril 25 Tablet" -> "Xyril 25")
   const cleanMedicineName = (displayName || item.name || '')
-    .replace(/(?:\s+Tablet|\s+Capsule|\s+Ointment|\s+Suspension|\s+ট্যাবলেট|\s+ক্যাপসুল|\s+মলম)+$/i, '')
+    .normalize('NFC')
+    .replace(DOSAGE_FORM_RE, '')
     .trim() || displayName || (isBn ? 'তথ্য' : 'Medicine');
 
   const titleFaq = isBn
@@ -282,8 +305,14 @@ export default function MedicinesPublicSingle({
     : (sec.toc || 'Table of Contents');
 
   const displaySeoTitle = isBn
-    ? `${cleanMedicineName}: ব্যবহার, ডোজ ও পার্শ্বপ্রতিক্রিয়া`
+    ? `${cleanMedicineName} সম্পর্কে বিস্তারিত`
     : `More about ${cleanMedicineName}`;
+
+  // Gallery images are language-tagged so an English page never shows Bangla-only
+  // reference photos and vice versa. Untagged images (added in the admin) show in both.
+  const pageLang = isBn ? 'bn' : 'en';
+  const taggedGallery = (item.gallery || []).filter((g) => !g.lang || g.lang === pageLang);
+  const displayGallery = taggedGallery.length > 0 ? taggedGallery : (item.gallery || []);
 
   const displaySeoContent = isBn
     ? (item.seo_content_bn || '')
@@ -318,7 +347,7 @@ export default function MedicinesPublicSingle({
   };
   const hasPrice = !!(item.price_per_tablet || item.price_per_strip || priceNotes.length);
   // "More about" now holds the leftover rich content and the FAQ, so hide it when both are empty.
-  const hasMoreAbout = !!displaySeoContent || faqList.length > 0;
+  const hasMoreAbout = !!displaySeoContent || faqList.length > 0 || displayGallery.length > 0;
 
   // Table of Contents Numbers: English (1., 2.) in EN mode; Bengali (১., ২.) in BN mode
   const tocNumber = (i: number) => (isBn ? toBnDigit(i + 1) : String(i + 1));
@@ -336,12 +365,12 @@ export default function MedicinesPublicSingle({
 
   // Author details - strictly separation by language, no English fallback in Bangla mode
   const authorName = isBn
-    ? (item.author?.name_bn || 'ডা. আফসানা হক জ্যোতি')
-    : (item.author?.name || 'Dr. Afsana Haque Joty');
+    ? (item.author?.name_bn || 'ডা. আয়শা সিদ্দিকা')
+    : (item.author?.name || 'Dr. Aysha Siddika');
 
   const authorBio = isBn
-    ? (item.author?.bio_bn || 'টেক ডেন্টাল মিরপুর শাখার সিনিয়র ডেন্টাল সার্জন, যিনি ৫ বছরেরও বেশি সময় ধরে দন্তচিকিৎসা ও ওরাল সার্জারিতে সেবা দিচ্ছেন।')
-    : (item.author?.bio || 'Dr. Afsana Haque Joty is a Senior Dental Surgeon at Tech Dental with extensive expertise in oral health and dental surgery.');
+    ? (item.author?.bio_bn || 'ডা. আয়শা সিদ্দিকা টেক ডেন্টালের সহকারী মেডিকেল ডিরেক্টর এবং একজন অভিজ্ঞ ডেন্টাল সার্জন।')
+    : (item.author?.bio || 'Dr. Aysha Siddika is an experienced dental surgeon and the Assistant Medical Director at Tech Dental.');
 
   const authorReviewedBy = isBn
     ? (item.author?.reviewed_by_bn || authorName)
@@ -552,7 +581,7 @@ export default function MedicinesPublicSingle({
                   }}
                 />
                 <p className="text-[11px] text-slate-500 font-medium text-center">
-                  {item.gallery?.[0]?.caption || `${displayName} ${isBn ? 'প্যাকেজিং রেফারেন্স।' : 'packaging.'}`}
+                  {displayGallery[0]?.caption || `${displayName} ${isBn ? 'প্যাকেজিং রেফারেন্স।' : 'packaging.'}`}
                 </p>
               </div>
 
@@ -736,27 +765,6 @@ export default function MedicinesPublicSingle({
             </section>
             )}
 
-            {/* Product Visual Reference Grid */}
-            {item.gallery?.length > 0 && (
-              <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <span className="w-2 h-4 bg-[#8b1d41] rounded-full inline-block" />
-                  <span>{titleGallery}</span>
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {item.gallery.map((g, i) => (
-                    <div key={i} className="flex flex-col items-center text-center space-y-2">
-                      <div className="w-full h-48 sm:h-56 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-center overflow-hidden">
-                        <img src={g.src} alt={g.caption} className="max-h-full max-w-full object-contain" />
-                      </div>
-                      <p className="text-[11px] text-slate-500 font-medium">{g.caption}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Section 6: Frequently Asked Questions (FAQ) */}
             {/* Medical Reviewer Profile */}
             {item.author && (
               <section id="author" className="scroll-mt-6 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
@@ -839,6 +847,26 @@ export default function MedicinesPublicSingle({
                       )}
                     </section>
                   ))}
+
+                  {/* Product photos — inside More About, before the FAQ */}
+                  {displayGallery.length > 0 && (
+                    <section className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+                      <h3 className="mb-4 flex items-center gap-2.5 text-sm font-bold text-slate-900 uppercase tracking-wider">
+                        <span className="w-1 h-4 bg-[#8b1d41] rounded-full inline-block" />
+                        <span>{titleGallery}</span>
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {displayGallery.map((g, i) => (
+                          <div key={i} className="flex flex-col items-center text-center space-y-2">
+                            <div className="w-full h-48 sm:h-56 bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-center justify-center overflow-hidden">
+                              <img src={g.src} alt={g.caption} className="max-h-full max-w-full object-contain" />
+                            </div>
+                            <p className="text-[11px] text-slate-500 font-medium">{displayName}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
 
                   {/* Frequently Asked Questions — its own clean card */}
                   {faqList.length > 0 && (
