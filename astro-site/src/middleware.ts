@@ -7,6 +7,7 @@ import { guardAdmin, guardAuth } from './lib/admin/http';
 import { handleAdminRoute } from './lib/admin/router';
 import { authUserFromRequest } from './lib/auth';
 import { isAdminPath, isAuthPath, isGuestPath } from './lib/admin/paths';
+import { filamentTarget } from './lib/admin/filament';
 
 /**
  * Mirrors app/Http/Middleware/TrailingSlashAndRedirectMiddleware.php and serves
@@ -85,6 +86,17 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const rawPath = pathname;
   const path = normalized(rawPath);
+
+  // Laravel's secondary Filament panel lives at /admin. Point those entry
+  // points at the equivalent screens in the React admin instead of 404ing.
+  if (path === '/admin' || path === '/admin/login' || path.startsWith('/admin/')) {
+    const signedIn = !!authUserFromRequest(context.request);
+    if (path === '/admin' || path === '/admin/login') {
+      return redirect(signedIn ? '/dashboard' : '/login', 302);
+    }
+    if (!signedIn) return redirect('/login', 302);
+    return redirect(filamentTarget(path), 302);
+  }
 
   // Auth screens: signed-in users are sent to the dashboard (Laravel `guest`).
   if (isGuestPath(path) && authUserFromRequest(context.request)) {
