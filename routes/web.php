@@ -279,6 +279,15 @@ Route::get('/contact-us', fn() => redirect('/branches', 301));
 Route::get('/contacts', fn() => redirect('/branches', 301));
 Route::get('/our-doctors', fn() => redirect('/doctors', 301));
 Route::get('/our-services', fn() => redirect('/services', 301));
+// Old WordPress URLs that map to an existing page with the same content.
+Route::get('/blog-en', fn() => redirect('/blog', 301));
+Route::get('/tech-physio', fn() => redirect('/blog/tech-physio-launch', 301));
+Route::get('/veneers', fn() => redirect('/bn/service/direct-composite-veneers', 301));
+Route::get('/message-from-ceo', fn() => redirect('/team', 301));
+Route::get('/message-from-medical-director', fn() => redirect('/team', 301));
+Route::get('/corporate-tram-en', fn() => redirect('/team', 301));
+Route::get('/bn/updates/patient-bill-of-rights', fn() => redirect('/bn/patient-rights', 301));
+Route::get('/bn/patient-speaks', fn() => redirect('/', 301));
 Route::get('/terms-of-service', fn() => redirect('/page/terms-of-service', 301));
 Route::get('/terms', fn() => redirect('/page/terms-of-service', 301));
 Route::get('/privacy-policy', fn() => redirect('/page/privacy-policy', 301));

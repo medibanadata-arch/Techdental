@@ -240,8 +240,8 @@ export default function MedicinesAdminEdit({ item }: Props) {
             reviewed_by: item?.author?.reviewed_by || 'Dr. Farhana Ahmed, Clinical Director',
             reviewed_by_bn: item?.author?.reviewed_by_bn || 'ডা. ফারহানা আহমেদ, ক্লিনিক্যাল ডিরেক্টর',
             last_updated: item?.author?.last_updated || 'January 2026',
-            disclaimer: item?.author?.disclaimer || 'Disclaimer: This information is for clinical and educational reference only. Consult a registered dentist before use.',
-            disclaimer_bn: item?.author?.disclaimer_bn || 'সতর্কবার্তা: এই তথ্য শুধুমাত্র শিক্ষামূলক ও নির্দেশনামূলক উদ্দেশ্যে প্রদান করা হয়েছে। সেবনের পূর্বে অবশ্যই একজন রেজিস্টার্ড ডেন্টিস্টের পরামর্শ নিন।'
+            disclaimer: item?.author?.disclaimer || 'Disclaimer:  The medication information provided here is for general awareness only. Do not take any medication without a doctor\'s advice and prescription. Tech Dental authorities will not be held responsible for any physical harm caused by incorrect medication use.',
+            disclaimer_bn: item?.author?.disclaimer_bn || 'সতর্কতা: এখানে উল্লেখিত ওষুধের তথ্য শুধুমাত্র সাধারণ সচেতনতার জন্য। চিকিৎসকের পরামর্শ ও প্রেসক্রিপশন ছাড়া কোনো ওষুধ সেবন করবেন না। ভুল ওষুধ সেবনে শারীরিক ক্ষতির দায় টেক ডেন্টাল কর্তৃপক্ষ বহন করবে না।'
         }
     });
 

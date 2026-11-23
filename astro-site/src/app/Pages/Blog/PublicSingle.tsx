@@ -200,7 +200,7 @@ export default function BlogPublicSingle({
   const focusKeyword = isBn
     ? (post?.focus_keyword_bn || post?.focus_keyword || '')
     : (post?.focus_keyword || '');
-  const authorAvatar = post?.author_avatar || "https://ui-avatars.com/api/?name=Dr.+Aysha+Siddika&background=881337&color=fff&size=160";
+  const authorAvatar = post?.author_avatar || "/uploads/images/dr-ayesha-siddika-avatar.webp";
 
   const sec = post?.section_titles || {};
   const cta = post?.cta_box || {};

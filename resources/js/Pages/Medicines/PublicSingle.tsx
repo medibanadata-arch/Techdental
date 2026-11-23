@@ -377,8 +377,8 @@ export default function MedicinesPublicSingle({
     : (item.author?.reviewed_by || authorName);
 
   const authorDisclaimer = isBn
-    ? (item.author?.disclaimer_bn || 'সতর্কবার্তা: শুধুমাত্র শিক্ষামূলক তথ্য। এটি কোনো পেশাদার চিকিৎসা পরামর্শের বিকল্প নয়।')
-    : (item.author?.disclaimer || 'Disclaimer: Educational information only. Not a substitute for professional medical advice.');
+    ? (item.author?.disclaimer_bn || 'সতর্কতা: এখানে উল্লেখিত ওষুধের তথ্য শুধুমাত্র সাধারণ সচেতনতার জন্য। চিকিৎসকের পরামর্শ ও প্রেসক্রিপশন ছাড়া কোনো ওষুধ সেবন করবেন না। ভুল ওষুধ সেবনে শারীরিক ক্ষতির দায় টেক ডেন্টাল কর্তৃপক্ষ বহন করবে না।')
+    : (item.author?.disclaimer || 'Disclaimer:  The medication information provided here is for general awareness only. Do not take any medication without a doctor\'s advice and prescription. Tech Dental authorities will not be held responsible for any physical harm caused by incorrect medication use.');
 
   const seoTitleSuffix = isBn
     ? (item.seo_title_bn?.trim() || 'ব্যবহার, ডোজ ও পার্শ্বপ্রতিক্রিয়া')
@@ -898,7 +898,7 @@ export default function MedicinesPublicSingle({
                       {authorDisclaimer && (
                         <div className="mt-5 pt-4 border-t border-slate-100 bg-slate-50/70 p-4 rounded-xl text-center">
                           <p className="text-[11px] sm:text-xs text-slate-500 italic leading-relaxed">
-                            <strong>{isBn ? 'সতর্কতা:' : 'Disclaimer:'}</strong> {authorDisclaimer.replace(/^(?:Disclaimer|সতর্কতা|সতর্কবার্তা)[\s\:]*/i, '')}
+                            {authorDisclaimer}
                           </p>
                         </div>
                       )}
