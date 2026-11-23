@@ -122,7 +122,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Permanently removed old URLs must 404 without chaining through a 301.
-  if (isRemovedPath(path) || isRemovedPath(rawPath)) return next();
+  if (isRemovedPath(path) || isRemovedPath(rawPath)) return withErrorPage(await next());
 
   // 1. Trailing slash consistency. Archived pages and old URLs that now serve
   //    a current page keep the exact path they were published with.

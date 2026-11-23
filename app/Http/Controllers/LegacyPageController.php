@@ -11,7 +11,18 @@ class LegacyPageController extends Controller
      * Old URLs that were permanently deleted. They must return 404 instead of
      * being normalised, redirected or mapped to a current page.
      */
-    private const REMOVED_PATHS = ['/en/home-en', '/bn/home'];
+    private const REMOVED_PATHS = [
+        '/en/home-en',
+        '/bn/home',
+        // Deleted on purpose: the three departed doctors' old profiles and the
+        // two old Google-review pages. They must 404 instead of showing the
+        // doctors index / Mirpur branch page under a misleading old URL.
+        '/doctors/dr-tasnova-rahman-mohona',
+        '/doctors/dr-afsana-haque-joty',
+        '/doctors/dr-reshma-islam',
+        '/bn/patiant-gogle-review-tech-dental',
+        '/patiant-gogle-review-tech-dental-en',
+    ];
 
     /** True when an old URL has been deleted on purpose. */
     public static function isRemovedPath(string $path): bool

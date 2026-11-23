@@ -17,7 +17,18 @@ export interface LegacyEntity {
   lang?: 'en' | 'bn';
 }
 
-const REMOVED_PATHS = ['/en/home-en', '/bn/home'];
+const REMOVED_PATHS = [
+  '/en/home-en',
+  '/bn/home',
+  // Deleted on purpose: the three departed doctors' old profiles and the two
+  // old Google-review pages. They must 404 instead of showing the doctors
+  // index / Mirpur branch page under a misleading old URL.
+  '/doctors/dr-tasnova-rahman-mohona',
+  '/doctors/dr-afsana-haque-joty',
+  '/doctors/dr-reshma-islam',
+  '/bn/patiant-gogle-review-tech-dental',
+  '/patiant-gogle-review-tech-dental-en',
+];
 
 /** Normalised key (leading slash, no trailing slash) used by the entity map. */
 function normalizeKey(pathname: string): string {

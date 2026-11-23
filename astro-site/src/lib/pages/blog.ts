@@ -99,12 +99,26 @@ export type BlogResult =
   | { kind: 'redirect'; location: string }
   | null;
 
+/** Old WordPress category archive slugs and their current listing page. */
+const CATEGORY_REDIRECTS: Record<string, { en: string; bn: string }> = {
+  dental: { en: '/blog', bn: '/bn/blog' },
+  medical: { en: '/medicines', bn: '/medicines' },
+};
+
 export function blogShow(slug: string, isBn: boolean, legacy = false): BlogResult {
   if (!legacy && SLUG_REDIRECTS[slug]) {
     return { kind: 'redirect', location: `${isBn ? '/bn/blog/' : '/blog/'}${SLUG_REDIRECTS[slug]}` };
   }
 
   let row = get('SELECT * FROM posts WHERE slug = ?', [slug]) || get('SELECT * FROM posts WHERE id = ?', [slug]);
+
+  // Old WordPress category archives (for example /blog/dental and
+  // /bn/blog/dental) are listings, not articles. The tag fallback below used
+  // to match them and render a random post at the old URL.
+  if (!row && !legacy && CATEGORY_REDIRECTS[slug]) {
+    return { kind: 'redirect', location: isBn ? CATEGORY_REDIRECTS[slug].bn : CATEGORY_REDIRECTS[slug].en };
+  }
+
   if (!row) row = get("SELECT * FROM posts WHERE tags LIKE ?", [`%${slug}%`]);
   if (!row) return null;
   const post = model('posts', row);

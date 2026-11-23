@@ -81,8 +81,22 @@ class BlogController extends Controller
         // Exact slug first: the tag fallback used to shadow real slugs and served a
         // different article under the same URL.
         $post = Post::where('slug', $slug)->first()
-            ?? Post::where('id', $slug)->first()
-            ?? Post::where('tags', 'like', "%{$slug}%")->firstOrFail();
+            ?? Post::where('id', $slug)->first();
+
+        // Old WordPress category archives (for example /blog/dental and
+        // /bn/blog/dental) are listings, not articles. The tag fallback below
+        // used to match them and render a random post at the old URL.
+        if (!$post && !$legacy) {
+            $categoryRedirects = [
+                'dental' => $request->is('bn/*') ? '/bn/blog' : '/blog',
+                'medical' => '/medicines',
+            ];
+            if (isset($categoryRedirects[$slug])) {
+                return redirect($categoryRedirects[$slug], 301);
+            }
+        }
+
+        $post = $post ?? Post::where('tags', 'like', "%{$slug}%")->firstOrFail();
         $related = Post::where('id', '!=', $post->id)->orderBy('published_at', 'desc')->take(2)->get();
 
         $isBn = $request->is('bn/*');
