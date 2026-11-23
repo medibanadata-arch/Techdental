@@ -1,0 +1,7 @@
+---
+// Health-check endpoint, equivalent to Laravel's built-in `/up` route.
+return new Response('Application up', {
+  status: 200,
+  headers: { 'Content-Type': 'text/html; charset=utf-8' },
+});
+---
