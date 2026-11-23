@@ -5,6 +5,7 @@ export const SITE_URL = (process.env.SITE_URL || 'https://techdentalcare.com').r
 export const SITE_NAME = 'Tech Dental Care';
 
 export interface SharedProps {
+  errors: Record<string, string>;
   auth: { user: any | null };
   site_settings: any;
   site_url: string;
@@ -18,6 +19,7 @@ export function siteSettings(): any {
 
 export function sharedProps(locale = 'en', flash: string | null = null): SharedProps {
   return {
+    errors: {},
     auth: { user: null },
     site_settings: siteSettings(),
     site_url: SITE_URL,
