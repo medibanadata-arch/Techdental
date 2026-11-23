@@ -180,6 +180,7 @@ export default function Home({
 
   // Gallery & Video Preview State
   const [previewImage, setPreviewImage] = useState<{ src: string; title?: string; branch?: string; index: number } | null>(null);
+  const [chatImagePreview, setChatImagePreview] = useState<{ url: string; alt?: string } | null>(null);
   const [playingVideo, setPlayingVideo] = useState<string | number | null>(null);
   const [isVideosExpanded, setIsVideosExpanded] = useState(false);
   // Mobile (<768px) expands to 7 videos, desktop to 9.
@@ -383,6 +384,16 @@ export default function Home({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [previewImage, galleryItems]);
+
+  // Close the AI chat image preview with Escape
+  useEffect(() => {
+    if (!chatImagePreview) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setChatImagePreview(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [chatImagePreview]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -841,12 +852,11 @@ export default function Home({
           <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide space-y-2">
             {renderFormattedReply(msg.answer?.reply || "")}
             {msg.answer?.image?.url && (
-              <a
-                href={msg.answer.image.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 block w-full max-w-[380px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs"
-                title={msg.answer.image.alt || "খরচের চার্ট"}
+              <button
+                type="button"
+                onClick={() => setChatImagePreview(msg.answer?.image ?? null)}
+                className="mt-3 block w-full max-w-[380px] cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-white p-0 text-left shadow-xs transition hover:shadow-md"
+                title="বড় করে দেখুন"
               >
                 <img
                   src={msg.answer.image.url}
@@ -854,7 +864,7 @@ export default function Home({
                   className="block h-auto w-full"
                   loading="lazy"
                 />
-              </a>
+              </button>
             )}
             {msg.bookingButtons && (
               <a
@@ -1652,6 +1662,30 @@ export default function Home({
               </span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN AI CHAT IMAGE PREVIEW MODAL */}
+      {chatImagePreview && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+          onClick={() => setChatImagePreview(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setChatImagePreview(null)}
+            className="absolute top-4 right-4 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition cursor-pointer"
+            title="বন্ধ করুন (Esc)"
+          >
+            <i className="fa-solid fa-xmark text-xl" />
+          </button>
+
+          <img
+            src={chatImagePreview.url}
+            alt={chatImagePreview.alt || "খরচের চার্ট"}
+            className="max-w-full max-h-[92vh] w-auto object-contain rounded-2xl shadow-2xl select-none"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
 
