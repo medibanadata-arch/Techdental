@@ -13,6 +13,7 @@ class Location extends Model
 
     protected $casts = [
         'faqs' => 'array',
+        'faqs_bn' => 'array',
         'robots_index' => 'boolean',
         'robots_follow' => 'boolean',
     ];

@@ -17,5 +17,6 @@ class DoctorSetting extends Model
         'robots_index' => 'boolean',
         'robots_follow' => 'boolean',
         'faqs' => 'array',
+        'faqs_bn' => 'array',
     ];
 }

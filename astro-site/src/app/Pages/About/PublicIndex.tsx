@@ -51,6 +51,7 @@ interface Props extends PageProps {
   management: any[];
   locations?: any[];
   nav_menu?: any;
+  is_bn?: boolean;
 }
 
 const TECH_CONFIG = [
@@ -89,11 +90,97 @@ const youTubeIdFrom = (url?: string): string => {
   return match ? match[1] : FALLBACK_VIDEO_ID;
 };
 
-export default function AboutPublicIndex({ content, doctors = [], management = [], locations = [], nav_menu }: Props) {
+export default function AboutPublicIndex({ content, doctors = [], management = [], locations = [], nav_menu, is_bn = false }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [isAppointmentOpen, setIsAppointmentOpen] = useState(false);
   const [isBranchPickerOpen, setIsBranchPickerOpen] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
+  const L = is_bn
+    ? {
+        home: 'হোম',
+        aboutUs: 'আমাদের সম্পর্কে',
+        heroBadge: 'বাংলাদেশে ডিজিটাল ওরাল হেলথকেয়ার',
+        happyPatients: 'সন্তুষ্ট রোগী',
+        yearEstablished: 'প্রতিষ্ঠার সাল',
+        dhakaBranches: 'ঢাকা ব্রাঞ্চ',
+        specialistDoctors: 'বিশেষজ্ঞ ডাক্তার',
+        clinicTour: 'ক্লিনিক ট্যুর ও রোগীর অভিজ্ঞতা',
+        insideExperience: 'টেক ডেন্টালের ভেতরের অভিজ্ঞতা',
+        sterileLounges: 'আধুনিক স্টেরাইল অপারেটরি ও কমফোর্ট লাউঞ্জ',
+        heritage: 'আমাদের ঐতিহ্য ও রোগীর প্রতি অঙ্গীকার',
+        values: [
+          'স্টেট-অব-দ্য-আর্ট জার্মান RVG এক্স-রে',
+          '১০০% ব্যথামুক্ত লেজার ডেন্টিস্ট্রি',
+          '৪-ধাপের আন্তর্জাতিক হাসপাতাল মানের হাইজিন',
+          'স্বচ্ছ নির্ধারিত চিকিৎসা মূল্য',
+        ],
+        bookAppointment: 'অনলাইনে অ্যাপয়েন্টমেন্ট নিন',
+        callHotline: 'হটলাইনে কল করুন',
+        servicesTitle: 'আমাদের ডেন্টাল সেবা ও প্রযুক্তি',
+        servicesSub: 'আপনার হাসির জন্য যত্নসহকারে তৈরি সম্পূর্ণ ও বিশেষায়িত ওরাল হেলথকেয়ার।',
+        specialized: 'বিশেষায়িত সেবা',
+        viewTreatments: 'চিকিৎসা দেখুন',
+        bookNow: 'বুক করুন',
+        teamTitle: 'আমাদের ডেন্টাল টিম',
+        teamSub: 'আমাদের অভিজ্ঞ ও উচ্চ যোগ্যতাসম্পন্ন ডেন্টাল পেশাজীবীরা আপনাকে সর্বোত্তম সেবা দিতে প্রতিশ্রুতিবদ্ধ।',
+        dentalSurgeon: 'ডেন্টাল সার্জন',
+        book: 'অ্যাপয়েন্টমেন্ট নিন',
+        viewAll: 'সব বিশেষজ্ঞ ডাক্তার দেখুন',
+        vision: 'আমাদের স্বপ্ন',
+        mission: 'আমাদের মিশন',
+        whyTitle: 'কেন টেক ডেন্টাল',
+        whySub: 'রোগীর সন্তুষ্টি ও ব্যথামুক্ত ফলাফলের মাধ্যমে আধুনিক ওরাল হেলথকেয়ারে নতুন মাইলফলক।',
+        managementTitle: 'ম্যানেজমেন্ট টিম',
+        managementSub: 'নৈতিক ডেন্টিস্ট্রি ও অবিরাম উদ্ভাবনে প্রতিশ্রুতিবদ্ধ অভিজ্ঞ স্বাস্থ্যসেবা নেতৃত্ব।',
+        seeDetails: 'বিস্তারিত দেখুন',
+        ctaEyebrow: 'ঢাকায় ব্যথামুক্ত ডেন্টাল চিকিৎসা',
+        ctaTitle: 'আপনার সুস্থ হাসি ফিরিয়ে আনতে প্রস্তুত?',
+        ctaSub: 'মিরপুর, উত্তরা, বাড্ডা ও যাত্রাবাড়ী ব্রাঞ্চে আমাদের বিশেষজ্ঞ ওরাল সার্জনদের সাথে পরামর্শ করুন।',
+        makeAppointment: 'অ্যাপয়েন্টমেন্ট নিন',
+      }
+    : {
+        home: 'Home',
+        aboutUs: 'About Us',
+        heroBadge: 'Digital Oral Healthcare in Bangladesh',
+        happyPatients: 'Happy Patients',
+        yearEstablished: 'Year Established',
+        dhakaBranches: 'Dhaka Branches',
+        specialistDoctors: 'Specialist Doctors',
+        clinicTour: 'Clinic Tour & Patient Experience',
+        insideExperience: 'Inside Tech Dental Experience',
+        sterileLounges: 'Advanced Sterile Operatories & Comfort Lounges',
+        heritage: 'Our Heritage & Patient Commitment',
+        values: [
+          'State-of-the-Art German RVG X-Ray',
+          '100% Painless Laser Dentistry',
+          '4-Step International Hospital Hygiene',
+          'Transparent Fixed Clinical Pricing',
+        ],
+        bookAppointment: 'Book Appointment Online',
+        callHotline: 'Call Hotline',
+        servicesTitle: 'Our Dental Services & Technology',
+        servicesSub: 'Comprehensive, gentle, and specialized oral healthcare tailored to your unique smile.',
+        specialized: 'Specialized Care',
+        viewTreatments: 'View Treatments',
+        bookNow: 'Book Now',
+        teamTitle: 'Meet Our Dental Team',
+        teamSub: 'Our team of experienced and highly qualified dental professionals is dedicated to providing you with the best possible care.',
+        dentalSurgeon: 'Dental Surgeon',
+        book: 'Book Appointment',
+        viewAll: 'View All Specialist Doctors',
+        vision: 'Our Vision',
+        mission: 'Our Mission',
+        whyTitle: 'Why Choose Tech Dental',
+        whySub: 'Setting new benchmarks in modern oral healthcare with patient satisfaction and painless results.',
+        managementTitle: 'Management Team',
+        managementSub: 'Experienced healthcare leaders committed to ethical dentistry and continuous innovation.',
+        seeDetails: 'See Details',
+        ctaEyebrow: 'Painless Clinical Dentistry in Dhaka',
+        ctaTitle: 'Ready to Restore Your Healthy Smile?',
+        ctaSub: 'Consult with our specialist oral surgeons across Mirpur, Uttara, Badda, and Jatrabari branches.',
+        makeAppointment: 'Make Appointment',
+      };
 
   if (!content) return null;
 
@@ -128,7 +215,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
       <Seo
         title={content.seo_title || `${content.hero_title || 'About Tech Dental Care'} — Digital Oral Healthcare`}
         description={content.meta_desc || content.hero_subtitle || content.story_p1}
-        path="/about"
+        path={is_bn ? '/bn/about-tech-dental-en/' : '/about'}
         robots={`${content.robots_index !== false ? 'index' : 'noindex'}, ${content.robots_follow !== false ? 'follow' : 'nofollow'}`}
         schema={aboutSchemas}
         noSuffix
@@ -147,10 +234,10 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
         <div className="flex items-center justify-between text-xs text-slate-500 max-w-7xl mx-auto">
           <div className="flex items-center gap-2 flex-wrap">
             <Link href="/" className="hover:text-[#800038] font-semibold transition-colors flex items-center gap-1">
-              <span>Home</span>
+              <span>{L.home}</span>
             </Link>
             <ChevronRight size={13} className="text-slate-400" />
-            <span className="text-slate-400">About Us</span>
+            <span className="text-slate-400">{L.aboutUs}</span>
             <ChevronRight size={13} className="text-slate-400" />
             <span className="font-bold text-slate-800">{content.hero_title || 'About Tech Dental Care'}</span>
           </div>
@@ -167,7 +254,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
           
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-rose-200 tracking-wider uppercase mb-5">
             <Sparkles size={14} className="text-amber-400 animate-pulse" />
-            <span>Digital Oral Healthcare in Bangladesh</span>
+            <span>{L.heroBadge}</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold mb-5 tracking-tight leading-tight">
@@ -182,19 +269,19 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 w-full max-w-3xl pt-4 border-t border-white/15">
             <div className="text-center p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
               <div className="text-2xl sm:text-3xl font-black text-white">{content.patients_count || '200,000'}+</div>
-              <div className="text-[11px] sm:text-xs text-rose-200 font-medium">Happy Patients</div>
+              <div className="text-[11px] sm:text-xs text-rose-200 font-medium">{L.happyPatients}</div>
             </div>
             <div className="text-center p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
               <div className="text-2xl sm:text-3xl font-black text-white">{content.founded_year || '2018'}</div>
-              <div className="text-[11px] sm:text-xs text-rose-200 font-medium">Year Established</div>
+              <div className="text-[11px] sm:text-xs text-rose-200 font-medium">{L.yearEstablished}</div>
             </div>
             <div className="text-center p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
               <div className="text-2xl sm:text-3xl font-black text-white">4</div>
-              <div className="text-[11px] sm:text-xs text-rose-200 font-medium">Dhaka Branches</div>
+              <div className="text-[11px] sm:text-xs text-rose-200 font-medium">{L.dhakaBranches}</div>
             </div>
             <div className="text-center p-3 rounded-2xl bg-white/5 backdrop-blur-xs border border-white/10">
               <div className="text-2xl sm:text-3xl font-black text-white">15+</div>
-              <div className="text-[11px] sm:text-xs text-rose-200 font-medium">Specialist Doctors</div>
+              <div className="text-[11px] sm:text-xs text-rose-200 font-medium">{L.specialistDoctors}</div>
             </div>
           </div>
 
@@ -237,7 +324,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-black/30 to-transparent flex flex-col justify-between p-6">
                   <div className="flex items-center gap-2">
                     <span className="bg-[#800038] text-white text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                      Clinic Tour & Patient Experience
+                      {L.clinicTour}
                     </span>
                   </div>
 
@@ -248,8 +335,8 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                   </div>
 
                   <div className="text-white">
-                    <p className="text-xs text-rose-200 font-medium">Inside Tech Dental Experience</p>
-                    <h4 className="text-lg font-bold text-white">Advanced Sterile Operatories & Comfort Lounges</h4>
+                    <p className="text-xs text-rose-200 font-medium">{L.insideExperience}</p>
+                    <h4 className="text-lg font-bold text-white">{L.sterileLounges}</h4>
                   </div>
                 </div>
               </button>
@@ -260,7 +347,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
           <div className="w-full lg:w-1/2 space-y-6">
             <div className="inline-flex items-center gap-2 text-xs font-bold text-[#800038] tracking-widest uppercase bg-rose-50 px-3.5 py-1.5 rounded-full border border-rose-200/60">
               <Award size={15} />
-              <span>Our Heritage & Patient Commitment</span>
+              <span>{L.heritage}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#800038] tracking-tight leading-tight">
@@ -275,22 +362,15 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
 
             {/* Core Values Bullet Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
-              <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                <span>State-of-the-Art German RVG X-Ray</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                <span>100% Painless Laser Dentistry</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                <span>4-Step International Hospital Hygiene</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-200/60">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                <span>Transparent Fixed Clinical Pricing</span>
-              </div>
+              {L.values.map((value) => (
+                <div
+                  key={value}
+                  className="flex items-center gap-2.5 text-xs font-bold text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-200/60"
+                >
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                  <span>{value}</span>
+                </div>
+              ))}
             </div>
 
             <div className="pt-2 flex items-center gap-4 flex-wrap">
@@ -299,7 +379,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                 className="px-6 py-3 rounded-xl bg-[#800038] hover:bg-[#6b002f] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Calendar size={16} />
-                <span>Book Appointment Online</span>
+                <span>{L.bookAppointment}</span>
               </Link>
 
               <a
@@ -307,7 +387,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                 className="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm border border-slate-200 transition-all flex items-center gap-2"
               >
                 <PhoneCall size={16} className="text-[#800038]" />
-                <span>Call Hotline</span>
+                <span>{L.callHotline}</span>
               </a>
             </div>
 
@@ -323,10 +403,10 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
             
             <div className="text-center max-w-3xl mx-auto mb-14">
               <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4">
-                Our Dental Services &amp; Technology
+                {L.servicesTitle}
               </h2>
               <p className="text-slate-600 text-base sm:text-lg">
-                Comprehensive, gentle, and specialized oral healthcare tailored to your unique smile.
+                {L.servicesSub}
               </p>
             </div>
 
@@ -344,7 +424,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       />
                       <div className="absolute top-3 left-3 bg-[#800038]/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-xs">
-                        Specialized Care
+                        {L.specialized}
                       </div>
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-[#800038] transition-colors">
@@ -360,7 +440,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                       href="/services"
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-[#800038] hover:text-[#5a0027] transition-colors"
                     >
-                      <span>View Treatments</span>
+                      <span>{L.viewTreatments}</span>
                       <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                     </Link>
 
@@ -368,7 +448,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                       href="/appointment"
                       className="px-3.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs transition cursor-pointer"
                     >
-                      Book Now
+                      {L.bookNow}
                     </Link>
                   </div>
                 </div>
@@ -385,10 +465,10 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
           
           <div className="text-center max-w-3xl mx-auto mb-14">
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4">
-              Meet Our Dental Team
+              {L.teamTitle}
             </h2>
             <p className="text-slate-600 text-base sm:text-lg">
-              Our team of experienced and highly qualified dental professionals is dedicated to providing you with the best possible care.
+              {L.teamSub}
             </p>
           </div>
 
@@ -411,7 +491,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                   {d.name}
                 </h3>
                 <p className="text-xs text-rose-600 font-extrabold mb-3 tracking-wider uppercase">
-                  {d.designation || 'Dental Surgeon'}
+                  {d.designation || L.dentalSurgeon}
                 </p>
 
                 <div className="w-12 h-0.5 bg-slate-200 rounded-full mb-3 group-hover:bg-[#800038] transition-colors" />
@@ -425,7 +505,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                   href={`/appointment?doctor=${encodeURIComponent(d.name)}`}
                   className="mt-auto w-full py-2 bg-slate-50 hover:bg-[#800038] text-slate-700 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-200 hover:border-transparent cursor-pointer flex items-center justify-center"
                 >
-                  Book Appointment
+                  {L.book}
                 </Link>
               </div>
             ))}
@@ -436,7 +516,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
               href="/doctors"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition cursor-pointer"
             >
-              <span>View All Specialist Doctors ({doctors.length})</span>
+              <span>{L.viewAll} ({doctors.length})</span>
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -517,7 +597,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
               <Eye size={28} />
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-rose-800">
-              {content.vision_title || 'Our Vision'}
+              {L.vision}
             </h2>
             <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
               {content.vision_text || "Building Asia's premier dental institute, synonymous with cutting-edge technology and impeccable aesthetic results."}
@@ -539,7 +619,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
               <Target size={28} />
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-rose-800">
-              {content.mission_title || 'Our Mission'}
+              {L.mission}
             </h2>
             <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
               {content.mission_text || 'Prepare to be stunned: Introducing the most integrated aesthetic treatment appliance, engineered to surpass even your wildest vision for a beautiful smile.'}
@@ -555,10 +635,10 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
           <div className="max-w-7xl mx-auto text-center">
             
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4">
-              Why Choose Tech Dental
+              {L.whyTitle}
             </h2>
             <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto mb-14">
-              Setting new benchmarks in modern oral healthcare with patient satisfaction and painless results.
+              {L.whySub}
             </p>
 
             <div className="flex flex-wrap justify-center gap-8">
@@ -591,10 +671,10 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
         <div className="max-w-7xl mx-auto text-center">
           
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-4">
-            Management Team
+            {L.managementTitle}
           </h2>
           <p className="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto mb-14">
-            Experienced healthcare leaders committed to ethical dentistry and continuous innovation.
+            {L.managementSub}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -619,7 +699,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                     href={memberUrl}
                     className="px-6 py-2 border-2 border-[#800038] text-[#800038] hover:bg-[#800038] hover:text-white rounded-full text-xs font-bold transition cursor-pointer"
                   >
-                    See Details
+                    {L.seeDetails}
                   </Link>
                 </div>
               );
@@ -634,13 +714,13 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="space-y-2 text-center md:text-left">
             <span className="text-xs font-bold uppercase tracking-widest text-rose-200">
-              Painless Clinical Dentistry in Dhaka
+              {L.ctaEyebrow}
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
-              Ready to Restore Your Healthy Smile?
+              {L.ctaTitle}
             </h2>
             <p className="text-rose-100 text-sm max-w-xl">
-              Consult with our specialist oral surgeons across Mirpur, Uttara, Badda, and Jatrabari branches.
+              {L.ctaSub}
             </p>
           </div>
 
@@ -658,7 +738,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
               className="px-8 py-3.5 bg-white hover:bg-rose-50 text-[#800038] rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition flex items-center gap-2 cursor-pointer"
             >
               <Calendar size={16} />
-              <span>Make Appointment &rarr;</span>
+              <span>{L.makeAppointment} &rarr;</span>
             </Link>
           </div>
         </div>

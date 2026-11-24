@@ -15,6 +15,7 @@ class HomeContent extends Model
 
     protected $casts = [
         'faqs' => 'array',
+        'faqs_bn' => 'array',
         'header_settings' => 'array',
         'footer_settings' => 'array',
         'sections_config' => 'array',

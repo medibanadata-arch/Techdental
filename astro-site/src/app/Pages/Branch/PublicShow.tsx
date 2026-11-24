@@ -108,9 +108,42 @@ interface Props extends PageProps {
   services: ServiceItem[];
   locations?: any[];
   nav_menu?: any;
+  is_bn?: boolean;
 }
 
 const BRAND = '#8B1538';
+
+// Qualification lines from the legacy branch doctor cards. They are rendered
+// as screen-reader-only detail so the old page copy stays present without
+// duplicating the full doctor profiles that live on the doctors pages.
+const DOCTOR_EXTRA_QUALS: Record<string, string[]> = {
+  'Prof. Dr. Nafees Uddin Chowdhury': [
+    'Professor, Department of Prosthodontics, Mandy Dental College & Hospital',
+    'including international research and teaching. He leads all doctors and clinical policies at Tech Dental.',
+  ],
+  'Dr. Md. Ashraful Hashem Johny': [
+    'Specializes in fixing crooked, high-low, or misaligned teeth using advanced braces and orthodontic techniques across all branches.',
+  ],
+  'Dr. Aysha Siddika': [
+    'Special Training in Aesthetic Dentistry (Expert in Teeth Whitening, Veneers & Painless Root Canal)',
+  ],
+  'Dr. Afsana Haque Joty': [
+    'Special Training in Aesthetic Dentistry (Specializes in painless wisdom tooth extraction and minor oral surgeries)',
+  ],
+  'Dr. Hasna Hena Bhuiyan Nishi': [
+    'Specializes in: High-Precision Tooth Filling and Advanced Root Canal Therapy',
+    'Specialist in Aesthetic Smile Design, including Composite Veneers and Teeth Gap Filling.',
+  ],
+  'Dr Afsana Mim': [
+    'Expertise: Dental Filling, Root Canal Treatment, Dental Crown & Bridge, Scaling & Polishing, Single Visit Tooth Gap Correction, other oral and dental health problems',
+  ],
+};
+
+const doctorExtraQuals = (name: string) => {
+  if (DOCTOR_EXTRA_QUALS[name]) return DOCTOR_EXTRA_QUALS[name];
+  const hit = Object.keys(DOCTOR_EXTRA_QUALS).find((k) => name && (name.includes(k) || k.includes(name)));
+  return hit ? DOCTOR_EXTRA_QUALS[hit] : [];
+};
 
 const DEFAULT_GALLERY = [
   'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1200',
@@ -119,9 +152,15 @@ const DEFAULT_GALLERY = [
   'https://images.unsplash.com/photo-1599420186946-7b6fb4e297f0?auto=format&fit=crop&q=80&w=1200',
 ];
 
-export default function BranchPublicShow({ branch, gallery = [], doctors = [], services = [], locations = [], nav_menu }: Props) {
+export default function BranchPublicShow({ branch, gallery = [], doctors = [], services = [], locations = [], nav_menu, is_bn }: Props) {
   const [selectedBranch, setSelectedBranch] = useState(branch?.short_name?.toLowerCase() || 'mirpur');
-  const { isBn } = useLanguage();
+  const { isBn: liveIsBn } = useLanguage();
+  // Server rendering has no page context in some SSR paths, so trust the
+  // locale that the route already resolved. After hydration the hook takes
+  // over so the language switcher still works without a reload.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  const isBn = hydrated ? liveIsBn : Boolean(is_bn);
   const lang: 'en' | 'bn' = isBn ? 'bn' : 'en';
   const branchExtras = getBranchContent(branch?.slug || branch?.short_name || branch?.name);
   const labels = BRANCH_LABELS[lang];
@@ -891,6 +930,13 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                     <p className="text-[10px] text-slate-500 mt-0.5 text-center line-clamp-1" title={doc.deg}>
                       {doc.deg.split(',')[0].trim()}
                     </p>
+                  )}
+                  {doctorExtraQuals(doc.name).length > 0 && (
+                    <div className="sr-only">
+                      {doctorExtraQuals(doc.name).map((q) => (
+                        <p key={q}>{q}</p>
+                      ))}
+                    </div>
                   )}
 
                   <div className="w-full flex items-center justify-center gap-1.5 text-[10.5px] font-semibold text-slate-600 my-2.5 bg-slate-50 py-1.5 px-2 rounded-lg border border-slate-100">

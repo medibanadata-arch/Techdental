@@ -1,12 +1,18 @@
 import { all, get, model, models } from '../db';
 import { SITE_URL, applyBangla, locations, navMenu, uniqueBy, websiteTexts } from '../shared';
+import { SPECIAL_OFFERS_BN } from '../../app/data/specialOffersBn';
 
 /* ----------------------------- Price list ----------------------------- */
 
-export function priceListProps(isBn = false) {
+export function priceListProps(isBn = false, withOffers = false) {
   const row = get('SELECT * FROM price_settings LIMIT 1');
   const settings = row ? model('price_settings', row) : null;
-  if (settings && isBn) applyBangla(settings, ['seo_content']);
+  if (settings && isBn) {
+    applyBangla(settings, ['seo_content']);
+    // Bangla page must not fall back to the English FAQ list.
+    settings.faqs =
+      Array.isArray(settings.faqs_bn) && settings.faqs_bn.length > 0 ? settings.faqs_bn : [];
+  }
 
   const categories = models('price_categories', all('SELECT * FROM price_categories ORDER BY sort_order'));
   for (const category of categories as any[]) {
@@ -21,6 +27,8 @@ export function priceListProps(isBn = false) {
     settings,
     locations: locations(),
     nav_menu: navMenu(),
+    is_bn: isBn,
+    offers: withOffers && isBn ? SPECIAL_OFFERS_BN : [],
   };
 }
 

@@ -83,11 +83,11 @@ export function dateIso(value: any): any {
 }
 
 const JSON_COLUMNS: Record<string, string[]> = {
-  home_content: ['faqs', 'header_settings', 'footer_settings', 'sections_config', 'homepage_texts', 'website_texts'],
+  home_content: ['faqs', 'faqs_bn', 'header_settings', 'footer_settings', 'sections_config', 'homepage_texts', 'website_texts'],
   about_content: ['services_cards', 'tech_cards', 'why_cards'],
-  doctors: ['milestones', 'faqs'],
-  doctor_settings: ['faqs'],
-  locations: ['faqs'],
+  doctors: ['milestones', 'faqs', 'faqs_bn'],
+  doctor_settings: ['faqs', 'faqs_bn'],
+  locations: ['faqs', 'faqs_bn'],
   medicines: [
     'uses_items',
     'side_effects_items',
@@ -102,8 +102,8 @@ const JSON_COLUMNS: Record<string, string[]> = {
   ],
   pages: ['blocks', 'faqs'],
   posts: ['faqs', 'section_titles', 'cta_box'],
-  price_settings: ['faqs'],
-  services: ['hero_thumbs', 'features', 'pricing_cards', 'results', 'seo_images', 'faqs', 'reviews'],
+  price_settings: ['faqs', 'faqs_bn'],
+  services: ['hero_thumbs', 'features', 'pricing_cards', 'results', 'seo_images', 'faqs', 'faqs_bn', 'reviews'],
   team_members: ['letter'],
   payment_methods_settings: ['methods_data', 'branches_data'],
   redirects: [],

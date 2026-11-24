@@ -182,8 +182,8 @@ export function renderMappedEntity(pathname: string, entity: LegacyEntity): Lega
       }
 
       case 'about': {
-        const props = aboutProps();
-        return page('About/PublicIndex', props, aboutSeo(props.content));
+        const props = aboutProps(localeIsBn);
+        return page('About/PublicIndex', props, aboutSeo(props.content, localeIsBn));
       }
 
       case 'branches': {
@@ -203,7 +203,7 @@ export function renderMappedEntity(pathname: string, entity: LegacyEntity): Lega
       }
 
       case 'price_list': {
-        const props = priceListProps(localeIsBn);
+        const props = priceListProps(localeIsBn, /special-offer/i.test(pathname));
         return page('PriceList/PublicIndex', props, priceListSeo(props.settings));
       }
 

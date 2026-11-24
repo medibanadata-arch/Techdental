@@ -1,5 +1,6 @@
 import { all, get, json, model, models } from '../db';
 import { SITE_URL, applyBangla, locations, navMenu, websiteTexts } from '../shared';
+import { ABOUT_CONTENT_BN } from '../../app/data/aboutContentBn';
 
 /* ----------------------------- About ----------------------------- */
 
@@ -8,9 +9,10 @@ export function aboutContent(): any {
   return row ? model('about_content', row) : null;
 }
 
-export function aboutProps() {
+export function aboutProps(isBn = false) {
+  const content = isBn ? { ...aboutContent(), ...ABOUT_CONTENT_BN } : aboutContent();
   return {
-    content: aboutContent(),
+    content,
     doctors: models('doctors', all('SELECT * FROM doctors ORDER BY rank_order')),
     management: models(
       'team_members',
@@ -18,10 +20,11 @@ export function aboutProps() {
     ),
     locations: locations(),
     nav_menu: navMenu(),
+    is_bn: isBn,
   };
 }
 
-export function aboutSeo(content: any) {
+export function aboutSeo(content: any, isBn = false) {
   const schemas: any[] = [];
   if (content?.schema_json) {
     try {
@@ -47,7 +50,7 @@ export function aboutSeo(content: any) {
       content?.seo_title ||
       `${content?.hero_title || 'About Tech Dental Care'} — Digital Oral Healthcare`,
     description: content?.meta_desc || content?.hero_subtitle || content?.story_p1,
-    path: '/about',
+    path: isBn ? '/bn/about-tech-dental-en/' : '/about',
     robots: `${content?.robots_index !== false ? 'index' : 'noindex'}, ${
       content?.robots_follow !== false ? 'follow' : 'nofollow'
     }`,
@@ -157,6 +160,7 @@ export function doctorsIndexProps(isBn = false) {
     settings,
     locations: locations(),
     nav_menu: navMenu(),
+    is_bn: isBn,
   };
 }
 

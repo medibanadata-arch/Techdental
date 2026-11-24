@@ -19,6 +19,7 @@ class Service extends Model
         'results' => 'array',
         'seo_images' => 'array',
         'faqs' => 'array',
+        'faqs_bn' => 'array',
         'reviews' => 'array',
     ];
 }

@@ -15,6 +15,7 @@ class Doctor extends Model
         'milestones' => 'array',
         'verified' => 'boolean',
         'faqs' => 'array',
+        'faqs_bn' => 'array',
         'robots_index' => 'boolean',
         'robots_follow' => 'boolean',
     ];

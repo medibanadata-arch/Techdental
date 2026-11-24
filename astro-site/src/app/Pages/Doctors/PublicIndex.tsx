@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
+import { PATIENT_REVIEWS, REVIEWS_COPY } from "@/data/patientReviews";
 import type { PageProps } from '@inertiajs/core';
 import { getWebsiteTexts } from '@/data/websiteTexts';
 
@@ -39,6 +40,7 @@ interface Props extends PageProps {
   settings?: DoctorSettingData;
   locations?: any[];
   nav_menu?: any;
+  is_bn?: boolean;
 }
 
 const DetailBox: React.FC<{ icon: string; label: string; value: string; title?: string }> = ({ icon, label, value, title }) => (
@@ -53,12 +55,13 @@ const DetailBox: React.FC<{ icon: string; label: string; value: string; title?: 
   </div>
 );
 
-export default function DoctorsPublicIndex({ data = [], settings, locations = [], nav_menu }: Props) {
+export default function DoctorsPublicIndex({ data = [], settings, locations = [], nav_menu, is_bn = false }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [filter, setFilter] = useState<'All' | string>('All');
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
   const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
+  const R = REVIEWS_COPY[is_bn ? 'bn' : 'en'];
   const [moreInfoOpen, setMoreInfoOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [apptDoctor, setApptDoctor] = useState<DoctorItem | null>(null);
@@ -253,8 +256,10 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
               </button>
             </h2>
 
-            {moreInfoOpen && (
-              <div className="border-t border-slate-100 p-4 sm:p-6 text-slate-700 bg-white space-y-6">
+            <div
+              hidden={!moreInfoOpen}
+              className="border-t border-slate-100 p-4 sm:p-6 text-slate-700 bg-white space-y-6"
+            >
                 <div
                   className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
                   dangerouslySetInnerHTML={{
@@ -304,19 +309,86 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
                                   }`}
                               />
                             </button>
-                            {isOpen && (
-                              <div className="px-4 pb-4 pt-1 text-xs sm:text-sm text-slate-600 bg-white border-t border-slate-100 leading-relaxed animate-in fade-in duration-150">
-                                {faq.a}
-                              </div>
-                            )}
+                            <div
+                              hidden={!isOpen}
+                              className="px-4 pb-4 pt-1 text-xs sm:text-sm text-slate-600 bg-white border-t border-slate-100 leading-relaxed animate-in fade-in duration-150"
+                            >
+                              {faq.a}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
                   </div>
                 )}
+            </div>
+          </div>
+        </section>
+
+        {/* Patient Google reviews (kept from the old /doctors/ page) */}
+        <section className="mt-6 mb-8 w-full">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 lg:p-7">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-100 pb-5 mb-5">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-pink-700">{R.eyebrow}</span>
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">{R.heading}</h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">{R.intro}</p>
               </div>
-            )}
+              <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shrink-0">
+                <span className="text-2xl font-black text-slate-900">{R.rating}</span>
+                <div>
+                  <div className="text-amber-500 text-xs tracking-widest">★★★★★</div>
+                  <div className="text-[10px] text-slate-500">{R.count}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {PATIENT_REVIEWS.map((rev) => {
+                const initials = rev.name
+                  .replace(/[^A-Za-z\u0980-\u09FF\s.]/g, '')
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((word) => word[0])
+                  .join('');
+                return (
+                  <article
+                    key={rev.name}
+                    className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 flex flex-col gap-3"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs shrink-0 ${rev.tone}`}>
+                        {initials}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-slate-800 truncate">{rev.name}</div>
+                        <div className="text-amber-500 text-[10px] tracking-widest">
+                          ★★★★★ <span className="text-slate-400 font-medium tracking-normal">· Google</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed">{rev.text}</p>
+                    {rev.reply && (
+                      <div className="mt-auto border-l-2 border-pink-200 bg-white rounded-r-lg px-3 py-2">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-pink-700">{R.owner}</div>
+                        <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">{rev.reply}</p>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl bg-[#8b1d41] px-4 py-3.5">
+              <p className="text-xs sm:text-sm font-semibold text-rose-50 text-center sm:text-left">{R.cta}</p>
+              <Link
+                href="/appointment"
+                className="shrink-0 rounded-lg bg-white px-4 py-2 text-xs font-bold text-[#8b1d41] hover:bg-rose-50 transition"
+              >
+                {R.book}
+              </Link>
+            </div>
           </div>
         </section>
 

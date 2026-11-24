@@ -126,7 +126,11 @@ export function serviceSeo(item: any, isBn: boolean) {
       .trim();
   })();
 
-  const faqs = Array.isArray(item.faqs) ? item.faqs : [];
+  const faqs = isBn && Array.isArray(item.faqs_bn) && item.faqs_bn.length
+    ? item.faqs_bn
+    : Array.isArray(item.faqs)
+      ? item.faqs
+      : [];
   const url = `${SITE_URL}${pagePath}`;
   const graph: any[] = [
     {

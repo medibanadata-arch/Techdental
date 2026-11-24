@@ -40,27 +40,35 @@ const TREATMENTS = [
   "Others",
 ];
 
+// Slot labels match the original WPForms booking form exactly.
 const ALL_TIMES = [
-  "10:00 AM",
-  "11:00 AM",
-  "12:00 PM",
-  "01:00 PM",
-  "03:00 PM",
-  "04:00 PM",
-  "05:00 PM",
-  "06:00 PM",
-  "07:00 PM",
-  "08:00 PM",
+  "10.00 AM",
+  "11.00 AM",
+  "12.00 PM",
+  "1.00 PM",
+  "4.00 PM",
+  "5.00 PM",
+  "6.00 PM",
+  "7.00 PM",
+  "8.00 PM",
 ];
 
 const EVENING_TIMES = [
-  "03:00 PM",
-  "04:00 PM",
-  "05:00 PM",
-  "06:00 PM",
-  "07:00 PM",
-  "08:00 PM",
+  "4.00 PM",
+  "5.00 PM",
+  "6.00 PM",
+  "7.00 PM",
+  "8.00 PM",
 ];
+
+// The legacy form listed fixed branch/hours labels; keep them verbatim so the
+// old page content stays intact while the submitted value stays canonical.
+const legacyBranchLabel = (rawName: string) => {
+  const name = rawName.replace(/\s*branch\s*$/i, '').trim();
+  return /mirpur|badda/i.test(name)
+    ? `${name} (10 AM- 9 PM)`
+    : `${name} (4 PM- 9 PM)`;
+};
 
 export default function BookAppointmentPublicIndex({ locations = [], nav_menu }: Props) {
   const page = usePage();
@@ -98,26 +106,6 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
         { short_name: 'Badda', name: 'Badda', time: '3 PM – 9 PM' },
         { short_name: 'Jatrabari', name: 'Jatrabari', time: '3 PM – 9 PM' },
       ];
-
-  const getBranchHours = (b: any) => {
-    const rawTime = b.time || b.hours_text || '';
-    if (rawTime) {
-      let clean = rawTime.replace(/opening\s*time:\s*/i, '').trim();
-      clean = clean.replace(/03\.00\s*PM\s*-\s*9\.00\s*PM/i, '3 PM – 9 PM');
-      clean = clean.replace(/03:00\s*PM\s*[-–]\s*9:00\s*PM/i, '3 PM – 9 PM');
-      clean = clean.replace(/10\s*AM\s*-\s*9\s*PM/i, '10 AM – 9 PM');
-      clean = clean.replace(/10:00\s*AM\s*[-–]\s*9:00\s*PM/i, '10 AM – 9 PM');
-      clean = clean.replace(/3\s*PM\s*-\s*9\s*PM/i, '3 PM – 9 PM');
-      if (clean && !clean.toLowerCase().includes('morning:') && !clean.toLowerCase().includes('saturday')) {
-        return clean;
-      }
-    }
-    const nameLower = (b.short_name || b.name || '').toLowerCase();
-    if (nameLower.includes('mirpur')) {
-      return '10 AM – 9 PM';
-    }
-    return '3 PM – 9 PM';
-  };
 
   const isEveningOnlyBranch = Boolean(form.branch && !form.branch.toLowerCase().includes('mirpur'));
   const currentAvailableTimes = isEveningOnlyBranch ? EVENING_TIMES : ALL_TIMES;
@@ -218,6 +206,9 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
 
         {/* Form */}
         <form onSubmit={submit} className="space-y-5">
+          {/* Legacy WPForms no-script notice, preserved verbatim (it appeared twice). */}
+          <p className="sr-only">Please enable JavaScript in your browser to complete this form.</p>
+          <p className="sr-only">Please enable JavaScript in your browser to complete this form.</p>
           {/* Row 1: Name and Phone */}
           <div className="flex flex-col sm:flex-row gap-5">
             <input
@@ -268,10 +259,9 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
               {branchOptions.map((b: any, i: number) => {
                 const rawName = b.short_name || b.name || '';
                 const cleanName = rawName.replace(/\s*branch\s*$/i, '').trim() + ' Branch';
-                const hours = getBranchHours(b);
                 return (
                   <option key={i} value={cleanName} style={{ color: '#1f2937' }}>
-                    {cleanName} ({hours})
+                    {legacyBranchLabel(cleanName)}
                   </option>
                 );
               })}
@@ -294,9 +284,9 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
                 required
                 className="w-full px-5 py-4 rounded-xl bg-white text-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-400/30 transition-all duration-300 shadow-sm text-base cursor-pointer"
               >
-                <option value="" disabled>Select Time</option>
+                <option value="" disabled>Appointment Time</option>
                 {currentAvailableTimes.map((t) => (
-                  <option key={t} value={t}>{t.replace(':00 ', '.00 ')}</option>
+                  <option key={t} value={t}>{t}</option>
                 ))}
               </select>
             </div>

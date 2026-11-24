@@ -704,7 +704,7 @@ export default function MedicinesPublicSingle({
                       <div key={i} className="flex items-start gap-2.5 py-1">
                         <WarningIcon icon={w.icon} />
                         <div className="flex-1 min-w-0">
-                        {label && <strong>{label}: </strong>}
+                        {label ? <strong>{`${label}: `}</strong> : null}
                         {hasRichHtml(text) ? (
                           <div className="rich-content-view text-xs sm:text-sm text-slate-700" dangerouslySetInnerHTML={{ __html: text }} />
                         ) : (
@@ -736,7 +736,7 @@ export default function MedicinesPublicSingle({
                   priceNotes.map((n, i) => (
                     <div key={i} className="flex items-start gap-2.5 py-1">
                       <i className={`fa-solid ${priceRowIcon(n.label, i)} text-[#8b1d41] w-4 text-center mt-0.5`} />
-                      <span>{n.label && <strong>{n.label}: </strong>}{isBn ? toBnDigit(n.text) : n.text}</span>
+                      <span>{'· '}{n.label ? <strong>{`${n.label}: `}</strong> : null}{isBn ? toBnDigit(n.text) : n.text}</span>
                     </div>
                   ))
                 ) : (

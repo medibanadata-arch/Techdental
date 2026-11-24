@@ -236,6 +236,13 @@ export default function ServicesPublicSingle({
     : (item.details_heading || `More About ${title}`);
   const detailsHtml = isBn ? (item.details_html_bn || item.details_html) : item.details_html;
 
+  // The legacy service body starts with the short description paragraph on the
+  // English site, so keep it inside "More About" instead of repeating it above.
+  const detailsLead = !isBn && String(item.short_desc || '').trim() ? String(item.short_desc).trim() : '';
+  const detailsBody = detailsLead
+    ? `<p>${detailsLead.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>${detailsHtml}`
+    : detailsHtml;
+
   // Dynamic item data from database — no fallback to hardcoded mock arrays on deletion
   const features = (Array.isArray(item.features) ? item.features : []).map((f) =>
     isBn ? { title: bnFeatureTitle(f.title), sub: bnFeatureSub(f.sub) } : f
@@ -463,9 +470,11 @@ export default function ServicesPublicSingle({
               </span>
             </div>
 
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              {shortDesc || "A titanium implant replaces the root of a missing tooth and holds a natural-looking crown. It feels, looks and works like your own tooth, with no need to grind down healthy neighbours."}
-            </p>
+            {(isBn || !detailsLead) && (
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                {shortDesc || "A titanium implant replaces the root of a missing tooth and holds a natural-looking crown. It feels, looks and works like your own tooth, with no need to grind down healthy neighbours."}
+              </p>
+            )}
 
             {/* Features Grid */}
             {features.length > 0 && (
@@ -600,14 +609,17 @@ export default function ServicesPublicSingle({
               />
             </button>
 
-            {/* Accordion Body: Pure SEO Content */}
-            {seoOpen && (
-              <div className="p-6 sm:p-8 border-t border-gray-100 animate-in fade-in duration-200">
+            {/* Always in the DOM (hidden when collapsed) so the SEO body and
+                every FAQ answer stay crawlable. */}
+            <div
+              hidden={!seoOpen}
+              className="p-6 sm:p-8 border-t border-gray-100 animate-in fade-in duration-200"
+            >
                 <div className="w-full text-gray-700 text-sm sm:text-base leading-relaxed">
-                  {detailsHtml ? (
+                  {detailsBody ? (
                     <div
                       className="rich-content-view wp-editor-content prose max-w-none text-slate-800 leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: detailsHtml }}
+                      dangerouslySetInnerHTML={{ __html: detailsBody }}
                     />
                   ) : (
                     <div className="space-y-4 text-slate-700">
@@ -647,23 +659,20 @@ export default function ServicesPublicSingle({
                               className={`w-5 h-5 text-gray-500 transform transition-transform duration-300 shrink-0 ${openFaq === i ? 'rotate-180' : ''}`}
                             />
                           </button>
-                          {openFaq === i && (
-                            <div className="px-4 pb-4 -mt-1">
-                              {f.a ? (
-                                <div
-                                  className="rich-content-view wp-editor-content prose max-w-none text-slate-700 text-sm sm:text-base leading-relaxed"
-                                  dangerouslySetInnerHTML={{ __html: f.a }}
-                                />
-                              ) : null}
-                            </div>
-                          )}
+                          <div hidden={openFaq !== i} className="px-4 pb-4 -mt-1">
+                            {f.a ? (
+                              <div
+                                className="rich-content-view wp-editor-content prose max-w-none text-slate-700 text-sm sm:text-base leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: f.a }}
+                              />
+                            ) : null}
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </section>

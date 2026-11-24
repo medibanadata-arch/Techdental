@@ -72,13 +72,26 @@ export function branchShowProps(slug: string, isBn = false) {
     'src'
   );
 
+  const baseBranch = String(branch.short_name ?? branch.name ?? '')
+    .replace(/\s*branch\s*$/i, '')
+    .trim();
+
   let doctors = models(
     'doctors',
     all('SELECT * FROM doctors WHERE branch LIKE ? OR branch_location = ? ORDER BY rank_order', [
-      `%${branch.short_name ?? branch.name ?? ''}%`,
-      branch.short_name ?? branch.name ?? '',
+      `%${baseBranch}%`,
+      baseBranch,
     ])
   );
+  // The legacy branch pages always listed the two shared senior specialists
+  // alongside the branch team.
+  const sharedDoctors = models(
+    'doctors',
+    all(
+      "SELECT * FROM doctors WHERE name IN ('Prof. Dr. Nafees Uddin Chowdhury', 'Dr. Md. Ashraful Hashem Johny') ORDER BY rank_order"
+    )
+  );
+  doctors = uniqueBy([...doctors, ...sharedDoctors], 'id');
   if (!doctors.length) {
     doctors = models('doctors', all('SELECT * FROM doctors ORDER BY rank_order LIMIT 6'));
   }
