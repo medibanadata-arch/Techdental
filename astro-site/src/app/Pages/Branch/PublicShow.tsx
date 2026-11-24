@@ -6,6 +6,14 @@ import Seo from "@/Components/Seo";
 import type { PageProps } from '@inertiajs/core';
 import { getBranchStatus, parseAllBranchShifts } from "@/utils/branchStatus";
 import { HOTLINE, WHATSAPP, buildWhatsAppUrl } from "@/utils/contact";
+import { useLanguage } from "@/utils/useLanguage";
+import {
+  BRANCH_LABELS,
+  BRANCH_VIDEOS,
+  FAQ_CATEGORY_ORDER,
+  getBranchContent,
+  getBranchPlaceName,
+} from "../../../data/branchContent";
 import {
   CalendarCheck,
   Clock,
@@ -113,6 +121,10 @@ const DEFAULT_GALLERY = [
 
 export default function BranchPublicShow({ branch, gallery = [], doctors = [], services = [], locations = [], nav_menu }: Props) {
   const [selectedBranch, setSelectedBranch] = useState(branch?.short_name?.toLowerCase() || 'mirpur');
+  const { isBn } = useLanguage();
+  const lang: 'en' | 'bn' = isBn ? 'bn' : 'en';
+  const branchExtras = getBranchContent(branch?.slug || branch?.short_name || branch?.name);
+  const labels = BRANCH_LABELS[lang];
 
   // Small tooth mark used by the Services & Pricing heading
   const ToothIcon = ({ className = '' }: { className?: string }) => (
@@ -146,6 +158,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
   };
   const serviceHref = (s: any) => `/service/${(s && (s.slug || s.id)) || ''}`;
   const [isMoreAboutOpen, setIsMoreAboutOpen] = useState(false);
+  const [activeFaqCat, setActiveFaqCat] = useState<string>('');
 
   // Safe gallery images extraction — show each photo once even if it is attached twice.
   const seenGallery = new Set<string>();
@@ -291,10 +304,14 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
-  const branchPath = `/branch/${branch?.slug || branch?.id}`;
+  const branchPath = isBn ? `/bn/branch/${branch?.slug || branch?.id}` : `/branch/${branch?.slug || branch?.id}`;
   const pageCanonical = `${siteUrl}${branchPath}`;
-  const metaTitle = branch?.seo_title || `Best Dental Clinic in ${branchName} — Tech Dental Care`;
-  const metaDescription = branch?.meta_desc || `Visit Tech Dental ${branchName} in Dhaka for painless root canal therapy, dental implants, cosmetic veneers and general dental treatments.`;
+  const metaTitle = isBn
+    ? branchExtras.seo.bn.title
+    : branch?.seo_title || branchExtras.seo.en.title || `Best Dental Clinic in ${branchName} — Tech Dental Care`;
+  const metaDescription = isBn
+    ? branchExtras.seo.bn.description
+    : branch?.meta_desc || branchExtras.seo.en.description || `Visit Tech Dental ${branchName} in Dhaka for painless root canal therapy, dental implants, cosmetic veneers and general dental treatments.`;
   const robotsContent = `${branch?.robots_index !== false ? 'index' : 'noindex'}, ${branch?.robots_follow !== false ? 'follow' : 'nofollow'}`;
 
   const safeFaqs = useMemo(() => {
@@ -307,6 +324,22 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
       return [];
     }
   }, [branch?.faqs]);
+
+  const faqGroups = useMemo(() => {
+    const groups: Record<string, Array<{ q: string; a: string; cat?: string }>> = {};
+    for (const faq of safeFaqs.filter((f: any) => f && f.q)) {
+      const cat = String(faq.cat || 'general');
+      (groups[cat] ||= []).push(faq);
+    }
+    return groups;
+  }, [safeFaqs]);
+
+  const faqCats = useMemo(
+    () => FAQ_CATEGORY_ORDER.filter((cat) => (faqGroups[cat] || []).length > 0),
+    [faqGroups]
+  );
+  const currentFaqCat = faqCats.includes(activeFaqCat as any) ? activeFaqCat : faqCats[0] || '';
+  const currentFaqs = faqGroups[currentFaqCat] || [];
 
   const jsonLdSchema = useMemo(() => {
     if (branch?.schema_json) {
@@ -405,6 +438,11 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
         selectedBranch={selectedBranch}
         onBranchChange={setSelectedBranch}
         navMenu={nav_menu}
+        showLanguageSwitcher={true}
+        languageUrls={{
+          en: `/branch/${branch?.slug || branch?.id}`,
+          bn: `/bn/branch/${branch?.slug || branch?.id}`,
+        }}
       />
 
       {/* Main Full Width Responsive Content */}
@@ -1099,7 +1137,9 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                   className="w-full py-4 px-5 sm:px-6 bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm sm:text-base transition-all flex items-center justify-between text-left cursor-pointer active:scale-[0.99]"
                 >
                   <span className="text-left font-bold text-slate-800 text-sm sm:text-base">
-                    {branch.more_about_title || `More About ${(branch.short_name || branch.name || '').replace(/\s*branch\s*$/i, '').trim()}`}
+                    {isBn
+                      ? `${getBranchPlaceName(branch?.slug || branch?.short_name, 'bn', cleanBranch)} ${labels.moreAbout}`
+                      : branch.more_about_title || `More About ${cleanBranch}`}
                   </span>
                   <ChevronDown
                     size={20}
@@ -1108,17 +1148,24 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                 </button>
               </h2>
 
-              {isMoreAboutOpen && (
-                <div className="px-5 pb-6 border-t border-slate-100 animate-fade-in space-y-4">
+              {/* Always in the DOM (hidden when collapsed) so the SEO body,
+                  FAQs and review section stay crawlable. */}
+              <div
+                className="px-5 pb-6 border-t border-slate-100 animate-fade-in space-y-4"
+                hidden={!isMoreAboutOpen}
+              >
+                  <p className="mt-4 text-[13.5px] sm:text-[14px] leading-relaxed text-slate-600">
+                    {branchExtras.team[lang]}
+                  </p>
                   {branch.seo_content ? (
                     <div
-                      className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed mt-4"
+                      className="branch-more-about rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed mt-4"
                       dangerouslySetInnerHTML={{ __html: branch.seo_content }}
                     />
                   ) : (
                     <div className="text-sm text-slate-600 mt-4 space-y-3 leading-relaxed">
                       <h3 className="text-base font-bold text-slate-800 mb-1">
-                        Premier Digital Dentistry & Comprehensive Oral Care in {branchName}
+                        Premier Digital Dentistry &amp; Comprehensive Oral Care in {branchName}
                       </h3>
                       <p>
                         Welcome to <strong>Tech Dental ({branchName})</strong>, your trusted destination for comprehensive, high-precision dental treatments in Dhaka. Conveniently situated with state-of-the-art dental chairs, German autoclaves, and certified specialists.
@@ -1129,24 +1176,78 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                     </div>
                   )}
 
-                  {/* Patient FAQs */}
-                  {safeFaqs.length > 0 && (
-                    <div className="pt-4 border-t border-slate-100 space-y-3">
-                      <h4 className="text-sm font-bold text-slate-800">
-                        Frequently Asked Questions ({cleanBranch} Clinic)
-                      </h4>
-                      <div className="space-y-2">
-                        {safeFaqs.filter(f => f && f.q).map((faq, i) => (
-                          <div key={i} className="p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
-                            <div className="font-bold text-xs text-slate-900 mb-1">Q: {faq.q}</div>
-                            <div className="text-xs text-slate-600 leading-relaxed">{faq.a}</div>
+                  {/* Treatment cost — SEO copy only, no calculator */}
+                  <div className="pt-4 border-t border-slate-100">
+                    <div
+                      className="branch-more-about rich-content-view prose prose-slate max-w-none text-slate-700 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: branchExtras.cost[lang] }}
+                    />
+                  </div>
+
+                  {/* Patient video reviews */}
+                  <section className="pt-4 border-t border-slate-100">
+                    <h3 className="m-0 text-[17px] sm:text-lg font-bold text-slate-800">
+                      {branchExtras.reviews[lang].title}
+                    </h3>
+                    <p className="mt-2 mb-4 text-[13px] sm:text-[13.5px] leading-relaxed text-slate-600">
+                      {branchExtras.reviews[lang].intro}
+                    </p>
+                    <div className="branch-video-grid">
+                      {BRANCH_VIDEOS.map((video) => (
+                        <div className="branch-video" key={video.id}>
+                          <div className="branch-video-frame">
+                            <iframe
+                              src={`https://www.youtube-nocookie.com/embed/${video.id}?rel=0`}
+                              title={video.label[lang]}
+                              loading="lazy"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
                           </div>
+                          <div className="branch-video-label">{video.label[lang]}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Patient FAQs with treatment-area tabs */}
+                  {currentFaqs.length > 0 && (
+                    <section className="pt-4 border-t border-slate-100">
+                      <h3 className="m-0 text-[17px] sm:text-lg font-bold text-slate-800">
+                        {labels.faq}
+                      </h3>
+                      <div className="branch-faq-tabs" role="tablist" aria-label={labels.faq}>
+                        {faqCats.map((cat) => (
+                          <button
+                            key={cat}
+                            type="button"
+                            role="tab"
+                            aria-selected={currentFaqCat === cat}
+                            onClick={() => setActiveFaqCat(cat)}
+                            className={`branch-faq-tab ${currentFaqCat === cat ? 'is-active' : ''}`}
+                          >
+                            {(labels.categories as any)[cat] || cat}
+                          </button>
                         ))}
                       </div>
-                    </div>
+                      {faqCats.map((cat) => (
+                        <div
+                          className="branch-faq-list"
+                          role="tabpanel"
+                          key={cat}
+                          hidden={currentFaqCat !== cat}
+                        >
+                          {(faqGroups[cat] || []).map((faq, i) => (
+                            <details className="branch-faq-item" key={`${cat}-${i}`}>
+                              <summary>{faq.q}</summary>
+                              <p>{faq.a}</p>
+                            </details>
+                          ))}
+                        </div>
+                      ))}
+                    </section>
                   )}
                 </div>
-              )}
             </div>
           </div>
 

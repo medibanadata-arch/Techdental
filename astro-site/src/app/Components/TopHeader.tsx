@@ -289,9 +289,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const handleLanguageSwitch = (targetLang: 'en' | 'bn') => {
     setLanguage(targetLang);
 
+    // Pages whose slug differs between languages pass explicit URLs.
+    if (languageUrls) {
+      const target = targetLang === 'bn' ? languageUrls.bn : languageUrls.en;
+      if (target) {
+        if (cleanPath !== String(target).toLowerCase()) router.visit(target);
+        return;
+      }
+    }
+
     // Only for single blog & medicine & patient rights: dynamically switch URL
     const singleBlogMatch = cleanPath.match(/^(?:\/bn)?\/blog\/([^\/]+)$/i);
     const singleMedicineMatch = cleanPath.match(/^(?:\/bn)?\/medicines\/([^\/]+)$/i);
+    const singleBranchMatch = cleanPath.match(/^(?:\/bn)?\/branch\/([^\/]+)$/i);
     const isPatientRights = cleanPath.match(/^(?:\/bn)?\/patient-rights(?:\/.*)?$/i);
     const isServiceList = cleanPath === '/services' || cleanPath === '/bn/services';
     const singleServiceMatch = cleanPath.match(/^(?:\/bn)?\/services?\/([^\/]+)$/i);
@@ -318,6 +328,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       }
     } else if (isPatientRights) {
       const targetUrl = targetLang === 'bn' ? '/bn/patient-rights' : '/patient-rights';
+      if (cleanPath !== targetUrl.toLowerCase()) {
+        router.visit(targetUrl);
+      }
+    } else if (singleBranchMatch) {
+      const slug = singleBranchMatch[1];
+      const targetUrl = targetLang === 'bn' ? `/bn/branch/${slug}` : `/branch/${slug}`;
       if (cleanPath !== targetUrl.toLowerCase()) {
         router.visit(targetUrl);
       }

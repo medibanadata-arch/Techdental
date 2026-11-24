@@ -1,5 +1,6 @@
 import { all, get, model, models } from '../db';
 import { SITE_URL, applyBangla, locations, navMenu, uniqueBy } from '../shared';
+import { getBranchContent } from '../../data/branchContent';
 
 /** Resolve a branch the same way BranchController::publicShow does. */
 export function resolveBranch(slug: string): any | null {
@@ -93,20 +94,27 @@ export function branchShowProps(slug: string, isBn = false) {
     services,
     locations: locations(),
     nav_menu: navMenu(),
+    is_bn: isBn,
   };
 }
 
-export function branchShowSeo(branch: any) {
+export function branchShowSeo(branch: any, isBn = false) {
   const rawName = branch?.short_name || branch?.name || 'Mirpur';
   const cleanBranch = String(rawName).replace(/branch/gi, '').trim();
   const branchName = `${cleanBranch} Branch`;
   const hotline = branch?.phone || '09638-000505';
-  const branchPath = `/branch/${branch?.slug || branch?.id}`;
+  const slug = branch?.slug || branch?.id;
+  const branchPath = isBn ? `/bn/branch/${slug}` : `/branch/${slug}`;
   const pageCanonical = `${SITE_URL}${branchPath}`;
-  const metaTitle = branch?.seo_title || `Best Dental Clinic in ${branchName} - Tech Dental Care`;
-  const metaDescription =
-    branch?.meta_desc ||
-    `Visit Tech Dental ${branchName} in Dhaka for painless root canal therapy, dental implants, cosmetic veneers and general dental treatments.`;
+  const extras = getBranchContent(branch?.slug || branch?.short_name || branch?.name);
+  const metaTitle = isBn
+    ? extras.seo.bn.title
+    : branch?.seo_title || extras.seo.en.title || `Best Dental Clinic in ${branchName} - Tech Dental Care`;
+  const metaDescription = isBn
+    ? extras.seo.bn.description
+    : branch?.meta_desc ||
+      extras.seo.en.description ||
+      `Visit Tech Dental ${branchName} in Dhaka for painless root canal therapy, dental implants, cosmetic veneers and general dental treatments.`;
   const robots = `${branch?.robots_index !== false ? 'index' : 'noindex'}, ${
     branch?.robots_follow !== false ? 'follow' : 'nofollow'
   }`;

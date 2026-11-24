@@ -194,7 +194,7 @@ export function renderMappedEntity(pathname: string, entity: LegacyEntity): Lega
       case 'branch': {
         const props = branchShowProps(slug, localeIsBn);
         if (!props) return null;
-        return page('Branch/PublicShow', props, branchShowSeo(props.branch));
+        return page('Branch/PublicShow', props, branchShowSeo(props.branch, localeIsBn));
       }
 
       case 'doctors': {

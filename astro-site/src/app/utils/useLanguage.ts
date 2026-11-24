@@ -20,9 +20,11 @@ export function getInitialLanguage(serverLocale?: AppLanguage | null): AppLangua
   }
   try {
     const pathname = window.location.pathname.toLowerCase();
-    // For single blog and single medicine, synchronize strictly with URL:
+    // For single blog, medicine, service and branch pages, synchronize strictly with URL:
     // If URL starts with /bn/, use 'bn'; otherwise default to 'en'
-    const isSingleBlogOrMed = pathname.match(/^(?:\/bn)?\/(?:blog|medicines|services?)\/[^\/]+$/i);
+    const isSingleBlogOrMed = pathname.match(
+      /^(?:\/bn)?\/(?:blog|medicines|services?|branch)\/[^\/]+$/i
+    );
     if (isSingleBlogOrMed) {
       return pathname.startsWith('/bn/') ? 'bn' : 'en';
     }

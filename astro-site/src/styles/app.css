@@ -828,3 +828,234 @@ figure.wp-caption figcaption,
   margin: 0 !important;
   border-radius: 8px !important;
 }
+
+/* ------------------------------------------------------------------ */
+/* Branch "More About" — keep the long SEO body compact and readable   */
+/* ------------------------------------------------------------------ */
+.branch-more-about h2,
+.branch-more-about h2 * {
+  font-size: 19px !important;
+  line-height: 1.35 !important;
+  margin-top: 22px !important;
+  margin-bottom: 8px !important;
+}
+
+.branch-more-about h3,
+.branch-more-about h3 * {
+  font-size: 15.5px !important;
+  line-height: 1.4 !important;
+  margin-top: 16px !important;
+  margin-bottom: 5px !important;
+}
+
+.branch-more-about p,
+.branch-more-about li {
+  font-size: 14px !important;
+  line-height: 1.72 !important;
+  margin-top: 7px !important;
+  margin-bottom: 7px !important;
+}
+
+.branch-more-about > :first-child {
+  margin-top: 0 !important;
+}
+
+.branch-more-about ul {
+  padding-left: 20px !important;
+  margin: 8px 0 !important;
+}
+
+@media (min-width: 640px) {
+  .branch-more-about h2,
+  .branch-more-about h2 * {
+    font-size: 20px !important;
+  }
+  .branch-more-about p,
+  .branch-more-about li {
+    font-size: 14.5px !important;
+  }
+}
+
+/* Sterilization cards: text first, image directly below the text */
+.branch-more-about .sterilization-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  margin: 18px 0 8px !important;
+}
+
+@media (min-width: 900px) {
+  .branch-more-about .sterilization-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+.branch-more-about .sterilization-card {
+  display: flex !important;
+  flex-direction: column !important;
+  background: #fff !important;
+  border: 1px solid #f1e4e8 !important;
+  border-radius: 16px !important;
+  padding: 14px 14px 0 !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+}
+
+.branch-more-about .sterilization-card h3,
+.branch-more-about .sterilization-card h3 * {
+  font-size: 14.5px !important;
+  margin: 0 0 6px !important;
+  color: #7f1238 !important;
+}
+
+.branch-more-about .sterilization-card p {
+  font-size: 12.8px !important;
+  line-height: 1.6 !important;
+  color: #475569 !important;
+  margin: 0 0 12px !important;
+}
+
+.branch-more-about .sterilization-card img {
+  display: block !important;
+  width: calc(100% + 28px) !important;
+  max-width: none !important;
+  height: 132px !important;
+  object-fit: cover !important;
+  margin: auto -14px 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Patient video reviews */
+.branch-video-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .branch-video-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .branch-video-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.branch-video {
+  background: #fff;
+  border: 1px solid #e8edf3;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.branch-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0f172a;
+}
+
+.branch-video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.branch-video-label {
+  padding: 9px 12px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+/* FAQ tabs + accordion */
+.branch-faq-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 12px;
+}
+
+.branch-faq-tab {
+  border: 1px solid #e6d5db;
+  background: #fff;
+  color: #7a4052;
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.branch-faq-tab:hover {
+  background: #fdf2f6;
+}
+
+.branch-faq-tab.is-active {
+  background: #8b1538;
+  border-color: #8b1538;
+  color: #fff;
+}
+
+.branch-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.branch-faq-item {
+  border: 1px solid #e9edf3;
+  border-radius: 13px;
+  background: #fbfcfe;
+  overflow: hidden;
+}
+
+.branch-faq-item summary {
+  position: relative;
+  list-style: none;
+  cursor: pointer;
+  padding: 11px 38px 11px 13px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.5;
+}
+
+.branch-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.branch-faq-item summary::after {
+  content: '+';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 17px;
+  font-weight: 700;
+  color: #8b1538;
+}
+
+.branch-faq-item[open] summary::after {
+  content: '−';
+}
+
+.branch-faq-item[open] summary {
+  background: #fdf2f6;
+}
+
+.branch-faq-item p {
+  margin: 0 !important;
+  padding: 2px 14px 13px;
+  font-size: 12.8px !important;
+  line-height: 1.7 !important;
+  color: #475569 !important;
+}
+
