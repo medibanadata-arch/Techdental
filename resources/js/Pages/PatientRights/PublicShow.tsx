@@ -5,6 +5,23 @@ import { GlobalFooter } from '@/Components/GlobalFooter';
 import Seo from '@/Components/Seo';
 import { useLanguage } from '@/utils/useLanguage';
 
+/**
+ * The patient rights page always shows the current month and year, so the
+ * "Updated" badge rolls over automatically instead of going stale.
+ */
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS_BN = [
+  'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+  'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর',
+];
+const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+const patientRightsUpdated = (isBn: boolean): string => {
+  const now = new Date();
+  if (!isBn) return `${MONTHS_EN[now.getMonth()]} ${now.getFullYear()}`;
+  const year = String(now.getFullYear()).replace(/\d/g, (d) => BN_DIGITS[Number(d)]);
+  return `${MONTHS_BN[now.getMonth()]} ${year}`;
+};
+
 interface RightItem {
   id: number;
   text_en: string;
@@ -150,7 +167,7 @@ export default function PatientRightsPublicShow({
               <svg className="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              {isBn ? 'আপডেট: ৫ নভেম্বর ২০২৬' : 'Updated: Nov 5, 2026'}
+              {isBn ? `আপডেট: ${patientRightsUpdated(true)}` : `Updated: ${patientRightsUpdated(false)}`}
             </span>
             <span className="flex items-center gap-1.5">
               <svg className="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

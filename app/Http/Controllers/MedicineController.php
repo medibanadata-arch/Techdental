@@ -188,6 +188,11 @@ class MedicineController extends Controller
             'x-default' => url("medicines/{$medSlug}"),
         ];
 
+        // "Last Updated" always reflects the current month and year.
+        $author = is_array($item->author) ? $item->author : (json_decode((string) $item->author, true) ?: []);
+        $author['last_updated'] = now()->format('M Y');
+        $item->author = $author;
+
         return Inertia::render('Medicines/PublicSingle', [
             'item' => $item,
             'related' => $related,

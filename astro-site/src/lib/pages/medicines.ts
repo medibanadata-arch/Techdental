@@ -5,6 +5,22 @@ export function postSlugs(): string[] {
   return all<{ slug: string }>('SELECT slug FROM posts WHERE slug IS NOT NULL').map((row) => row.slug);
 }
 
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/**
+ * The "Last Updated" badge always shows the current month and year, so the
+ * stored value is refreshed at render time instead of going stale.
+ */
+function currentLastUpdated(): string {
+  const now = new Date();
+  return `${MONTHS_EN[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+function withCurrentLastUpdated<T extends { author?: any }>(item: T): T {
+  if (!item || !item.author) return item;
+  return { ...item, author: { ...item.author, last_updated: currentLastUpdated() } };
+}
+
 export function medicinesIndexProps(isBn: boolean) {
   const slugs = postSlugs();
   const placeholders = slugs.map(() => '?').join(',');
@@ -12,7 +28,7 @@ export function medicinesIndexProps(isBn: boolean) {
     'SELECT * FROM medicines WHERE is_active = 1' +
     (slugs.length ? ` AND slug NOT IN (${placeholders})` : '') +
     ' ORDER BY sort_order';
-  const medicines = models('medicines', all(sql, slugs));
+  const medicines = models('medicines', all(sql, slugs)).map((m: any) => withCurrentLastUpdated(m));
   return {
     medicines,
     locations: locations(),
@@ -84,8 +100,8 @@ export function medicineShow(slug: string, isBn: boolean, legacy = false): Medic
   return {
     kind: 'page',
     props: {
-      item,
-      related,
+      item: withCurrentLastUpdated(item),
+      related: related.map((r: any) => withCurrentLastUpdated(r)),
       locations: locations(),
       nav_menu: navMenu(),
       is_bn: isBn,
