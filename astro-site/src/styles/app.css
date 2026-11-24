@@ -1010,6 +1010,12 @@ figure.wp-caption figcaption,
   gap: 8px;
 }
 
+/* The display rule above would otherwise override the hidden attribute and
+   stack every category's questions under the first tab. */
+.branch-faq-list[hidden] {
+  display: none;
+}
+
 .branch-faq-item {
   border: 1px solid #e9edf3;
   border-radius: 13px;
