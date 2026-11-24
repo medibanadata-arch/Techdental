@@ -126,6 +126,22 @@ const toBnDigit = (num: number | string): string => {
   return String(num).replace(/\d/g, (d) => bnDigits[Number(d)] || d);
 };
 
+/**
+ * "Last Updated" always shows the current month and year, so it rolls over
+ * automatically every month without editing each medicine (e.g. Nov 2026).
+ */
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS_BN = [
+  'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+  'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর',
+];
+const currentLastUpdated = (isBn: boolean): string => {
+  const now = new Date();
+  return isBn
+    ? `${MONTHS_BN[now.getMonth()]} ${toBnDigit(now.getFullYear())}`
+    : `${MONTHS_EN[now.getMonth()]} ${now.getFullYear()}`;
+};
+
 /** Imported Q&A text often still carries its original "Q:" / "প্রশ্ন:" or "1." prefix; the UI prints its own label. */
 const cleanQuestion = (text?: string): string =>
   (text || '')
@@ -801,7 +817,7 @@ export default function MedicinesPublicSingle({
                       <i className="fa-regular fa-clock text-[#8b1d41] w-4 text-center shrink-0" />
                       <span className="inline-block">
                         {isBn ? 'সর্বশেষ হালনাগাদ: ' : 'Last Updated: '}
-                        <strong className="text-slate-900 font-semibold">{isBn ? 'অক্টোবর ২০২৬' : (item.author.last_updated || 'Oct 2026')}</strong>
+                        <strong className="text-slate-900 font-semibold">{currentLastUpdated(isBn)}</strong>
                       </span>
                     </div>
                   </div>
