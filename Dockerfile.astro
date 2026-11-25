@@ -22,6 +22,11 @@ COPY database ./database
 WORKDIR /app/astro-site
 RUN npm run build
 
+# Fail the build loudly if the shared SQLite database was not shipped.
+RUN test -s /app/database/database.sqlite \
+    && test "$(stat -c%s /app/database/database.sqlite)" -gt 1000000 \
+    || (echo "ERROR: database/database.sqlite is missing from the build context" && exit 1)
+
 FROM node:24-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \

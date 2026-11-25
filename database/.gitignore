@@ -1,1 +1,5 @@
 *.sqlite*
+# The live site reads this database at runtime, so it must be shipped in the
+# Docker image. Railway's uploader honours .gitignore, and without this
+# negation the container starts with an empty database ("no such table").
+!database.sqlite
