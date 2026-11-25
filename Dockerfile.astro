@@ -1,0 +1,44 @@
+# Astro SSR (standalone Node) image for the public Tech Dental site.
+# Build from the repository root:
+#   docker build -f Dockerfile.astro -t tech-dental-astro .
+# The SQLite database lives in ./database and is baked into the image so the
+# site renders immediately after deploy (attach a volume for persistent writes).
+
+FROM node:24-bookworm-slim AS build
+
+WORKDIR /app
+
+# Install dependencies first so Docker can cache this layer.
+COPY astro-site/package.json astro-site/package-lock.json ./astro-site/
+WORKDIR /app/astro-site
+RUN npm ci
+
+# Copy the app plus the shared Laravel assets (uploads, fonts, database).
+WORKDIR /app
+COPY astro-site ./astro-site
+COPY public ./public
+COPY database ./database
+
+WORKDIR /app/astro-site
+RUN npm run build
+
+FROM node:24-bookworm-slim AS runtime
+
+ENV NODE_ENV=production \
+    HOST=0.0.0.0 \
+    PORT=3000 \
+    DATABASE_PATH=/app/database/database.sqlite
+
+WORKDIR /app
+
+COPY astro-site/package.json astro-site/package-lock.json ./astro-site/
+WORKDIR /app/astro-site
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --from=build /app/astro-site/dist ./dist
+COPY --from=build /app/database /app/database
+COPY --from=build /app/public /app/public
+
+EXPOSE 3000
+
+CMD ["node", "dist/server/entry.mjs"]
