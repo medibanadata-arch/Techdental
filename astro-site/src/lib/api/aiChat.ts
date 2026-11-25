@@ -188,9 +188,6 @@ function nowSql(): string {
   return new Date().toISOString().replace('T', ' ').slice(0, 19);
 }
 
-const SYSTEM_FALLBACK =
-  "You are Tech Dental's smart, warm, and helpful AI assistant for patients in Dhaka, Bangladesh. Answer patient inquiries politely and concisely in clear Bengali. Always prioritize Tech Dental's branches and pricing from the training data.";
-
 export async function handleAiChat(request: Request, ip: string | null = null): Promise<Response> {
   let body: any = {};
   try {
@@ -210,10 +207,11 @@ export async function handleAiChat(request: Request, ip: string | null = null): 
 
   // STEP 1: Google Gemini AI with company training data (primary engine).
   if (settings && bool(settings.gemini_enabled) && apiKey) {
-    const systemPrompt = settings.system_prompt || SYSTEM_FALLBACK;
+    // The single training-data field carries both the persona/context and the
+    // clinic knowledge base, so no separate system prompt is needed.
     const trainingData = settings.training_data ? String(settings.training_data) : DEFAULT_TRAINING_DATA;
 
-    const instructionText = `ROLE & INSTRUCTIONS FOR TECH DENTAL AI ASSISTANT:\n${systemPrompt}\n\n### TECH DENTAL OFFICIAL COMPANY TRAINING DATA & KNOWLEDGE BASE:\n${trainingData}\n\nSTRICT GUIDELINES:
+    const instructionText = `ROLE & INSTRUCTIONS FOR TECH DENTAL AI ASSISTANT:\n${trainingData}\n\nSTRICT GUIDELINES:
 1. Always answer the patient's questions using the above official company training data.
 2. For treatment costs (e.g. scaling, root canal, dental caps, implants), quote the exact prices from the training data.
 3. Mention our relevant branch locations (মিরপুর, উত্তরা, বাড্ডা, যাত্রাবাড়ী) and official hotline 09638-000505 when helpful.

@@ -20,9 +20,6 @@ import {
  * returned raw exactly like Laravel's query builder serialises them.
  */
 
-const DEFAULT_SYSTEM_PROMPT =
-  "You are Tech Dental's smart, warm, and helpful AI assistant for patients in Dhaka, Bangladesh. Answer patient inquiries politely and concisely in clear Bengali. Branches: Mirpur, Uttara, Badda, Jatrabari. Hotline: 09638000505.";
-
 const DEFAULT_FALLBACK_REPLY =
   'টেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। বিস্তারিত জানতে আমাদের হটলাইনে (09638-000505) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিন।';
 
@@ -39,7 +36,7 @@ const SETTINGS_DEFAULTS = () => ({
   gemini_api_key: process.env.GEMINI_API_KEY || null,
   gemini_model: 'gemini-1.5-flash',
   gemini_enabled: 0,
-  system_prompt: DEFAULT_SYSTEM_PROMPT,
+  system_prompt: null,
   chips: jsonEncode(DEFAULT_CHIPS),
   fallback_reply: DEFAULT_FALLBACK_REPLY,
 });
