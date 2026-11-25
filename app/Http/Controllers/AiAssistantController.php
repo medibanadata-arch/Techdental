@@ -1035,14 +1035,15 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
 
     /**
      * Price chart shown under an answer when the reply itself quotes an amount
-     * for closing gaps between teeth or composite veneers.
+     * for closing gaps between teeth with composite veneers. It must NOT appear
+     * for other priced treatments (chipped tooth, braces, whitening, etc.).
      */
     private function chatReplyImage(string $query, string $reply = ''): ?array
     {
         $haystack = mb_strtolower($query . "\n" . $reply, 'UTF-8');
 
-        $topic = (bool) preg_match(
-            '/ফাঁকা\s*দাঁত|দাঁতের\s*ফাঁকা|দাঁতে\s*ফাঁকা|ফাঁকা\s*অংশ|দাঁতের\s*ফাঁক|দাঁতের\s*গ্যাপ|গ্যাপ\s*ক্লোজার|faka\s*da+[nt]h?|\bgap\b|gap\s*teeth|tooth\s*gap|teeth\s*gap|ভিনিয়ার|ভিনিয়ার|veneer|কম্পোজিট\s*ভিনিয়ার|কম্পোজিট\s*ভিনিয়ার/ui',
+        $gap = (bool) preg_match(
+            '/ফাঁকা\s*দাঁত|দাঁতের\s*ফাঁকা|দাঁতে\s*ফাঁকা|ফাঁকা\s*অংশ|দাঁতের\s*ফাঁক|দাঁতের\s*গ্যাপ|গ্যাপ\s*ক্লোজার|faka\s*da+[nt]h?|\bgap\b|gap\s*teeth|tooth\s*gap|teeth\s*gap/ui',
             $haystack
         );
 
@@ -1052,9 +1053,8 @@ IMPORTANT: ডাক্তারদের সর্বশেষ অনুমো�
 
         // Braces / aligner questions are not composite-veneer pricing.
         $ortho = (bool) preg_match('/ব্রেসেস|braces|অ্যালাইনার|aligner|ইনভিজিবল|invisalign/ui', $query);
-        $veneer = (bool) preg_match('/ভিনিয়ার|ভিনিয়ার|veneer/ui', $haystack);
 
-        if (!$topic || !$amount || ($ortho && !$veneer)) {
+        if (!$gap || !$amount || $ortho) {
             return null;
         }
 

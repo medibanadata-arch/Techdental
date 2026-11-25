@@ -70,24 +70,24 @@ export function resolveGeminiModelCandidates(model?: string | null): string[] {
 
 /**
  * Price chart shown under an answer when the reply itself quotes an amount for
- * closing gaps between teeth or composite veneers.
+ * closing gaps between teeth with composite veneers. It must NOT appear for
+ * other priced treatments (chipped tooth, braces, whitening, etc.).
  */
 export function chatReplyImage(query: string, reply = ''): { url: string; alt: string } | null {
   const haystack = `${query}\n${reply}`.toLowerCase();
 
-  const topic =
-    /ফাঁকা\s*দাঁত|দাঁতের\s*ফাঁকা|দাঁতে\s*ফাঁকা|ফাঁকা\s*অংশ|দাঁতের\s*ফাঁক|দাঁতের\s*গ্যাপ|গ্যাপ\s*ক্লোজার|faka\s*da+[nt]h?|\bgap\b|gap\s*teeth|tooth\s*gap|teeth\s*gap|ভিনিয়ার|ভিনিয়ার|veneer|কম্পোজিট\s*ভিনিয়ার|কম্পোজিট\s*ভিনিয়ার/iu.test(
+  const gap =
+    /ফাঁকা\s*দাঁত|দাঁতের\s*ফাঁকা|দাঁতে\s*ফাঁকা|ফাঁকা\s*অংশ|দাঁতের\s*ফাঁক|দাঁতের\s*গ্যাপ|গ্যাপ\s*ক্লোজার|faka\s*da+[nt]h?|\bgap\b|gap\s*teeth|tooth\s*gap|teeth\s*gap/iu.test(
       haystack
     );
 
   // Only show the chart when the answer text contains an actual amount.
   const amount = /[০-৯0-9]/u.test(reply) && /৳|টাকা|taka|\btk\b|\bbdt\b/iu.test(reply);
 
-  // Braces / aligner questions are not composite-veneer pricing.
+  // Braces / aligner pricing is not composite-veneer pricing.
   const ortho = /ব্রেসেস|braces|অ্যালাইনার|aligner|ইনভিজিবল|invisalign/iu.test(query);
-  const veneer = /ভিনিয়ার|ভিনিয়ার|veneer/iu.test(haystack);
 
-  if (!topic || !amount || (ortho && !veneer)) return null;
+  if (!gap || !amount || ortho) return null;
 
   return {
     url: '/uploads/ai/faka-dat-composite-veneer-cost.webp',
