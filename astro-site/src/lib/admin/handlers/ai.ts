@@ -473,10 +473,10 @@ export async function handleAiTestGemini(request: Request): Promise<Response> {
     );
   }
 
-  let instructionText = "ROLE & INSTRUCTIONS: You are Tech Dental's official AI assistant in Dhaka, Bangladesh. Answer politely, accurately, and concisely in Bengali.";
+  let instructionText =
+    "ROLE & INSTRUCTIONS: You are Tania, Tech Dental's customer-care representative in Dhaka, Bangladesh. Answer politely, accurately, and concisely using ONLY the training data below, and reply in the patient's own language (Bangla/Banglish -> Bangla, English -> English).";
   if (trainingData !== null && trainingData !== undefined && String(trainingData) !== '') {
-    instructionText +=
-      '\n\n### TECH DENTAL OFFICIAL TRAINING DATA:\n' + Array.from(String(trainingData)).slice(0, 3000).join('');
+    instructionText += '\n\n### TECH DENTAL OFFICIAL TRAINING DATA:\n' + String(trainingData);
   }
 
   let candidateModels = [...new Set([requestedModel, ...resolveGeminiModelCandidates(requestedModel)])];
