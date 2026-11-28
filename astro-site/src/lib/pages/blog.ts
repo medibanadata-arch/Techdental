@@ -51,8 +51,8 @@ export function blogIndexSeo(isBn: boolean, isOthers = false) {
       ? 'দাঁত ব্যথা, রুট ক্যানেল, ইমপ্লান্ট, ব্রেসেস, মাড়ির রোগ ও মুখের স্বাস্থ্য নিয়ে ঢাকার বিশেষজ্ঞ ডেন্টিস্টদের লেখা নির্ভরযোগ্য বাংলা নিবন্ধ ও চিকিৎসা গাইড পড়ুন।'
       : 'Expert dental articles from the BDS dentists at Tech Dental Care, Dhaka — tooth pain relief, root canal, implants, braces, gum disease and daily oral hygiene guides.';
 
-  const enPath = isOthers ? '/blog/others' : '/blog';
-  const bnPath = isOthers ? '/bn/blog/others' : '/bn/blog';
+  const enPath = isOthers ? '/dentistry/others' : '/dentistry';
+  const bnPath = isOthers ? '/bn/dentistry/others' : '/bn/dentistry';
   return {
     title: seoTitle,
     description: seoDescription,
@@ -76,7 +76,7 @@ export function blogIndexSchema(posts: any[], isBn: boolean, isOthers = false) {
       '@type': 'ListItem',
       position: i + 1,
       name: isBn ? p.title_bn || p.title : p.title,
-      url: `${SITE_URL}${isBn ? '/bn/blog/' : '/blog/'}${p.slug}`,
+      url: `${SITE_URL}${isBn ? '/bn/dentistry/' : '/dentistry/'}${p.slug}`,
     })),
   };
 }
@@ -101,19 +101,19 @@ export type BlogResult =
 
 /** Old WordPress category archive slugs and their current listing page. */
 const CATEGORY_REDIRECTS: Record<string, { en: string; bn: string }> = {
-  dental: { en: '/blog', bn: '/bn/blog' },
-  medical: { en: '/medicines', bn: '/medicines' },
+  dental: { en: '/dentistry', bn: '/bn/dentistry' },
+  medical: { en: '/medication', bn: '/bn/medication' },
 };
 
 export function blogShow(slug: string, isBn: boolean, legacy = false): BlogResult {
   if (!legacy && SLUG_REDIRECTS[slug]) {
-    return { kind: 'redirect', location: `${isBn ? '/bn/blog/' : '/blog/'}${SLUG_REDIRECTS[slug]}` };
+    return { kind: 'redirect', location: `${isBn ? '/bn/dentistry/' : '/dentistry/'}${SLUG_REDIRECTS[slug]}` };
   }
 
   let row = get('SELECT * FROM posts WHERE slug = ?', [slug]) || get('SELECT * FROM posts WHERE id = ?', [slug]);
 
-  // Old WordPress category archives (for example /blog/dental and
-  // /bn/blog/dental) are listings, not articles. The tag fallback below used
+  // Old WordPress category archives (for example /dentistry/dental and
+  // /bn/dentistry/dental) are listings, not articles. The tag fallback below used
   // to match them and render a random post at the old URL.
   if (!row && !legacy && CATEGORY_REDIRECTS[slug]) {
     return { kind: 'redirect', location: isBn ? CATEGORY_REDIRECTS[slug].bn : CATEGORY_REDIRECTS[slug].en };
@@ -129,10 +129,10 @@ export function blogShow(slug: string, isBn: boolean, legacy = false): BlogResul
   );
 
   if (!legacy && isBn && String(post.content_bn || '').trim() === '') {
-    return { kind: 'redirect', location: `/blog/${post.slug}` };
+    return { kind: 'redirect', location: `/dentistry/${post.slug}` };
   }
   if (!legacy && !isBn && String(post.content || '').trim() === '' && String(post.content_bn || '').trim() !== '') {
-    return { kind: 'redirect', location: `/bn/blog/${post.slug}` };
+    return { kind: 'redirect', location: `/bn/dentistry/${post.slug}` };
   }
 
   const postSlug = post.slug || String(post.id);
@@ -144,11 +144,11 @@ export function blogShow(slug: string, isBn: boolean, legacy = false): BlogResul
       locations: locations(),
       nav_menu: navMenu(),
       is_bn: isBn,
-      canonical_url: `${SITE_URL}/${isBn ? 'bn/' : ''}blog/${postSlug}`,
+      canonical_url: `${SITE_URL}/${isBn ? 'bn/' : ''}dentistry/${postSlug}`,
       hreflang: {
-        en: `${SITE_URL}/blog/${postSlug}`,
-        bn: `${SITE_URL}/bn/blog/${postSlug}`,
-        'x-default': `${SITE_URL}/blog/${postSlug}`,
+        en: `${SITE_URL}/dentistry/${postSlug}`,
+        bn: `${SITE_URL}/bn/dentistry/${postSlug}`,
+        'x-default': `${SITE_URL}/dentistry/${postSlug}`,
       },
     },
     seo: blogSeo(post, isBn),
@@ -170,8 +170,8 @@ export function blogSeo(post: any, isBn: boolean) {
     : post.meta_desc || activeExcerpt || '';
   const focusKeyword = isBn ? post.focus_keyword_bn || post.focus_keyword || '' : post.focus_keyword || '';
 
-  const blogPath = `/blog/${post.slug || ''}`;
-  const bnBlogPath = `/bn/blog/${post.slug || ''}`;
+  const blogPath = `/dentistry/${post.slug || ''}`;
+  const bnBlogPath = `/bn/dentistry/${post.slug || ''}`;
   const seoPath = isBn ? bnBlogPath : blogPath;
   const seoImage = post.img || '/images/og-default.jpg';
 

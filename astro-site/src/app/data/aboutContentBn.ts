@@ -45,28 +45,28 @@ export const ABOUT_CONTENT_BN = {
       tag: 'Instant & Precise Imaging',
       desc:
         'Our advanced RVG digital X-ray system delivers crystal-clear images with minimal radiation, ensuring fast and accurate diagnosis for every patient.',
-      img: '/uploads/old-site/about/tooth-root-canal-treatment-rct-in-bangladesh-scaled.webp',
+      img: '/uploads/old-site/about/digital-rvg-xray-dentist-reviewing-xray.webp',
     },
     {
       title: 'Intra Oral Camera',
       tag: 'High-Resolution In-Mouth Imaging',
       desc:
         'Tiny yet powerful cameras provide real-time, high-definition visuals inside your mouth—helping dentists detect hidden issues while keeping you fully informed.',
-      img: '/uploads/old-site/about/teeth-whitening-1-scaled.webp',
+      img: '/uploads/images/dental-examination-with-intraoral-camera.webp',
     },
     {
       title: 'Live Patient Portal',
       tag: 'Smart Digital Experience',
       desc:
         'Our patient portal on TV screens keeps you connected—view treatment plans, upcoming appointments, and educational content right in the clinic.',
-      img: '/uploads/old-site/about/2.webp',
+      img: '/uploads/old-site/about/live-patient-portal-screen-mirpur.webp',
     },
     {
       title: '4-Step Sterilization',
       tag: 'Uncompromised Hygiene Protocol',
       desc:
         'Our advanced 4-step sterilization process guarantees the highest standards of safety, ensuring every instrument is 100% clean and patient-ready.',
-      img: '/uploads/old-site/about/packaging-seal.webp',
+      img: '/uploads/old-site/about/sterilization-pouches-sealed-instruments.webp',
     },
   ],
   vision_title: 'আমাদের স্বপ্ন',
@@ -75,19 +75,19 @@ export const ABOUT_CONTENT_BN = {
   mission_title: 'আমাদের মিশন',
   mission_text:
     'স্তব্ধ হওয়ার জন্য প্রস্তুত হোন: আমরা এমন একটি অত্যাধুনিক এস্থেটিক ট্রিটমেন্ট ডিভাইস নিয়ে আসছি, যা আপনার সবচেয়ে সাহসী স্বপ্নকেও ছাড়িয়ে যাবে – একটি অসাধারণ সুন্দর হাসির জন্য ডিজাইন করা!',
-  team_banner: '/uploads/old-site/about/corporate-term.webp',
+  team_banner: '/uploads/old-site/about/tech-dental-corporate-leadership-team.webp',
   why_cards: [
     {
       title: 'কেন আমাদের বেছে নেবেন?',
       desc:
         'টেক ডেন্টাল উচ্চমানের ডেন্টাল চিকিৎসায় সবসময় এগিয়ে, কারণ আমরা আধুনিক প্রযুক্তিকে রোগী-কেন্দ্রিক যত্নের সাথে পুরোপুরি মিলিয়ে দিই। আমাদের সর্বাধুনিক যন্ত্রপাতি ব্যবহারের প্রতিশ্রুতি নিশ্চিত করে সঠিক ডায়াগনোসিস এবং চিকিৎসা – ফলে আপনার অভিজ্ঞতা হয়ে ওঠে আরামদায়ক এবং দ্রুত।',
-      img: '/uploads/old-site/about/best-dental-in-uttara-1-300x169.webp',
+      img: '/uploads/old-site/about/tech-dental-uttara-branch-treatment-room.webp',
     },
     {
       title: 'অবিরাম উদ্ভাবন',
       desc:
         'টেক ডেন্টাল আলাদা হয়ে দাঁড়ায় অবিরাম উদ্ভাবনের জন্য। আমরা সবসময় নতুন প্রযুক্তি গ্রহণ করি যাতে আপনার চিকিৎসার অভিজ্ঞতা আরও উন্নত হয়। ডিজিটাল ডায়াগনস্টিকস এবং অত্যাধুনিক ট্রিটমেন্টের মাধ্যমে আমরা ডেন্টাল উদ্ভাবনের সবার সামনে থাকি।',
-      img: '/uploads/old-site/about/innovation-not-creativity-1080x675-removebg-preview-300x188.webp',
+      img: '/uploads/old-site/about/dental-innovation-technology.webp',
     },
   ],
   seo_title: 'টেক ডেন্টাল সম্পর্কে',

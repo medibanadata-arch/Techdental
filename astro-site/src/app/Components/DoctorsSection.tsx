@@ -83,7 +83,7 @@ export const DoctorsSection: React.FC<DoctorsSectionProps> = ({
             </div>
 
             {/* Avatar */}
-            <a href={`/doctors/${doc.id}`} className="w-16 h-16 rounded-full overflow-hidden my-2.5 border-2 border-[#fdf2f4] shadow-xs group-hover:scale-105 transition-transform duration-300 block">
+            <a href={`/doctors/${doc.slug || doc.id}`} className="w-16 h-16 rounded-full overflow-hidden my-2.5 border-2 border-[#fdf2f4] shadow-xs group-hover:scale-105 transition-transform duration-300 block">
               <img
                 src={doc.img}
                 alt={doc.name}
@@ -93,7 +93,7 @@ export const DoctorsSection: React.FC<DoctorsSectionProps> = ({
             </a>
 
             {/* Info */}
-            <a href={`/doctors/${doc.id}`} className="hover:underline block">
+            <a href={`/doctors/${doc.slug || doc.id}`} className="hover:underline block">
               <h4 className="text-[0.86rem] font-extrabold text-slate-900 leading-snug mb-0.5 line-clamp-1">
                 {doc.name}
               </h4>
@@ -113,7 +113,7 @@ export const DoctorsSection: React.FC<DoctorsSectionProps> = ({
 
             {/* View Profile Button */}
             <a
-              href={`/doctors/${doc.id}`}
+              href={`/doctors/${doc.slug || doc.id}`}
               className="w-full bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-300 hover:border-slate-400 py-2 rounded-xl text-[0.74rem] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-98"
             >
               <User className="w-3.5 h-3.5" />

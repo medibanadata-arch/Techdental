@@ -291,9 +291,9 @@ export default function PatientRightsPublicShow({
                           {isBn ? ['১','২','৩','৪','৫','৬','৭','৮','৯'][idx] || (idx + 1) : (idx + 1)}
                         </div>
                         <div>
-                          <h4 className="font-bold text-gray-900 text-sm sm:text-base">
+                          <h3 className="font-bold text-gray-900 text-sm sm:text-base">
                             {title}
-                          </h4>
+                          </h3>
                           <p className="text-gray-600 mt-1 text-xs sm:text-sm leading-relaxed">
                             {text}
                           </p>

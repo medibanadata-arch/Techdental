@@ -290,7 +290,7 @@ export async function handleAiChat(request: Request, ip: string | null = null): 
               icon_bg: 'bg-blue-100',
               action_type: 'appointment',
               action_label: 'অনলাইন সিরিয়াল নিন',
-              action_url: '/appointment',
+              action_url: '/book-an-appointment',
             });
           }
         }
@@ -319,7 +319,7 @@ export async function handleAiChat(request: Request, ip: string | null = null): 
       icon_bg: 'bg-blue-100',
       action_type: 'appointment',
       action_label: 'অনলাইন সিরিয়াল নিন',
-      action_url: '/appointment',
+      action_url: '/book-an-appointment',
     });
   }
 
@@ -377,6 +377,6 @@ export async function handleAiChat(request: Request, ip: string | null = null): 
     icon_bg: 'bg-blue-100',
     action_type: 'appointment',
     action_label: 'অনলাইন অ্যাপয়েন্টমেন্ট',
-    action_url: '/appointment',
+    action_url: '/book-an-appointment',
   });
 }

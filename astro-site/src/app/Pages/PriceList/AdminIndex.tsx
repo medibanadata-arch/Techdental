@@ -278,7 +278,7 @@ export default function PriceListAdminIndex({ categories: initialCategories = []
 
                 <div className="flex items-center gap-3">
                     <a
-                        href="/price-list"
+                        href="/tech-dental-treatment-price-list-bangladesh"
                         target="_blank"
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-2xs"
                     >
@@ -335,7 +335,7 @@ export default function PriceListAdminIndex({ categories: initialCategories = []
                             className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl font-bold bg-white"
                         />
                         <p className="text-[10px] text-gray-400 mt-0.5">
-                            Renames the bottom "More About..." accordion button on the /price-list page.
+                            Renames the bottom "More About..." accordion button on the price-list page.
                         </p>
                     </div>
                 </div>
@@ -378,7 +378,7 @@ export default function PriceListAdminIndex({ categories: initialCategories = []
                     }}
                     pageType="price"
                     defaultSlug="price-list"
-                    previewUrl="https://techdentalcare.com/price-list"
+                    previewUrl="https://techdentalcare.com/tech-dental-treatment-price-list-bangladesh"
                 />
             </div>
 

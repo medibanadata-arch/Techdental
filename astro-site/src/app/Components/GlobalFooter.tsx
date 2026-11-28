@@ -57,13 +57,13 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
   const quickLinksTitle = footerSettings.quick_links_title || 'QUICK LINKS';
   const defaultQuickLinks: LinkItem[] = [
     { label: 'Home', url: '/' },
-    { label: 'Services & Pricing', url: '/services' },
+    { label: 'Services & Pricing', url: '/our-services' },
     { label: 'Specialist Doctors', url: '/doctors' },
-    { label: 'Treatment Price List', url: '/price-list' },
-    { label: 'Medicines & Care', url: '/medicines' },
+    { label: 'Treatment Price List', url: '/tech-dental-treatment-price-list-bangladesh' },
+    { label: 'Medicines & Care', url: '/medication' },
     { label: 'How to Pay', url: '/how-to-pay' },
-    { label: 'About Tech Dental', url: '/about' },
-    { label: 'Book Appointment', url: '/appointment' },
+    { label: 'About Tech Dental', url: '/about-tech-dental' },
+    { label: 'Book Appointment', url: '/book-an-appointment' },
   ];
   const quickLinks: LinkItem[] = Array.isArray(footerSettings.quick_links) && footerSettings.quick_links.length > 0
     ? footerSettings.quick_links
@@ -72,10 +72,10 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
   // Branches
   const branchesTitle = footerSettings.branches_title || 'OUR BRANCHES';
   const defaultBranches: BranchItem[] = [
-    { name: 'Mirpur Branch', address: 'Shewrapara, Rokeya Sarani (Pillar 318)', url: '/branch/mirpur' },
-    { name: 'Uttara Branch', address: 'Sector 7, Jasimuddin Avenue, Dhaka', url: '/branch/uttara' },
-    { name: 'Badda Branch', address: 'Middle Badda, Pragati Sarani, Dhaka', url: '/branch/badda' },
-    { name: 'Jatrabari Branch', address: 'Shahid Faruk Road, Jatrabari, Dhaka', url: '/branch/jatrabari' },
+    { name: 'Mirpur Branch', address: 'Shewrapara, Rokeya Sarani (Pillar 318)', url: '/mirpur-branch' },
+    { name: 'Uttara Branch', address: 'Sector 7, Jasimuddin Avenue, Dhaka', url: '/best-dentist-in-uttara' },
+    { name: 'Badda Branch', address: 'Middle Badda, Pragati Sarani, Dhaka', url: '/best-dentist-in-badda' },
+    { name: 'Jatrabari Branch', address: 'Shahid Faruk Road, Jatrabari, Dhaka', url: '/best-dentist-jatrabari-en' },
   ];
   const branches: BranchItem[] = Array.isArray(footerSettings.branches) && footerSettings.branches.length > 0
     ? footerSettings.branches
@@ -104,7 +104,7 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
   const ctaTitle = footerSettings.cta_title || 'Ready to Restore Your Healthy Smile?';
   const ctaSubtext = footerSettings.cta_subtext || 'Consult with our specialist oral surgeons across Mirpur, Uttara, Badda, and Jatrabari branches.';
   const ctaButtonText = footerSettings.cta_button_text || 'Make Appointment';
-  const ctaButtonUrl = footerSettings.cta_button_url || '/appointment';
+  const ctaButtonUrl = footerSettings.cta_button_url || '/book-an-appointment';
 
   const cleanWaNumber = whatsapp.replace(/[^0-9]/g, '') || WHATSAPP_INTL;
 
@@ -215,10 +215,10 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
 
         {/* Col 2: Quick Links (Fully Dynamic) */}
         <div className="space-y-3">
-          <h4 className="text-sm font-extrabold text-white tracking-wider uppercase flex items-center gap-2">
+          <h3 className="text-sm font-extrabold text-white tracking-wider uppercase flex items-center gap-2">
             <span className="w-1.5 h-3.5 bg-rose-600 rounded-full" />
             {quickLinksTitle}
-          </h4>
+          </h3>
           <ul className="space-y-2 text-xs text-slate-400">
             {quickLinks.map((link, idx) => (
               <li key={idx}>
@@ -237,10 +237,10 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
 
         {/* Col 3: Branches (Fully Dynamic) */}
         <div className="space-y-3">
-          <h4 className="text-sm font-extrabold text-white tracking-wider uppercase flex items-center gap-2">
+          <h3 className="text-sm font-extrabold text-white tracking-wider uppercase flex items-center gap-2">
             <span className="w-1.5 h-3.5 bg-rose-600 rounded-full" />
             {branchesTitle}
-          </h4>
+          </h3>
           <ul className="space-y-2 text-xs text-slate-400">
             {branches.map((b, idx) => {
               const isExternal = b.url.startsWith('http') || b.url.startsWith('//');
@@ -269,10 +269,10 @@ export const GlobalFooter: React.FC<GlobalFooterProps> = ({ hideCtaStrip = false
 
         {/* Col 4: Patient Contact & Support */}
         <div className="space-y-3">
-          <h4 className="text-sm font-extrabold text-white tracking-wider uppercase flex items-center gap-2">
+          <h3 className="text-sm font-extrabold text-white tracking-wider uppercase flex items-center gap-2">
             <span className="w-1.5 h-3.5 bg-rose-600 rounded-full" />
             {supportTitle}
-          </h4>
+          </h3>
           {supportSubtext && (
             <p className="text-xs text-slate-400">
               {supportSubtext}

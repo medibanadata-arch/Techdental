@@ -259,9 +259,9 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
 
   const handleOpenAppointment = (name?: string) => {
     if (name) {
-      router.visit(`/appointment?doctor=${encodeURIComponent(name)}`);
+      router.visit(`/book-an-appointment?doctor=${encodeURIComponent(name)}`);
     } else {
-      router.visit('/appointment');
+      router.visit('/book-an-appointment');
     }
   };
 
@@ -352,7 +352,7 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
               >
                 <div>
                   {/* Doctor Image with Location Badge */}
-                  <a href={`/doctors/${doc.id}`} className="block w-full h-52 sm:h-56 mb-4 rounded-xl overflow-hidden bg-slate-100 relative group">
+                  <a href={`/doctors/${doc.slug || doc.id}`} className="block w-full h-52 sm:h-56 mb-4 rounded-xl overflow-hidden bg-slate-100 relative group">
                     <img
                       src={doc.image}
                       alt={doc.name}
@@ -368,7 +368,7 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
                   </a>
 
                   {/* Doctor Name */}
-                  <a href={`/doctors/${doc.id}`} className="hover:underline block">
+                  <a href={`/doctors/${doc.slug || doc.id}`} className="hover:underline block">
                     <h2 className="text-lg font-bold text-teal-600 mb-1 leading-snug">
                       {doc.name}
                     </h2>
@@ -432,14 +432,14 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
                 {/* Action Buttons */}
                 <div className="flex items-center justify-center gap-2.5 pt-3 border-t border-slate-100">
                   <a
-                    href={`/doctors/${doc.id}`}
+                    href={`/doctors/${doc.slug || doc.id}`}
                     className="w-1/2 py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
                   >
                     <UserCheck size={13} />
                     <span>View Profile</span>
                   </a>
                   <Link
-                    href={`/appointment?doctor=${encodeURIComponent(doc.name)}`}
+                    href={`/book-an-appointment?doctor=${encodeURIComponent(doc.name)}`}
                     className="w-1/2 py-2 px-3 bg-[#800038] hover:bg-[#9a0044] text-white font-bold text-xs rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer text-center"
                   >
                     <CalendarCheck size={13} />
@@ -524,7 +524,10 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
                       {safeFaqs.filter((f: any) => f && f.q).map((faq: any, idx: number) => (
                         <div key={idx} className="bg-slate-50 rounded-xl p-3.5 border border-slate-200/70">
                           <p className="font-bold text-xs sm:text-sm text-slate-900 mb-1">{faq.q}</p>
-                          <p className="text-xs text-slate-600 leading-relaxed">{faq.a}</p>
+                          <div
+                            className="text-xs text-slate-600 leading-relaxed [&_a]:text-rose-700 [&_a]:font-semibold [&_a]:underline [&_p]:mt-1.5 [&_p:first-child]:mt-0"
+                            dangerouslySetInnerHTML={{ __html: faq.a }}
+                          />
                         </div>
                       ))}
                     </div>
@@ -559,7 +562,7 @@ export default function BestDentistPage({ item, doctors = [], locations = [], na
             </a>
 
             <Link
-              href="/appointment"
+              href="/book-an-appointment"
               className="px-6 py-2.5 bg-white text-[#800038] hover:bg-rose-50 font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
             >
               <span>Book Appointment</span>

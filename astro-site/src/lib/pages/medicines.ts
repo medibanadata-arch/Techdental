@@ -1,5 +1,6 @@
 import { all, get, model, models } from '../db';
 import { SITE_URL, locations, navMenu, websiteTexts } from '../shared';
+import { medicineAlias } from '../medicineAliases';
 
 export function postSlugs(): string[] {
   return all<{ slug: string }>('SELECT slug FROM posts WHERE slug IS NOT NULL').map((row) => row.slug);
@@ -42,7 +43,12 @@ export function medicinesIndexSeo(isBn: boolean) {
   return {
     title: isBn ? copy.medicines_seo_title_bn : copy.medicines_seo_title,
     description: isBn ? copy.medicines_seo_desc_bn : copy.medicines_seo_desc,
-    path: '/medicines',
+    path: isBn ? '/bn/medication' : '/medication',
+    alternates: {
+      en: `${SITE_URL}/medication`,
+      bn: `${SITE_URL}/bn/medication`,
+      'x-default': `${SITE_URL}/medication`,
+    },
     noSuffix: isBn,
   };
 }
@@ -56,7 +62,7 @@ export function medicinesIndexSchema(medicines: any[], isBn: boolean) {
       '@type': 'ListItem',
       position: i + 1,
       name: isBn ? m.name_bn || m.name : m.name,
-      url: `${SITE_URL}/medicines/${m.slug}`,
+      url: `${SITE_URL}/${isBn ? 'bn/' : ''}medication/${m.slug}`,
     })),
   };
 }
@@ -71,21 +77,25 @@ export function medicineShow(slug: string, isBn: boolean, legacy = false): Medic
     const post = get('SELECT * FROM posts WHERE slug = ?', [slug]);
     if (post) {
       const toBn = isBn && String(post.content_bn || '').trim() !== '';
-      return { kind: 'redirect', location: `${toBn ? '/bn/blog/' : '/blog/'}${slug}` };
+      return { kind: 'redirect', location: `${toBn ? '/bn/dentistry/' : '/dentistry/'}${slug}` };
     }
   }
 
   const row = get('SELECT * FROM medicines WHERE slug = ? OR id = ?', [slug, slug]);
-  if (!row) return null;
+  if (!row) {
+    const alias = medicineAlias(slug);
+    if (alias) return { kind: 'redirect', location: `${isBn ? '/bn' : ''}/medication/${alias}` };
+    return null;
+  }
   const item = model<any>('medicines', row);
 
   if (!item.is_active && !legacy) {
     const path = item.canonical_url ? new URL(String(item.canonical_url), SITE_URL).pathname : null;
-    if (path && path !== `/medicines/${item.slug}` && path !== `/bn/medicines/${item.slug}`) {
-      const target = isBn && path.startsWith('/medicines/') ? `/bn${path}` : path;
+    if (path && path !== `/medication/${item.slug}` && path !== `/bn/medication/${item.slug}`) {
+      const target = isBn && path.startsWith('/medication/') ? `/bn${path}` : path;
       return { kind: 'redirect', location: target };
     }
-    return { kind: 'redirect', location: '/medicines' };
+    return { kind: 'redirect', location: '/medication' };
   }
 
   const slugs = postSlugs();
@@ -105,11 +115,11 @@ export function medicineShow(slug: string, isBn: boolean, legacy = false): Medic
       locations: locations(),
       nav_menu: navMenu(),
       is_bn: isBn,
-      canonical_url: `${SITE_URL}/${isBn ? 'bn/' : ''}medicines/${medSlug}`,
+      canonical_url: `${SITE_URL}/${isBn ? 'bn/' : ''}medication/${medSlug}`,
       hreflang: {
-        en: `${SITE_URL}/medicines/${medSlug}`,
-        bn: `${SITE_URL}/bn/medicines/${medSlug}`,
-        'x-default': `${SITE_URL}/medicines/${medSlug}`,
+        en: `${SITE_URL}/medication/${medSlug}`,
+        bn: `${SITE_URL}/bn/medication/${medSlug}`,
+        'x-default': `${SITE_URL}/medication/${medSlug}`,
       },
     },
     seo: medicineSeo(item, isBn),
@@ -136,7 +146,7 @@ export function medicineSeo(item: any, isBn: boolean) {
       : 'Uses, Dosage, Side Effects & Price in Bangladesh';
 
   const medSlug = item.slug || String(item.id);
-  const medPath = `${isBn ? '/bn' : ''}/medicines/${medSlug}`;
+  const medPath = `${isBn ? '/bn' : ''}/medication/${medSlug}`;
   const medCanonical = `${SITE_URL}${medPath}`;
   const medImage = item.image
     ? /^https?:\/\//i.test(item.image)
@@ -162,7 +172,7 @@ export function medicineSeo(item: any, isBn: boolean) {
           '@type': 'ListItem',
           position: 2,
           name: isBn ? 'ঔষধ' : 'Medicines',
-          item: `${SITE_URL}/medicines`,
+          item: `${SITE_URL}${isBn ? '/bn' : ''}/medication`,
         },
         { '@type': 'ListItem', position: 3, name: displayName || item.name, item: medCanonical },
       ],
@@ -176,9 +186,9 @@ export function medicineSeo(item: any, isBn: boolean) {
     image: medImage || '/images/og-default.jpg',
     type: 'article',
     alternates: {
-      en: `${SITE_URL}/medicines/${medSlug}`,
-      bn: `${SITE_URL}/bn/medicines/${medSlug}`,
-      'x-default': `${SITE_URL}/medicines/${medSlug}`,
+      en: `${SITE_URL}/medication/${medSlug}`,
+      bn: `${SITE_URL}/bn/medication/${medSlug}`,
+      'x-default': `${SITE_URL}/medication/${medSlug}`,
     },
     schema: schemas,
   };

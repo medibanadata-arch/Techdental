@@ -106,12 +106,12 @@ export default function PriceListPublicIndex({
   return (
     <div
       className="min-h-screen bg-slate-50 text-slate-800 antialiased flex flex-col justify-between w-full"
-      style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}
+      style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}
     >
       <Seo
         title={settings?.seo_title || settings?.page_title || 'Tech Dental Treatment Price List in Bangladesh – 2026'}
         description={settings?.meta_desc || settings?.seo_content || 'Updated treatment prices for dental implants, braces, root canal, crowns and more at Tech Dental Care in Dhaka.'}
-        path="/price-list"
+        path={is_bn ? '/bn/tech-dental-treatment-price-list-bn' : '/tech-dental-treatment-price-list-bangladesh'}
         robots={`${settings?.robots_index !== false ? 'index' : 'noindex'}, ${settings?.robots_follow !== false ? 'follow' : 'nofollow'}`}
         schema={priceSchemas}
         noSuffix
@@ -322,16 +322,16 @@ export default function PriceListPublicIndex({
             className="border-t border-slate-100 px-5 py-5 text-slate-600 text-xs sm:text-sm leading-relaxed space-y-4 bg-white"
           >
               <div
-                className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
+                className="more-about-content rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: settings?.seo_content || '' }}
               />
 
               {safeFaqs.length > 0 && (
                 <div className="pt-4 mt-2 border-t border-slate-100">
-                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 mb-3 flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 mb-3 flex items-center gap-2">
                     <span className="w-1.5 h-3.5 bg-rose-700 rounded-full" />
                     {is_bn ? 'সচরাচর জিজ্ঞাসা (FAQ)' : 'Frequently Asked Questions (FAQ)'}
-                  </h4>
+                  </h3>
                   <div className="space-y-2">
                     {safeFaqs.filter(f => f && f.q).map((faq, i) => {
                       const isFaqOpen = openFaqIndex === i;
@@ -352,10 +352,9 @@ export default function PriceListPublicIndex({
                           </button>
                           <div
                             hidden={!isFaqOpen}
-                            className="px-3.5 pb-3 pt-1 text-xs text-slate-600 bg-white border-t border-slate-100 leading-relaxed"
-                          >
-                            {faq.a}
-                          </div>
+                            className="px-3.5 pb-3 pt-1 text-xs text-slate-600 bg-white border-t border-slate-100 leading-relaxed [&_a]:text-rose-700 [&_a]:font-semibold [&_a]:underline [&_p]:mt-1.5 [&_p:first-child]:mt-0"
+                            dangerouslySetInnerHTML={{ __html: faq.a }}
+                          />
                         </div>
                       );
                     })}
@@ -408,7 +407,7 @@ export default function PriceListPublicIndex({
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2 rounded-xl bg-[#9c1c65] px-4 py-3">
               <p className="text-[11px] sm:text-xs font-semibold text-rose-50 text-center sm:text-left">{R.cta}</p>
               <Link
-                href="/appointment"
+                href="/book-an-appointment"
                 className="shrink-0 rounded-lg bg-white px-3.5 py-1.5 text-[11px] font-bold text-[#9c1c65] hover:bg-rose-50 transition"
               >
                 {R.book}

@@ -79,7 +79,11 @@ const parseMilestones = (raw: any): Milestone[] => {
 /** Split the degree string into bold first line + supporting lines */
 const splitDegree = (deg: string): string[] => {
   if (!deg) return [];
-  return deg.split(/,\s*(?=(?:PGT|FCPS|Dip\.|MS|MCPS|MMEd|FFD)\b)/).map((s) => s.trim()).filter(Boolean);
+  return deg
+    .split(/\r?\n+/)
+    .flatMap((line) => line.split(/,\s*(?=(?:PGT|FCPS|Dip\.|MS|MCPS|MMEd|FFD)\b)/))
+    .map((s) => s.trim())
+    .filter(Boolean);
 };
 
 /** Turn the SEO text blob (segments separated by " — ") into Q&A pairs */
@@ -223,12 +227,12 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
   return (
     <div
       className="min-h-screen bg-white text-slate-600 antialiased flex flex-col justify-start"
-      style={{ fontFamily: "'Inter', 'SolaimanLipi', 'Hind Siliguri', sans-serif" }}
+      style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}
     >
       <Seo
         title={item.seo_title ? `${item.name} – ${item.seo_title}` : `${item.name} - Senior Dental Specialist Profile`}
         description={item.meta_desc || item.bio}
-        path={`/doctors/${item.id}`}
+        path={`${(page.props as any)?.locale === 'bn' ? '/bn/doctor' : '/doctors'}/${item.slug || item.id}`}
         image={item.img}
         type="profile"
         robots={`${item.robots_index !== false ? 'index' : 'noindex'}, ${item.robots_follow !== false ? 'follow' : 'nofollow'}`}
@@ -288,7 +292,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
             {/* 2 Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full mb-5">
               <Link
-                href={`/appointment?doctor=${encodeURIComponent(item.name)}`}
+                href={`/book-an-appointment?doctor=${encodeURIComponent(item.name)}`}
                 className="w-full sm:w-auto flex-1 sm:flex-initial py-3 px-6 bg-[#c81e62] hover:bg-[#a8184f] active:scale-[0.99] text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2.5 shadow-sm cursor-pointer"
               >
                 <i className="far fa-calendar-check text-base"></i>
@@ -361,8 +365,11 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{copy.doctor_expertise}</h2>
               </div>
               <div className="flex flex-wrap gap-2 items-center">
-                {(seeMore ? specs : visibleSpecs).map((s, i) => (
-                  <span key={i} className="px-3 py-1.5 bg-slate-50 hover:bg-pink-50/60 text-slate-700 text-xs font-medium rounded-xl border border-slate-200/70 transition flex items-center gap-1.5">
+                {specs.map((s, i) => (
+                  <span
+                    key={i}
+                    className={`px-3 py-1.5 bg-slate-50 hover:bg-pink-50/60 text-slate-700 text-xs font-medium rounded-xl border border-slate-200/70 transition flex items-center gap-1.5${i >= visibleSpecs.length && !seeMore ? ' md:hidden' : ''}`}
+                  >
                     <i className="fas fa-check text-[#c81e62] text-[10px]"></i> {s}
                   </span>
                 ))}
@@ -371,7 +378,7 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                   <button
                     type="button"
                     onClick={() => setSeeMore(!seeMore)}
-                    className="px-3.5 py-1.5 bg-pink-50 hover:bg-pink-100/70 text-[#c81e62] text-xs font-semibold rounded-xl border border-pink-200/60 transition flex items-center gap-1.5 cursor-pointer select-none"
+                    className="px-3.5 py-1.5 bg-pink-50 hover:bg-pink-100/70 text-[#c81e62] text-xs font-semibold rounded-xl border border-pink-200/60 transition hidden md:flex items-center gap-1.5 cursor-pointer select-none"
                   >
                     <span>{seeMore ? 'See Less' : 'See More'}</span>
                     <i className={`fas fa-chevron-down text-[10px] transform transition-transform duration-300 ${seeMore ? 'rotate-180' : ''}`}></i>
@@ -428,21 +435,21 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                 </button>
               </h2>
 
-              {infoOpen && (
-                <div className="border-t border-slate-100 px-5 py-5 bg-white">
+              {/* Always rendered so crawlers can read the More About links; hidden visually until opened. */}
+              <div className="border-t border-slate-100 px-5 py-5 bg-white" hidden={!infoOpen}>
                   {item.seo_content ? (
                     <div className="space-y-6">
                       <div
-                        className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
+                        className="more-about-content rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: item.seo_content }}
                       />
 
                       {faqs.length > 0 && (
                         <div className="pt-5 border-t border-slate-100">
-                          <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                          <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                             <span className="w-1.5 h-3.5 bg-pink-700 rounded-full" />
                             {copy.doctor_faq_heading}
-                          </h4>
+                          </h3>
                           <div className="space-y-2.5">
                             {faqs.map((f, i) => (
                               <div key={i} className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
@@ -451,9 +458,10 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                                   {f.q}
                                 </p>
                                 {f.a && (
-                                  <p className="text-xs sm:text-sm text-slate-600 mt-1 pl-6 leading-relaxed">
-                                    {f.a}
-                                  </p>
+                                  <div
+                                    className="text-xs sm:text-sm text-slate-600 mt-1 pl-6 leading-relaxed [&_a]:text-pink-700 [&_a]:font-semibold [&_a]:underline [&_p]:mt-1.5 [&_p:first-child]:mt-0"
+                                    dangerouslySetInnerHTML={{ __html: f.a }}
+                                  />
                                 )}
                               </div>
                             ))}
@@ -505,7 +513,12 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                                 <p className="font-semibold text-slate-800">
                                   {i + 1}. {f.q}
                                 </p>
-                                {f.a && <p className="text-slate-500 mt-0.5">{f.a}</p>}
+                                {f.a && (
+                                  <div
+                                    className="text-slate-500 mt-0.5 [&_a]:text-pink-700 [&_a]:font-semibold [&_a]:underline [&_p]:mt-1.5 [&_p:first-child]:mt-0"
+                                    dangerouslySetInnerHTML={{ __html: f.a }}
+                                  />
+                                )}
                               </div>
                             ))}
                           </div>
@@ -514,7 +527,6 @@ export default function DoctorsPublicSingle({ item, hotline, locations = [], nav
                     </div>
                   )}
                 </div>
-              )}
             </div>
           )}
         </div>

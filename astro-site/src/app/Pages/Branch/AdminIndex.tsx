@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { HOTLINE, WHATSAPP } from '@/utils/contact';
+import { branchPathFromSlug } from '../../../lib/publicPaths';
 import {
     MapPin,
     Clock,
@@ -268,7 +269,7 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
 
                 <div className="flex items-center gap-3">
                     <a
-                        href={`/branch/${selectedBranch?.slug || selectedBranch?.id || ''}`}
+                        href={branchPathFromSlug(String(selectedBranch?.slug || selectedBranch?.id || ''))}
                         target="_blank"
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-2xs"
                     >
@@ -718,7 +719,7 @@ export default function BranchAdminIndex({ branches = [], doctors = [], services
                                                 type="text"
                                                 value={form.booking_url}
                                                 onChange={(e) => setForm({ ...form, booking_url: e.target.value })}
-                                                placeholder="/appointment"
+                                                placeholder="/book-an-appointment"
                                                 className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-lg"
                                             />
                                             <p className="text-[10px] text-gray-400 mt-0.5">Booking page destination</p>

@@ -56,12 +56,14 @@
   --text-main: #1f2937;
   --text-muted: #64748b;
   --success-green: #16a34a;
-  /* Font variables */
-  --font-plus-jakarta: 'Plus Jakarta Sans', sans-serif;
-  --font-inter: 'Inter', sans-serif;
-  --font-solaiman: 'SolaimanLipi', sans-serif;
-  --font-hind-siliguri: 'Hind Siliguri', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+  /* Font variables
+     English/Latin uses Times New Roman site-wide; Bengali glyphs fall through to
+     the self-hosted SolaimanLipi face (its unicode-range only covers Bengali). */
+  --font-plus-jakarta: 'Times New Roman', Times, serif;
+  --font-inter: 'Times New Roman', Times, serif;
+  --font-solaiman: 'SolaimanLipi', 'Times New Roman', Times, serif;
+  --font-hind-siliguri: 'Times New Roman', Times, 'SolaimanLipi', 'Hind Siliguri', serif;
+  --font-sans: 'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif;
 }
 
 * {
@@ -72,16 +74,16 @@
 body {
   background-color: #f8fafc;
   color: var(--text-main);
-  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   min-height: 100vh;
   overflow-y: scroll;
   /* Always show scrollbar to prevent layout shift on page load */
 }
 
-/* Explicit SolaimanLipi helper for Bangla text elements */
+/* Explicit Bangla text helper (same stack — SolaimanLipi only covers Bengali glyphs) */
 .font-solaiman,
 .font-bangla {
-  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif !important;
+  font-family: var(--font-sans) !important;
 }
 
 /* Hide scrollbar for Chrome, Safari, Edge, Opera, Firefox */
@@ -166,7 +168,7 @@ body {
 .prose,
 .rich-content-view,
 .seo-content-view {
-  font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', sans-serif !important;
+  font-family: var(--font-sans) !important;
 }
 
 .wp-editor-content h1,
@@ -683,7 +685,7 @@ figure.wp-caption figcaption,
   --tw-shadow: none !important;
   --tw-ring-color: transparent !important;
   background: transparent !important;
-  font: 500 18px 'Plus Jakarta Sans', 'SolaimanLipi', 'Hind Siliguri', sans-serif;
+  font: 500 18px 'Times New Roman', Times, 'SolaimanLipi', 'Hind Siliguri', serif;
   color: #0f172a;
   padding: 12px 0;
   caret-color: #2563eb;
@@ -1057,7 +1059,8 @@ figure.wp-caption figcaption,
   background: #fdf2f6;
 }
 
-.branch-faq-item p {
+.branch-faq-item p,
+.branch-faq-answer {
   margin: 0 !important;
   padding: 2px 14px 13px;
   font-size: 12.8px !important;
@@ -1065,3 +1068,152 @@ figure.wp-caption figcaption,
   color: #475569 !important;
 }
 
+.branch-faq-answer p {
+  margin: 0 0 7px !important;
+  padding: 0;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  color: inherit !important;
+}
+
+.branch-faq-answer p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.branch-faq-answer a,
+.more-about-content a {
+  color: #be123c;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+
+/* ------------------------------------------------------------------
+   "More About" accordion content typography (Task: consistent, compact)
+   Keeps h1 > h2 > h3 > h4 order while preventing oversized headings
+   inside the collapsed SEO drawers.
+   ------------------------------------------------------------------ */
+.more-about-content {
+  font-family: var(--font-sans) !important;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #334155;
+}
+
+.more-about-content h1,
+.more-about-content h1 *,
+.more-about-content h2,
+.more-about-content h2 * {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  margin: 18px 0 8px !important;
+  color: #0f172a !important;
+  display: block !important;
+}
+
+.more-about-content h3,
+.more-about-content h3 * {
+  font-size: 16.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  margin: 15px 0 6px !important;
+  color: #1e293b !important;
+  display: block !important;
+}
+
+.more-about-content h4,
+.more-about-content h4 * {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+  margin: 12px 0 4px !important;
+  color: #334155 !important;
+  display: block !important;
+}
+
+.more-about-content p {
+  font-size: 14.5px !important;
+  line-height: 1.75 !important;
+  margin: 8px 0 !important;
+  color: #334155 !important;
+}
+
+.more-about-content li {
+  font-size: 14.5px !important;
+  line-height: 1.7 !important;
+  margin: 4px 0 !important;
+}
+
+.more-about-content blockquote {
+  font-size: 13.5px !important;
+  line-height: 1.7 !important;
+  padding: 10px 16px !important;
+  margin: 14px 0 !important;
+}
+
+.more-about-content > :first-child {
+  margin-top: 0 !important;
+}
+
+.more-about-content > :last-child {
+  margin-bottom: 0 !important;
+}
+
+.more-about-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.more-about-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 12px 0;
+}
+
+.more-about-content th,
+.more-about-content td {
+  border: 1px solid #e2e8f0;
+  padding: 7px 9px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.more-about-content th {
+  background: #f8fafc;
+  font-weight: 700;
+}
+
+/* Branch "more about" drawer: keep embedded sterilization grid tidy */
+.more-about-content .sterilization-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.more-about-content .sterilization-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+  background: #fff;
+}
+
+.more-about-content .sterilization-card h3 {
+  margin-top: 0 !important;
+}
+
+.more-about-content .sterilization-card img {
+  width: 100%;
+  height: 96px;
+  object-fit: cover;
+}
+
+@media (max-width: 640px) {
+  .more-about-content .sterilization-grid {
+    grid-template-columns: 1fr;
+  }
+}

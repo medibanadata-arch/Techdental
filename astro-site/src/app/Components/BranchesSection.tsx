@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { MapPin, Clock, ArrowRight } from "lucide-react";
+import { branchPathFromSlug } from "../../lib/publicPaths";
 
 interface BranchesSectionProps {
   locations?: any[];
@@ -63,7 +64,7 @@ export const BranchesSection: React.FC<BranchesSectionProps> = ({
           <MapPin className="w-5 h-5 text-primary-maroon" />
           <span>Our Branches</span>
         </div>
-        <a href="/branches" className="text-xs font-bold text-sky-600 hover:text-sky-700 hover:underline">
+        <a href="/contact" className="text-xs font-bold text-sky-600 hover:text-sky-700 hover:underline">
           All Branches →
         </a>
       </div>
@@ -105,7 +106,7 @@ export const BranchesSection: React.FC<BranchesSectionProps> = ({
             <span>{currentBranch.time}</span>
           </div>
           <a
-            href={`/branch/${currentBranch.slug || currentBranch.id || 'mirpur'}`}
+            href={branchPathFromSlug(String(currentBranch.slug || currentBranch.id || 'mirpur'))}
             className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#800038] to-[#990044] hover:from-[#66002c] hover:to-[#800038] text-white font-extrabold text-[0.76rem] shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer active:scale-95"
           >
             <span>Branch Details</span>

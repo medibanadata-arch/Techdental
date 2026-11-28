@@ -103,7 +103,7 @@ export default function TeamAdminIndex({ data = [] }: Props) {
 
                 <div className="flex items-center gap-3">
                     <a
-                        href="/team"
+                        href="/corporate-tram-en"
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-2xs"

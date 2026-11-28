@@ -32,8 +32,8 @@ function phpJson(value: any): string {
 
 const DEFAULT_ITEMS = [
   { id: '1', title: 'Home', url: '/', type: 'custom' },
-  { id: '2', title: 'About Tech Dental', url: '/about', type: 'custom' },
-  { id: '3', title: 'Branches & Schedules', url: '/branch/mirpur', type: 'custom' },
+  { id: '2', title: 'About Tech Dental', url: '/about-tech-dental', type: 'custom' },
+  { id: '3', title: 'Branches & Schedules', url: '/mirpur-branch', type: 'custom' },
 ];
 
 /** Seed the default header menu and backfill page_id references. */

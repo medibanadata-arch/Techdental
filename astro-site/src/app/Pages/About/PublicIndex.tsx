@@ -5,6 +5,7 @@ import { AppointmentModal } from "@/components/AppointmentModal";
 import { BranchPickerModal } from "@/components/BranchPickerModal";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
+import YouTubePlayer from "@/Components/YouTubePlayer";
 import { HOTLINE_DISPLAY, HOTLINE_TEL } from "@/utils/contact";
 import { 
   Play, Eye, Target, ShieldCheck, Zap, Check, Clock, Shield, 
@@ -52,6 +53,22 @@ interface Props extends PageProps {
   locations?: any[];
   nav_menu?: any;
   is_bn?: boolean;
+}
+
+/* Each technology card links to its dedicated SEO article (EN + BN versions). */
+const TECH_BLOG_LINKS: Record<string, { en: string; bn: string }> = {
+  'digital x-ray': { en: '/dentistry/digital-x-ray-rvg-dental-imaging', bn: '/bn/dentistry/digital-x-ray-rvg-dental-imaging' },
+  'intra oral camera': { en: '/dentistry/intraoral-camera-dental-examination', bn: '/bn/dentistry/intraoral-camera-dental-examination' },
+  'live patient portal': { en: '/dentistry/live-patient-portal-dental-clinic', bn: '/bn/dentistry/live-patient-portal-dental-clinic' },
+  'sterilization': { en: '/dentistry/4-step-sterilization-dental-clinic', bn: '/bn/dentistry/4-step-sterilization-dental-clinic' },
+};
+
+function techBlogHref(title: string | undefined, isBn: boolean): string {
+  const key = String(title || '').toLowerCase();
+  for (const [needle, href] of Object.entries(TECH_BLOG_LINKS)) {
+    if (key.includes(needle)) return isBn ? href.bn : href.en;
+  }
+  return isBn ? '/bn/dentistry' : '/dentistry';
 }
 
 const TECH_CONFIG = [
@@ -215,7 +232,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
       <Seo
         title={content.seo_title || `${content.hero_title || 'About Tech Dental Care'} — Digital Oral Healthcare`}
         description={content.meta_desc || content.hero_subtitle || content.story_p1}
-        path={is_bn ? '/bn/about-tech-dental-en/' : '/about'}
+        path={is_bn ? '/bn/about-tech-dental-en' : '/about-tech-dental'}
         robots={`${content.robots_index !== false ? 'index' : 'noindex'}, ${content.robots_follow !== false ? 'follow' : 'nofollow'}`}
         schema={aboutSchemas}
         noSuffix
@@ -296,13 +313,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
           <div className="w-full lg:w-1/2 relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 bg-black">
             {isVideoPlaying ? (
               <div className="relative w-full h-[320px] sm:h-[420px] bg-black">
-                <iframe
-                  className="absolute inset-0 w-full h-full"
-                  src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1&modestbranding=1`}
-                  title="Tech Dental Clinic Tour Video"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
+                <YouTubePlayer videoId={videoId} title="Tech Dental Clinic Tour Video" />
               </div>
             ) : (
               <button
@@ -336,7 +347,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
 
                   <div className="text-white">
                     <p className="text-xs text-rose-200 font-medium">{L.insideExperience}</p>
-                    <h4 className="text-lg font-bold text-white">{L.sterileLounges}</h4>
+                    <p className="text-lg font-bold text-white">{L.sterileLounges}</p>
                   </div>
                 </div>
               </button>
@@ -375,7 +386,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
 
             <div className="pt-2 flex items-center gap-4 flex-wrap">
               <Link
-                href="/appointment"
+                href="/book-an-appointment"
                 className="px-6 py-3 rounded-xl bg-[#800038] hover:bg-[#6b002f] text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Calendar size={16} />
@@ -437,7 +448,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
 
                   <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
                     <Link
-                      href="/services"
+                      href="/our-services"
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-[#800038] hover:text-[#5a0027] transition-colors"
                     >
                       <span>{L.viewTreatments}</span>
@@ -445,7 +456,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                     </Link>
 
                     <Link
-                      href="/appointment"
+                      href="/book-an-appointment"
                       className="px-3.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs transition cursor-pointer"
                     >
                       {L.bookNow}
@@ -476,34 +487,42 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
             {displayDoctors.map((d: any) => (
               <div
                 key={d.id}
-                className="group bg-white rounded-3xl p-6 shadow-xs hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-200 hover:border-rose-200 flex flex-col items-center text-center"
+                className="group relative bg-white rounded-3xl p-6 shadow-xs hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-200 hover:border-rose-200 flex flex-col items-center text-center"
               >
+                {/* Whole card opens the doctor profile; the Book button sits above this overlay */}
+                <Link
+                  href={`/doctors/${d.slug || d.id}`}
+                  className="absolute inset-0 z-0 rounded-3xl"
+                  aria-label={`View profile of ${d.name}`}
+                  tabIndex={-1}
+                />
                 <div className="relative mb-5">
                   <div className="absolute inset-0 bg-rose-400 rounded-full blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-300 scale-105" />
                   <img
                     src={d.img || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80"}
-                    alt={d.name}
+                    alt={`${d.name} — ${d.designation || 'Dental Surgeon'} at Tech Dental ${d.branch || 'Mirpur'}`}
+                    loading="lazy"
                     className="relative w-32 h-32 rounded-full object-cover border-4 border-white shadow-md group-hover:border-rose-100 transition-colors duration-300"
                   />
                 </div>
 
-                <h3 className="font-extrabold text-slate-900 text-lg mb-1 group-hover:text-[#800038] transition-colors">
+                <h3 className="relative font-extrabold text-slate-900 text-lg mb-1 group-hover:text-[#800038] transition-colors">
                   {d.name}
                 </h3>
-                <p className="text-xs text-rose-600 font-extrabold mb-3 tracking-wider uppercase">
+                <p className="relative text-xs text-rose-600 font-extrabold mb-3 tracking-wider uppercase">
                   {d.designation || L.dentalSurgeon}
                 </p>
 
-                <div className="w-12 h-0.5 bg-slate-200 rounded-full mb-3 group-hover:bg-[#800038] transition-colors" />
+                <div className="relative w-12 h-0.5 bg-slate-200 rounded-full mb-3 group-hover:bg-[#800038] transition-colors" />
 
-                <p className="text-xs text-slate-500 flex items-center justify-center gap-1.5 mb-4">
+                <p className="relative text-xs text-slate-500 flex items-center justify-center gap-1.5 mb-4">
                   <MapPin size={13} className="text-[#800038]" />
                   <span>Tech Dental, {d.branch || d.branch_location || 'Mirpur'}</span>
                 </p>
 
                 <Link
-                  href={`/appointment?doctor=${encodeURIComponent(d.name)}`}
-                  className="mt-auto w-full py-2 bg-slate-50 hover:bg-[#800038] text-slate-700 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-200 hover:border-transparent cursor-pointer flex items-center justify-center"
+                  href={`/book-an-appointment?doctor=${encodeURIComponent(d.name)}`}
+                  className="relative z-10 mt-auto w-full py-2 bg-slate-50 hover:bg-[#800038] text-slate-700 hover:text-white rounded-xl text-xs font-bold transition-all border border-slate-200 hover:border-transparent cursor-pointer flex items-center justify-center"
                 >
                   {L.book}
                 </Link>
@@ -546,9 +565,11 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                 const cfg = TECH_CONFIG[i % TECH_CONFIG.length];
                 const IconComp = cfg.icon;
                 return (
-                  <div 
-                    key={i} 
-                    className={`bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 ${cfg.border} relative flex flex-col justify-between`}
+                  <Link
+                    key={i}
+                    href={techBlogHref(card.title, Boolean(is_bn))}
+                    className={`group/card block bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 ${cfg.border} relative flex flex-col justify-between cursor-pointer`}
+                    aria-label={`Read more about ${card.title}`}
                   >
                     <div className="absolute -top-3.5 -right-3.5 w-8 h-8 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-xs shadow-md">
                       {i + 1}
@@ -559,7 +580,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                         <IconComp size={22} />
                       </div>
 
-                      <h3 className="text-lg font-bold text-rose-800 text-center mb-1">
+                      <h3 className="text-lg font-bold text-rose-800 text-center mb-1 group-hover/card:text-rose-600 transition-colors">
                         {card.title}
                       </h3>
                       <p className="text-[11px] text-slate-400 text-center mb-4 uppercase font-bold tracking-wider">
@@ -569,16 +590,22 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
                       <div className="w-full h-40 rounded-xl overflow-hidden mb-4 border border-slate-100">
                         <img 
                           src={card.img} 
-                          alt={card.title} 
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
+                          alt={`${card.title} at Tech Dental — ${card.tag || 'advanced dental technology'}`}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500" 
                         />
                       </div>
 
                       <p className="text-xs text-slate-600 text-center leading-relaxed">
                         {card.desc}
                       </p>
+
+                      <span className="mt-3 inline-flex items-center justify-center gap-1 w-full text-[11px] font-bold text-rose-700 group-hover/card:underline">
+                        {is_bn ? 'বিস্তারিত পড়ুন' : 'Read the full guide'}
+                        <ArrowRight size={12} />
+                      </span>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -734,7 +761,7 @@ export default function AboutPublicIndex({ content, doctors = [], management = [
             </a>
 
             <Link
-              href="/appointment"
+              href="/book-an-appointment"
               className="px-8 py-3.5 bg-white hover:bg-rose-50 text-[#800038] rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition flex items-center gap-2 cursor-pointer"
             >
               <Calendar size={16} />

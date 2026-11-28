@@ -5,6 +5,7 @@ import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import { BranchPickerModal } from "@/Components/BranchPickerModal";
 import { AppointmentModal } from "@/Components/AppointmentModal";
+import YouTubePlayer from "@/Components/YouTubePlayer";
 import { BRANCHES_DATA } from "@/data/dentalData";
 import type { BranchInfo } from "@/data/dentalData";
 import { getHomepageCopy } from "@/data/homepageCopy";
@@ -238,7 +239,7 @@ export default function Home({
             time: loc.time || data[key]?.time || "10:00 AM – 9:00 PM",
             phone: loc.phone || data[key]?.phone || HOTLINE,
             whatsapp: loc.whatsapp || data[key]?.whatsapp || WHATSAPP,
-            bookingUrl: loc.booking_url || data[key]?.bookingUrl || "/appointment",
+            bookingUrl: loc.booking_url || data[key]?.bookingUrl || "/book-an-appointment",
             callLabel: loc.call_label || data[key]?.callLabel || "Call",
             directionsLabel: loc.directions_label || data[key]?.directionsLabel || "Directions",
             whatsappLabel: loc.whatsapp_label || data[key]?.whatsappLabel || "WhatsApp",
@@ -655,7 +656,7 @@ export default function Home({
         reply: `টেক ডেন্টালের দক্ষ স্পেশালিস্ট সার্জন ও কনসালট্যান্টগণ আপনাকে নির্ভুল সেবা প্রদান করবেন। খরচ, ভিজিটিং সময় বা নির্দিষ্ট চিকিৎসার বিস্তারিত জানতে আমাদের হটলাইনে (${hotline}) সরাসরি কথা বলুন অথবা অনলাইনে অ্যাপয়েন্টমেন্ট নিশ্চিত করুন।`,
         actionType: "appointment",
         actionLabel: "অনলাইন সিরিয়াল নিন",
-        actionUrl: "/appointment",
+        actionUrl: "/book-an-appointment",
       },
       timestamp: fallbackTime,
       bookingButtons: true,
@@ -833,7 +834,7 @@ export default function Home({
     if (msg.role === "user") {
       return (
         <div key={msg.id} data-msg-id={msg.id} className="flex flex-col items-end pt-2">
-          <div className="bg-[#dbeafe] text-[#0f172a] font-normal px-4 py-2.5 rounded-[20px] rounded-br-[4px] text-[14px] sm:text-[15px] max-w-[85%] border border-blue-200/60 shadow-2xs whitespace-pre-line font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+          <div className="bg-[#dbeafe] text-[#0f172a] font-normal px-4 py-2.5 rounded-[20px] rounded-br-[4px] text-[14px] sm:text-[15px] max-w-[85%] border border-blue-200/60 shadow-2xs whitespace-pre-line font-sans">
             {msg.text}
           </div>
           <div className="flex items-center gap-1 text-[11px] text-slate-400 mt-1 mr-1 select-none">
@@ -849,8 +850,8 @@ export default function Home({
 
     return (
       <div key={msg.id} data-msg-id={msg.id} className="flex flex-col items-start pt-2">
-        <div className="bg-[#f8fafc] text-slate-800 p-4 sm:p-5 rounded-[22px] border border-slate-200/80 shadow-xs max-w-[92%] sm:max-w-[88%] font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
-          <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif] tracking-wide space-y-2">
+        <div className="bg-[#f8fafc] text-slate-800 p-4 sm:p-5 rounded-[22px] border border-slate-200/80 shadow-xs max-w-[92%] sm:max-w-[88%] font-sans">
+          <div className="text-slate-800 text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-line font-normal font-sans tracking-wide space-y-2">
             {renderFormattedReply(msg.answer?.reply || "")}
             {msg.answer?.image?.url && (
               <button
@@ -869,7 +870,7 @@ export default function Home({
             )}
             {msg.bookingButtons && (
               <a
-                href="/appointment"
+                href="/book-an-appointment"
                 className="inline-flex items-center gap-1.5 bg-[#881337] hover:bg-[#6f0f2d] active:scale-95 text-white px-3.5 py-2 rounded-full text-[12px] sm:text-[13px] font-semibold shadow-xs transition align-middle ml-0.5"
               >
                 <i className="fa-regular fa-calendar-check text-[11px]" />
@@ -938,7 +939,7 @@ export default function Home({
   const seoDesc = home_content?.meta_desc || "টেক ডেন্টাল কেয়ার - মিরপুর, উত্তরা, বাড্ডা ও যাত্রাবাড়ী শাখায় অভিজ্ঞ ডেন্টাল সার্জনদের তত্ত্বাবধানে বিশ্বমানের ব্যথামুক্ত চিকিৎসা।";
 
   return (
-    <div className="bg-gradient-to-b from-[#f4f7fc] to-[#dae9f6] md:from-sky-50/80 md:via-white md:to-blue-50/40 min-h-screen flex flex-col justify-between text-slate-800 antialiased selection:bg-blue-500 selection:text-white font-['Noto_Sans_Bengali','Anek_Bangla','Hind_Siliguri','Inter',sans-serif]">
+    <div className="bg-gradient-to-b from-[#f4f7fc] to-[#dae9f6] md:from-sky-50/80 md:via-white md:to-blue-50/40 min-h-screen flex flex-col justify-between text-slate-800 antialiased selection:bg-blue-500 selection:text-white font-sans">
       <Seo
         title={seoTitle}
         description={seoDesc}
@@ -1057,7 +1058,7 @@ export default function Home({
           {/* Opens smoothly above the bottom search bar */}
           {/* ========================================== */}
           {isWidgetOpen && (chatMessages.length > 0 || isAiLoading) && (
-            <div id="aiResponseWidget" className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-[0_12px_40px_rgb(0,0,0,0.06)] overflow-hidden flex flex-col h-[480px] mb-4 transition-all duration-300 text-left font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+            <div id="aiResponseWidget" className="w-full bg-white rounded-3xl border border-slate-200/90 shadow-[0_12px_40px_rgb(0,0,0,0.06)] overflow-hidden flex flex-col h-[480px] mb-4 transition-all duration-300 text-left font-sans">
               {/* Top Chat Header Matching Image 1 */}
               <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                 <div className="flex items-center gap-3">
@@ -1352,13 +1353,7 @@ export default function Home({
                 >
                   {isPlaying ? (
                     <>
-                      <iframe
-                        src={`https://www.youtube.com/embed/${item.videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                        title={item.title || "Tech Dental Video"}
-                        className="absolute inset-0 w-full h-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                      />
+                      <YouTubePlayer videoId={item.videoId} title={item.title || "Tech Dental Video"} />
                       <button
                         type="button"
                         onClick={() => setPlayingVideo(null)}
@@ -1695,7 +1690,7 @@ export default function Home({
       {/* ========================================== */}
       {isFullModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-3xl h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 font-['Noto_Sans_Bengali','Anek_Bangla',sans-serif]">
+          <div className="bg-white w-full max-w-3xl h-[85vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200 font-sans">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
               <div className="flex items-center gap-3">

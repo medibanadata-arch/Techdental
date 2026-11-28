@@ -129,7 +129,7 @@ export default function PostLayoutTemplate({ post, loading, error }: PostLayoutT
       <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-6 text-center space-y-4">
         <h2 className="text-2xl font-black text-slate-800">Article Not Found</h2>
         <p className="text-sm text-slate-500 max-w-sm">{error || "The article you are looking for does not exist or has been removed."}</p>
-        <Link href="/blog" className="px-6 py-3 bg-slate-900 text-white rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all">
+        <Link href="/dentistry" className="px-6 py-3 bg-slate-900 text-white rounded-full text-sm font-bold shadow-lg hover:shadow-xl transition-all">
           Back to All Articles
         </Link>
       </div>
@@ -208,7 +208,7 @@ export default function PostLayoutTemplate({ post, loading, error }: PostLayoutT
                 Home
               </Link>
               <ChevronRight className="w-3 h-3" />
-              <Link href="/blog" className="hover:text-rose-500 transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-100">
+              <Link href="/dentistry" className="hover:text-rose-500 transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-slate-100">
                 Dental Blog
               </Link>
               <ChevronRight className="w-3 h-3" />

@@ -260,8 +260,8 @@ export default function BlogPublicSingle({
   const tocItems = useMemo(() => extractToc(bodyHtml, hasFaqs), [bodyHtml, hasFaqs]);
   const articleSections = useMemo(() => splitSectionsByH2(preparedHtml), [preparedHtml]);
 
-  const blogPath = `/blog/${post?.slug || ''}`;
-  const bnBlogPath = `/bn/blog/${post?.slug || ''}`;
+  const blogPath = `/dentistry/${post?.slug || ''}`;
+  const bnBlogPath = `/bn/dentistry/${post?.slug || ''}`;
   const seoPath = isBn ? bnBlogPath : blogPath;
   const canonicalUrl = `${siteUrl}${seoPath}`;
   const seoImage = post?.img || '/images/og-default.jpg';
@@ -298,7 +298,7 @@ export default function BlogPublicSingle({
         '@id': `${url}#breadcrumb`,
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: isBn ? 'হোম' : 'Home', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: isBn ? 'ডেন্টাল ব্লগ' : 'Dental Blog', item: `${siteUrl}${isBn ? '/bn/blog' : '/blog'}` },
+          { '@type': 'ListItem', position: 2, name: isBn ? 'ডেন্টাল ব্লগ' : 'Dental Blog', item: `${siteUrl}${isBn ? '/bn/dentistry' : '/dentistry'}` },
           { '@type': 'ListItem', position: 3, name: activeTitle || 'Article', item: url },
         ],
       },
@@ -356,7 +356,7 @@ export default function BlogPublicSingle({
   );
 
   return (
-    <div className="min-h-screen text-gray-800 antialiased overflow-x-clip bg-[#f3f4f6]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+    <div className="min-h-screen text-gray-800 antialiased overflow-x-clip bg-[#f3f4f6]" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}>
       <Seo
         title={seoTitle}
         description={metaDescription}
@@ -396,9 +396,9 @@ export default function BlogPublicSingle({
               onClick={() => setTocOpen(!tocOpen)}
               className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50/50 cursor-pointer select-none"
             >
-              <h3 className="font-bold text-gray-900 text-sm">
+              <p className="font-bold text-gray-900 text-sm">
                 {titleToc}
-              </h3>
+              </p>
               <i className={`fas fa-chevron-up text-gray-600 transition-transform duration-300 ${tocOpen ? '' : 'rotate-180'}`} />
             </div>
             {tocOpen && (
@@ -423,7 +423,7 @@ export default function BlogPublicSingle({
                   <i className="fas fa-home" /> {isBn ? "হোম" : "Home"}
                 </Link>
                 <span className="text-gray-300 shrink-0">/</span>
-                <Link href="/blog" className="text-[#9f1239] hover:underline shrink-0">
+                <Link href="/dentistry" className="text-[#9f1239] hover:underline shrink-0">
                   {isBn ? "ডেন্টাল ব্লগ" : "Dental Blog"}
                 </Link>
                 <span className="text-gray-300 shrink-0">/</span>
@@ -454,9 +454,9 @@ export default function BlogPublicSingle({
               onClick={() => setTocOpen(!tocOpen)}
               className="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50/50 cursor-pointer select-none"
             >
-              <h3 className="font-bold text-gray-900 text-sm">
+              <p className="font-bold text-gray-900 text-sm">
                 {titleToc}
-              </h3>
+              </p>
               <i className={`fas fa-chevron-up text-gray-600 transition-transform duration-300 ${tocOpen ? '' : 'rotate-180'}`} />
             </div>
             {tocOpen && (
@@ -599,9 +599,9 @@ export default function BlogPublicSingle({
                 <i className="far fa-calendar-check text-[#881337] text-xl" />
               </div>
               <div className="flex flex-col justify-center h-full pt-1">
-                <h4 className="font-bold text-gray-900 text-[16px] mb-1">
+                <h3 className="font-bold text-gray-900 text-[16px] mb-1">
                   {ctaBannerTitle}
-                </h4>
+                </h3>
                 <p className="text-[#881337] text-[14.5px] font-semibold m-0">
                   {ctaBannerSubtitle}
                 </p>
@@ -711,7 +711,7 @@ export default function BlogPublicSingle({
                       const rExcerpt = (isBn && r.excerpt_bn) ? r.excerpt_bn : r.excerpt;
                       return (
                         <div key={r.id} className="group">
-                          <Link href={`/blog/${r.slug}`} className="block">
+                          <Link href={`/dentistry/${r.slug}`} className="block">
                             {r.img && (
                               <img src={r.img} alt={rTitle} className="w-full h-44 object-cover mb-3 border border-gray-200 rounded-lg group-hover:opacity-95 transition" />
                             )}

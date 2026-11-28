@@ -135,7 +135,7 @@ export default function GrapesJsEditor({
                             <h1 style="font-size: 34px; margin: 14px 0 10px; font-weight: 800; line-height: 1.2;">Advanced Digital Dentistry in Dhaka</h1>
                             <p style="font-size: 15px; max-width: 600px; margin: 0 auto 20px; color: #fce7f3; line-height: 1.6;">Painless root canals, single-visit laser teeth whitening, and precision dental implants backed by certified specialists.</p>
                             <div>
-                                <a href="/appointment" style="background: #ffffff; color: #800038; font-weight: bold; padding: 12px 26px; border-radius: 30px; text-decoration: none; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">Book Appointment Now</a>
+                                <a href="/book-an-appointment" style="background: #ffffff; color: #800038; font-weight: bold; padding: 12px 26px; border-radius: 30px; text-decoration: none; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">Book Appointment Now</a>
                             </div>
                         </section>
                     `,
@@ -147,7 +147,7 @@ export default function GrapesJsEditor({
                     label: '✨ Dental Treatments (3 Cards)',
                     category: 'Dental Components',
                     content: `
-                        <div style="padding: 30px 10px; margin: 15px 0; font-family: sans-serif;">
+                        <div style="padding: 30px 10px; margin: 15px 0; font-family: 'Times New Roman', Times, serif;">
                             <h2 style="text-align: center; font-size: 26px; color: #111827; margin-bottom: 20px; font-weight: bold;">Our Specialized Treatments</h2>
                             <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
                                 <div style="flex: 1; min-width: 240px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: left;">
@@ -178,7 +178,7 @@ export default function GrapesJsEditor({
                     label: '📍 4 Dhaka Branches Strip',
                     category: 'Dental Components',
                     content: `
-                        <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 14px; padding: 20px; margin: 15px 0; font-family: sans-serif;">
+                        <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 14px; padding: 20px; margin: 15px 0; font-family: 'Times New Roman', Times, serif;">
                             <h3 style="color: #9d174d; font-size: 17px; font-weight: 800; margin-bottom: 12px;">Our Dhaka Clinic Branches</h3>
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; font-size: 12px; color: #374151;">
                                 <div style="background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #fce7f3;">

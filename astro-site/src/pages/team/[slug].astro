@@ -3,12 +3,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Page from '../../app/wrappers/Team_PublicSinglePage';
 import { pagePayload } from '../../lib/shared';
 import { teamMemberProps, teamMemberSeo } from '../../lib/pages/people';
+import { canonicalMismatch } from '../../lib/legacyRender';
 
 const { slug = '' } = Astro.params;
 const props = teamMemberProps(String(slug));
 if (!props) return new Response('Not Found', { status: 404 });
-const page = pagePayload('Team/PublicSingle', props, `/team/${slug}`);
 const seo = teamMemberSeo(props.member);
+if (canonicalMismatch(seo, Astro.url.pathname)) return new Response('Not Found', { status: 404 });
+const page = pagePayload('Team/PublicSingle', props, `/team/${slug}`);
 ---
 
 <BaseLayout seo={seo} lang="en">

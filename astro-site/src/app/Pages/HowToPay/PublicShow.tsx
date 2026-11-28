@@ -266,7 +266,7 @@ export default function HowToPayPublicShow({
     'Choose your branch to see accepted payment methods at Tech Dental Care: Cash, POS Debit/Credit Card, Bangla QR, bKash, Nagad, and Rocket.';
 
   return (
-    <div className="bg-white flex flex-col min-h-screen text-[#0a0a0a] font-['Plus_Jakarta_Sans','Inter','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
+    <div className="bg-white flex flex-col min-h-screen text-[#0a0a0a] font-sans">
       <Seo
         title={pageTitle}
         description={metaDesc}
@@ -294,10 +294,10 @@ export default function HowToPayPublicShow({
         <div className="how-to-pay-wrap max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-8 py-8 md:py-12">
           {/* Hero Section */}
           <header className="hero pt-2 pb-6 md:pb-8">
-            <div className="tag inline-block border-l-3 border-[#f0480f] pl-2.5 font-['Barlow_Condensed',sans-serif] font-extrabold text-[18px] sm:text-[22px] md:text-[26px] leading-[1.1] uppercase text-[#0a0a0a] tracking-wide">
+            <div className="tag inline-block border-l-3 border-[#f0480f] pl-2.5 font-serif font-extrabold text-[18px] sm:text-[22px] md:text-[26px] leading-[1.1] uppercase text-[#0a0a0a] tracking-wide">
               {tagline}
             </div>
-            <h1 className="font-['Barlow_Condensed',sans-serif] font-extrabold text-[46px] sm:text-[68px] md:text-[88px] lg:text-[96px] leading-[0.95] uppercase tracking-[0.005em] my-3.5 sm:my-4 text-[#0a0a0a]">
+            <h1 className="font-serif font-extrabold text-[46px] sm:text-[68px] md:text-[88px] lg:text-[96px] leading-[0.95] uppercase tracking-[0.005em] my-3.5 sm:my-4 text-[#0a0a0a]">
               {titleMain}
               <br />
               <span className="pk text-[#f0047f]">{titleHighlight}</span>
@@ -309,7 +309,7 @@ export default function HowToPayPublicShow({
 
           {/* Branch Picker Header */}
           <div className="mt-4">
-            <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[24px] sm:text-[28px] uppercase tracking-[0.01em] m-0 mb-1 text-[#0a0a0a]">
+            <h2 className="font-serif font-bold text-[24px] sm:text-[28px] uppercase tracking-[0.01em] m-0 mb-1 text-[#0a0a0a]">
               {branchesSectionTitle}
             </h2>
             <p className="sub text-[#5c5c5c] m-0 mb-4 text-sm sm:text-[14.5px]">
@@ -326,7 +326,7 @@ export default function HowToPayPublicShow({
                     type="button"
                     onClick={() => selectBranch(b.id)}
                     aria-pressed={isSelected}
-                    className={`pill flex-initial border-[1.5px] rounded-full px-4 sm:px-5 py-2.5 font-['Plus_Jakarta_Sans',sans-serif] font-semibold text-sm sm:text-[15px] cursor-pointer min-h-[44px] transition-all select-none active:scale-[0.98] ${
+                    className={`pill flex-initial border-[1.5px] rounded-full px-4 sm:px-5 py-2.5 font-serif font-semibold text-sm sm:text-[15px] cursor-pointer min-h-[44px] transition-all select-none active:scale-[0.98] ${
                       isSelected
                         ? 'bg-[#f0047f] border-[#f0047f] text-white shadow-sm'
                         : 'border-[#e2e2e2] bg-white text-[#0a0a0a] hover:border-slate-400'
@@ -348,7 +348,7 @@ export default function HowToPayPublicShow({
                 <span className="count inline-block bg-[#f0480f] text-white font-bold rounded-lg px-2.5 py-0.5 text-xs sm:text-[14px] w-max">
                   {availableMethodsCount} of {methods.length} methods available
                 </span>
-                <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[28px] sm:text-[34px] uppercase m-0 leading-tight text-[#0a0a0a]">
+                <h2 className="font-serif font-bold text-[28px] sm:text-[34px] uppercase m-0 leading-tight text-[#0a0a0a]">
                   {currentBranch.name} branch
                 </h2>
                 <div className="meta flex flex-wrap gap-x-5 gap-y-1.5 text-[#5c5c5c] text-xs sm:text-[14.5px]">
@@ -411,7 +411,7 @@ export default function HowToPayPublicShow({
                       )}
                     </div>
 
-                    <div className="name font-['Barlow_Condensed',sans-serif] font-bold text-[21px] leading-[1.2] uppercase text-[#0a0a0a]">
+                    <div className="name font-serif font-bold text-[21px] leading-[1.2] uppercase text-[#0a0a0a]">
                       <span className={isOn ? 'text-[#0a0a0a]' : 'text-[#8a8a8a]'}>{m.name}</span>
                     </div>
 
@@ -461,7 +461,7 @@ export default function HowToPayPublicShow({
 
           {/* Section: All Branches at a Glance Matrix */}
           <section className="mt-9 sm:mt-12">
-            <h2 className="font-['Barlow_Condensed',sans-serif] font-bold text-[24px] sm:text-[28px] uppercase tracking-[0.01em] m-0 mb-1 text-[#0a0a0a]">
+            <h2 className="font-serif font-bold text-[24px] sm:text-[28px] uppercase tracking-[0.01em] m-0 mb-1 text-[#0a0a0a]">
               {matrixSectionTitle}
             </h2>
             <p className="sub text-[#5c5c5c] m-0 mb-4 text-sm sm:text-[14.5px]">

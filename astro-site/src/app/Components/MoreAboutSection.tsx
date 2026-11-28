@@ -56,10 +56,10 @@ export const MoreAboutSection: React.FC<MoreAboutProps> = ({ content }) => {
         />
       </button>
 
-      {/* SEO Content Drawer */}
-      {isOpen && (
-        <div
+      {/* SEO Content Drawer — always in the HTML so crawlers can read the links */}
+      <div
           ref={drawerRef}
+          hidden={!isOpen}
           className="mt-2.5 p-4 sm:p-5 bg-white border border-slate-200 rounded-2xl text-[0.8rem] text-slate-600 leading-relaxed animate-fade-in shadow-xs space-y-4"
         >
           {content?.about_text ? (
@@ -116,9 +116,10 @@ export const MoreAboutSection: React.FC<MoreAboutProps> = ({ content }) => {
                         <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform ${isFaqOpen ? 'rotate-180 text-rose-700' : ''}`} />
                       </button>
                       {isFaqOpen && (
-                        <div className="px-3.5 pb-3 pt-1 text-xs text-slate-600 bg-white border-t border-slate-100 leading-relaxed">
-                          {faq.a}
-                        </div>
+                        <div
+                          className="px-3.5 pb-3 pt-1 text-xs text-slate-600 bg-white border-t border-slate-100 leading-relaxed [&_a]:text-rose-700 [&_a]:font-semibold [&_a]:underline [&_p]:mt-1.5 [&_p:first-child]:mt-0"
+                          dangerouslySetInnerHTML={{ __html: faq.a }}
+                        />
                       )}
                     </div>
                   );
@@ -127,7 +128,6 @@ export const MoreAboutSection: React.FC<MoreAboutProps> = ({ content }) => {
             </div>
           )}
         </div>
-      )}
     </section>
   );
 };

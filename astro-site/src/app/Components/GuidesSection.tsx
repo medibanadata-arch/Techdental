@@ -35,7 +35,7 @@ export const GuidesSection: React.FC<GuidesSectionProps> = ({ posts = [], onSele
           const authorAvatar = guide.author_avatar || guide.authorAvatar || defaultAvatar;
           const category = guide.category || "Dental Care";
           const thumbUrl = guide.img || guide.thumb_url || guide.thumbUrl || defaultThumb;
-          const postLink = guide.slug ? `/blog/${guide.slug}` : "/blog";
+          const postLink = guide.slug ? `/dentistry/${guide.slug}` : "/dentistry";
 
           return (
             <article key={guide.id} className="py-3.5 first:pt-1 last:pb-1">
@@ -118,7 +118,7 @@ export const GuidesSection: React.FC<GuidesSectionProps> = ({ posts = [], onSele
                 <span>Show Top 3 Only</span>
               </button>
               <a
-                href="/blog"
+                href="/dentistry"
                 className="text-xs font-bold text-amber-700 hover:text-amber-900 hover:underline"
               >
                 Visit Full Blog →

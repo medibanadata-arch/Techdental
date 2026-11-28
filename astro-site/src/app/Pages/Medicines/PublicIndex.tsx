@@ -107,13 +107,13 @@ export default function MedicinesPublicIndex({
   }, [medicines, activeCat, query]);
 
   return (
-    <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+    <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}>
       <Seo
         title={isBn ? copy.medicines_seo_title_bn : copy.medicines_seo_title}
         description={isBn
           ? copy.medicines_seo_desc_bn
           : copy.medicines_seo_desc}
-        path="/medicines"
+        path="/medication"
         noSuffix={isBn}
         schema={{
           '@context': 'https://schema.org',
@@ -123,7 +123,7 @@ export default function MedicinesPublicIndex({
             '@type': 'ListItem',
             position: i + 1,
             name: isBn ? (m.name_bn || m.name) : m.name,
-            url: `${siteUrl}/medicines/${m.slug}`,
+            url: `${siteUrl}/medication/${m.slug}`,
           })),
         }}
       />
@@ -178,7 +178,7 @@ export default function MedicinesPublicIndex({
             return (
               <Link
                 key={item.id}
-                href={`/medicines/${item.slug}`}
+                href={`/medication/${item.slug}`}
                 className="card-hover cursor-pointer bg-white rounded-xl overflow-hidden border border-slate-200/70 flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 group"
               >
                 <div>
@@ -201,9 +201,9 @@ export default function MedicinesPublicIndex({
                       </span>
                     </div>
 
-                    <h3 className="text-base font-bold text-slate-800 tracking-tight leading-snug group-hover:text-cyan-700 transition">
+                    <h2 className="text-base font-bold text-slate-800 tracking-tight leading-snug group-hover:text-cyan-700 transition">
                       {displayName}
-                    </h3>
+                    </h2>
                     <p className="text-xs text-cyan-700 font-medium mt-0.5 mb-2 truncate">
                       {displayGeneric}
                     </p>
@@ -289,7 +289,7 @@ export default function MedicinesPublicIndex({
             <div className="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
               <span>Prescription reference only</span>
               <Link
-                href={`/medicines/${modalItem.slug}`}
+                href={`/medication/${modalItem.slug}`}
                 className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl transition"
               >
                 Full Details

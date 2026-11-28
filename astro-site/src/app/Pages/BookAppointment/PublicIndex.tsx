@@ -191,7 +191,7 @@ export default function BookAppointmentPublicIndex({ locations = [], nav_menu }:
       <Seo
         title={copy.appointment_seo_title}
         description={copy.appointment_seo_desc}
-        path="/appointment"
+        path={(page.props as any)?.locale === 'bn' ? '/bn/appointment' : '/book-an-appointment'}
       />
       {/* Top Header Full Width */}
       <TopHeader locations={locations} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+﻿import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { 
@@ -945,7 +945,7 @@ export default function Create({ mediaList = [] }: Props) {
                             {/* Permalink / Slug Display */}
                             <div className="flex items-center gap-2 text-xs text-slate-500 font-mono pt-1">
                                 <span>Permalink:</span>
-                                <span className="text-slate-400">https://techdentalcare.com/blog/</span>
+                                <span className="text-slate-400">https://techdentalcare.com/dentistry/</span>
                                 {isEditingSlug ? (
                                     <div className="flex items-center gap-1">
                                         <input
@@ -1394,7 +1394,7 @@ export default function Create({ mediaList = [] }: Props) {
                                                 {data.seo_title || `${data.title || 'Post Title'} | Tech Dental`}
                                             </div>
                                             <div className="text-emerald-700 text-xs font-mono">
-                                                https://techdentalcare.com/blog/{data.slug || 'post-slug'}
+                                                https://techdentalcare.com/dentistry/{data.slug || 'post-slug'}
                                             </div>
                                             <div className="text-slate-500 text-xs">
                                                 {data.meta_desc || data.excerpt || 'Write an excerpt or meta description for Google preview...'}
@@ -1433,7 +1433,7 @@ export default function Create({ mediaList = [] }: Props) {
                                             <span className="text-xs font-bold uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
                                                 <span>🇧🇩</span> বাংলা এসইও (Bangla SEO)
                                             </span>
-                                            <span className="text-[10px] text-slate-400">শুধু /bn/blog পেজে ব্যবহৃত হয়</span>
+                                            <span className="text-[10px] text-slate-400">শুধু /bn/dentistry পেজে ব্যবহৃত হয়</span>
                                         </div>
 
                                         <div className="space-y-1.5">
@@ -1491,7 +1491,7 @@ export default function Create({ mediaList = [] }: Props) {
                                             type="text"
                                             value={data.canonical_url}
                                             onChange={e => setData('canonical_url', e.target.value)}
-                                            placeholder="https://techdentalcare.com/blog/example-canonical"
+                                            placeholder="https://techdentalcare.com/dentistry/example-canonical"
                                             className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 font-medium"
                                         />
                                     </div>

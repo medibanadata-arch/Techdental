@@ -1,0 +1,60 @@
+/**
+ * Old medicine URLs used translated/expanded slugs (for example
+ * `/bn/medication/napa-extra-tablet`). The canonical pages use the database
+ * slug, so every legacy slug gets a single 301 to the canonical medicine.
+ */
+export const MEDICINE_SLUG_ALIASES: Record<string, string> = {
+  'ecosprin-75mg': 'ecosprin-75',
+  'xinc-b': 'xinc-b-tablet',
+  'dexiland-30': 'dexilend-30-capsule',
+  'amodis-400mg-tablet': 'amodis-400',
+  'napa-extra-tablet': 'napa-extra',
+  'cortan-20mg-tablet': 'cortan-20',
+  'naproxen-500mg-tablet': 'naproxen-500',
+  'traxyl-500mg': 'traxyl-500',
+  'omidon-10mg-tablet': 'omidon-10',
+  'mm-kit': 'mm-kit-tablet',
+  'amdocal-5-tablet': 'amdocal-5',
+  'viset-50mg-tablet': 'viset-50',
+  'flexibac-10mg-tablet': 'flexibac-10-mg',
+  'coralcal-dx-tablet': 'coralcal-dx',
+  'alatrol-tablet': 'alatrol-10',
+  'bicozin': 'bicozin-tablet',
+  'furoclav-500mg': 'furoclav-500',
+  'neuro-b': 'neuro-b-tablet',
+  'norium-10-tablet': 'norium-10',
+  'exium-mups-20-tablet': 'exium-mups-20',
+  'd-rise-40000': 'd-rise-40000iu',
+  'bilastine-20-tablet': 'bilastine-20',
+  'maxpro-20-tablet': 'maxpro-20',
+  'pantonix-20-tablet': 'pantonix-20',
+  'clas-75-tablet': 'clas-75',
+  'normans-5mg': 'normens-5',
+  'emistat-8mg': 'emistat-8-mg',
+  'rosutin-10-tablet': 'rosutin-10',
+  'bn-monas-10-tablet': 'monas-10-tablet',
+  'tufnil-200-mg-tablet': 'tufnil-200-tablet',
+  'intimate-10mg': 'intimate-10-tablet',
+  'sergel-20mg-tablet': 'sergel-20-tablet',
+  'xyril-25mg-bd': 'xyril-25-tablet',
+  'rivotril-tablet-bd': 'rivotril-0-5-tablet',
+  'indevar-10mg-tablet': 'indever-10-tablet',
+  'fexo-120mg-tablet': 'fexo-120-tablet',
+  'napa-extend-665mg': 'napa-extend-665mg-tablet',
+  'napa-500mg-bd': 'napa-500mg',
+  'algin-50-tablet-bd': 'algin-50-tablet',
+  'bislol-tablet': 'bislol-2-5-tablet',
+  'zimax-500mg-tablet-bd': 'zimax-500-tablet',
+  'alcet-5mg-tablet': 'alcet-5-tablet',
+  'ciprocin-500mg-tablet-bd': 'ciprocin-500-tablet',
+  'fenadin-120mg-tablet': 'fenadin-120-tablet',
+  'naprosyn-500-tablet-bd': 'naprosyn-500-tablet',
+  'doxiva-200-tablet-bd': 'doxiva-200-tablet',
+  'e-cap-400-capsule': 'e-cap-400-iu-capsule',
+  'cef-3-capsule-bd': 'cef-3-capsule-suspension',
+  'bactrocin-ontment-bd': 'bactrocin-2-ointment',
+};
+
+export function medicineAlias(slug: string): string | undefined {
+  return MEDICINE_SLUG_ALIASES[slug];
+}

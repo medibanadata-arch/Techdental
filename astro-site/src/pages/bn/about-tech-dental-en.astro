@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Page from '../../app/wrappers/About_PublicIndexPage';
+import { pagePayload } from '../../lib/shared';
+import { aboutProps, aboutSeo } from '../../lib/pages/people';
+
+const props = aboutProps(true);
+const page = pagePayload('About/PublicIndex', props, '/bn/about-tech-dental-en', 'bn');
+const seo = aboutSeo(props.content, true);
+---
+
+<BaseLayout seo={seo} lang="bn">
+  <Page client:load page={page} />
+</BaseLayout>

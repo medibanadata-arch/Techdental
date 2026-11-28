@@ -1,6 +1,9 @@
 import { all, get, model, models } from '../db';
 import { SITE_URL, applyBangla, locations, navMenu, uniqueBy } from '../shared';
 import { getBranchContent } from '../../data/branchContent';
+import { BRANCH_PATHS, branchPath, corePath } from '../publicPaths';
+
+export { BRANCH_PATHS, branchPath };
 
 /** Resolve a branch the same way BranchController::publicShow does. */
 export function resolveBranch(slug: string): any | null {
@@ -35,12 +38,15 @@ export function branchIndexProps() {
   };
 }
 
-export function branchIndexSeo() {
+export function branchIndexSeo(isBn = false) {
   return {
-    title: 'Dental Clinic Branches in Dhaka — Mirpur, Uttara, Badda & Jatrabari',
-    description:
-      'Find your nearest Tech Dental Care branch in Dhaka. View addresses, opening hours, phone numbers and directions for Mirpur, Uttara, Badda and Jatrabari.',
-    path: '/branches',
+    title: isBn
+      ? 'ঢাকায় টেক ডেন্টালের ডেন্টাল ক্লিনিক শাখা — মিরপুর, উত্তরা, বাড্ডা ও যাত্রাবাড়ী'
+      : 'Dental Clinic Branches in Dhaka — Mirpur, Uttara, Badda & Jatrabari',
+    description: isBn
+      ? 'ঢাকায় আপনার নিকটবর্তী টেক ডেন্টাল কেয়ার শাখা খুঁজুন। মিরপুর, উত্তরা, বাড্ডা ও যাত্রাবাড়ী শাখার ঠিকানা, খোলার সময়, ফোন নম্বর ও দিকনির্দেশনা দেখুন।'
+      : 'Find your nearest Tech Dental Care branch in Dhaka. View addresses, opening hours, phone numbers and directions for Mirpur, Uttara, Badda and Jatrabari.',
+    path: corePath('branches', isBn),
   };
 }
 
@@ -116,9 +122,8 @@ export function branchShowSeo(branch: any, isBn = false) {
   const cleanBranch = String(rawName).replace(/branch/gi, '').trim();
   const branchName = `${cleanBranch} Branch`;
   const hotline = branch?.phone || '09638-000505';
-  const slug = branch?.slug || branch?.id;
-  const branchPath = isBn ? `/bn/branch/${slug}` : `/branch/${slug}`;
-  const pageCanonical = `${SITE_URL}${branchPath}`;
+  const branchUrl = branchPath(branch, isBn);
+  const pageCanonical = `${SITE_URL}${branchUrl}`;
   const extras = getBranchContent(branch?.slug || branch?.short_name || branch?.name);
   const metaTitle = isBn
     ? extras.seo.bn.title

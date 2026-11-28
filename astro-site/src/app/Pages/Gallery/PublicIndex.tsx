@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { usePage } from "@inertiajs/react";
 import { TopHeader } from "@/Components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
+import YouTubePlayer from "@/Components/YouTubePlayer";
 import Seo from "@/Components/Seo";
 import type { PageProps } from "@inertiajs/core";
 import { getWebsiteTexts } from "@/data/websiteTexts";
@@ -80,7 +81,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
   }, [previewImage, imageItems]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-['Inter','Plus_Jakarta_Sans','SolaimanLipi','Noto_Sans_Bengali',sans-serif]">
+    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased font-sans">
       <Seo
         title={copy.gallery_seo_title}
         description={copy.gallery_seo_desc}
@@ -315,13 +316,7 @@ export default function GalleryPublicIndex({ locations = [], nav_menu, featured_
             </div>
 
             <div className="relative aspect-video w-full bg-black">
-              <iframe
-                src={`https://www.youtube.com/embed/${previewVideo.videoId}?autoplay=1&rel=0`}
-                title={previewVideo.title}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              <YouTubePlayer videoId={previewVideo.videoId} title={previewVideo.title} />
             </div>
           </div>
         </div>

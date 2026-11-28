@@ -403,7 +403,7 @@ export default function MedicinesPublicSingle({
         : 'Uses, Dosage, Side Effects & Price in Bangladesh');
 
   const medSlug = item.slug || String(item.id);
-  const medPath = `${isBn ? '/bn' : ''}/medicines/${medSlug}`;
+  const medPath = `${isBn ? '/bn' : ''}/medication/${medSlug}`;
   const medCanonical = `${siteUrl}${medPath}`;
   const medImage = item.image
     ? (/^https?:\/\//i.test(item.image) ? item.image : `${siteUrl}${item.image.startsWith('/') ? '' : '/'}${item.image}`)
@@ -440,7 +440,7 @@ export default function MedicinesPublicSingle({
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: isBn ? 'হোম' : 'Home', item: `${siteUrl}${isBn ? '/bn' : ''}/` },
-        { '@type': 'ListItem', position: 2, name: isBn ? 'ঔষধ' : 'Medicines', item: `${siteUrl}${isBn ? '/bn' : ''}/medicines` },
+        { '@type': 'ListItem', position: 2, name: isBn ? 'ঔষধ' : 'Medicines', item: `${siteUrl}${isBn ? '/bn' : ''}/medication` },
         { '@type': 'ListItem', position: 3, name: displayName || item.name, item: medCanonical },
       ],
     },
@@ -459,7 +459,7 @@ export default function MedicinesPublicSingle({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased" style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+    <div className="min-h-screen bg-slate-50 text-slate-800 antialiased" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}>
       <Seo
         title={displayName ? `${displayName} – ${seoTitleSuffix}` : cleanMedicineName}
         description={pageDescription}
@@ -467,9 +467,9 @@ export default function MedicinesPublicSingle({
         image={medImage || '/images/og-default.jpg'}
         type="article"
         alternates={{
-          en: `${siteUrl}/medicines/${medSlug}`,
-          bn: `${siteUrl}/bn/medicines/${medSlug}`,
-          'x-default': `${siteUrl}/medicines/${medSlug}`,
+          en: `${siteUrl}/medication/${medSlug}`,
+          bn: `${siteUrl}/bn/medication/${medSlug}`,
+          'x-default': `${siteUrl}/medication/${medSlug}`,
         }}
         schema={medSchemas}
       />
@@ -496,7 +496,7 @@ export default function MedicinesPublicSingle({
                   <Home className="text-[11px] text-[#8b1d41]" width={11} height={11} /> {isBn ? 'হোম' : 'Home'}
                 </Link>
                 <span className="text-slate-300">/</span>
-                <Link href="/medicines" className="hover:text-[#8b1d41] transition">{isBn ? 'ঔষধ' : 'Medicine'}</Link>
+                <Link href="/medication" className="hover:text-[#8b1d41] transition">{isBn ? 'ঔষধ' : 'Medicine'}</Link>
                 <span className="text-slate-300">/</span>
                 <span className="text-[#721533] font-semibold truncate">{displayName}</span>
               </nav>
@@ -841,8 +841,8 @@ export default function MedicinesPublicSingle({
                 <ChevronDown className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 flex-shrink-0 ${infoOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {infoOpen && (
-                <div className="border-t border-slate-100 px-4 sm:px-5 py-5 bg-slate-50/50 space-y-4">
+              {/* Always rendered so crawlers can read the More About links; hidden visually until opened. */}
+              <div className="border-t border-slate-100 px-4 sm:px-5 py-5 bg-slate-50/50 space-y-4" hidden={!infoOpen}>
                   {/* One minimal card per H2 SEO section */}
                   {seoSections.map((section, i) => (
                     <section
@@ -857,7 +857,7 @@ export default function MedicinesPublicSingle({
                       )}
                       {section.html && (
                         <div
-                          className="rich-content-view seo-content-view text-xs sm:text-sm text-slate-600 leading-relaxed"
+                          className="more-about-content rich-content-view seo-content-view text-xs sm:text-sm text-slate-600 leading-relaxed"
                           dangerouslySetInnerHTML={{ __html: section.html }}
                         />
                       )}
@@ -921,7 +921,6 @@ export default function MedicinesPublicSingle({
                     </section>
                   )}
                 </div>
-              )}
             </div>
             )}
           </main>

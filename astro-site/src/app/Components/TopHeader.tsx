@@ -2,6 +2,12 @@ import React, { useState, useMemo, useEffect } from "react";
 import { MapPin, Menu, X, ChevronDown, Globe, Calendar } from "lucide-react";
 import { usePage, router, Link } from "@inertiajs/react";
 import { useLanguage } from "@/utils/useLanguage";
+import {
+  branchKeyFromPath,
+  branchPathFromKey,
+  branchPathFromSlug,
+  priceListPath,
+} from "../../lib/publicPaths";
 
 interface TopHeaderProps {
   locations?: any[];
@@ -161,22 +167,22 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const currentPageKey = useMemo(() => {
     const p = pathWithoutBn;
     if (p === '/' || p === '') return 'home';
-    if (p.startsWith('/branch/')) return 'branch';
-    if (p.startsWith('/services') || p.startsWith('/service/')) return 'services';
+    if (branchKeyFromPath(p)) return 'branch';
+    if (p.startsWith('/our-services') || p.startsWith('/service/')) return 'services';
     if (p.startsWith('/doctors') || p.startsWith('/doctor/')) return 'doctors';
     if (
-      p.startsWith('/blog') ||
+      p.startsWith('/dentistry') ||
       p.startsWith('/guides') ||
       p.startsWith('/dental-guides') ||
-      p.startsWith('/medicines') ||
+      p.startsWith('/medication') ||
       p.startsWith('/medicine') ||
       p.startsWith('/posts') ||
       p.startsWith('/post')
     ) {
       return 'blog';
     }
-    if (p.startsWith('/appointment')) return 'appointment';
-    if (p.startsWith('/page/about') || p.startsWith('/about')) return 'about';
+    if (p.startsWith('/book-an-appointment')) return 'appointment';
+    if (p.startsWith('/page/about') || p.startsWith('/about-tech-dental')) return 'about';
     return 'default';
   }, [pathWithoutBn]);
 
@@ -197,16 +203,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     if (showLanguageSwitcher === true) return true;
 
     return (
-      pathWithoutBn === '/medicines' ||
-      pathWithoutBn.startsWith('/medicines/') ||
+      pathWithoutBn === '/medication' ||
+      pathWithoutBn.startsWith('/medication/') ||
       pathWithoutBn === '/medicine' ||
       pathWithoutBn.startsWith('/medicine/') ||
-      pathWithoutBn === '/services' ||
-      pathWithoutBn.startsWith('/services/') ||
+      pathWithoutBn === '/our-services' ||
+      pathWithoutBn.startsWith('/service/') ||
       pathWithoutBn === '/service' ||
       pathWithoutBn.startsWith('/service/') ||
-      pathWithoutBn === '/blog' ||
-      pathWithoutBn.startsWith('/blog/') ||
+      pathWithoutBn === '/dentistry' ||
+      pathWithoutBn.startsWith('/dentistry/') ||
       pathWithoutBn === '/dental-guides' ||
       pathWithoutBn.startsWith('/dental-guides/') ||
       pathWithoutBn === '/guides' ||
@@ -226,10 +232,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
     // Blog, Dental Guides, Medicines, and related single views ALWAYS hide branch picker
     const isEditorialOrMedicine =
-      pathWithoutBn === '/blog' ||
-      pathWithoutBn.startsWith('/blog/') ||
-      pathWithoutBn === '/medicines' ||
-      pathWithoutBn.startsWith('/medicines/') ||
+      pathWithoutBn === '/dentistry' ||
+      pathWithoutBn.startsWith('/dentistry/') ||
+      pathWithoutBn === '/medication' ||
+      pathWithoutBn.startsWith('/medication/') ||
       pathWithoutBn === '/medicine' ||
       pathWithoutBn.startsWith('/medicine/') ||
       pathWithoutBn === '/dental-guides' ||
@@ -265,10 +271,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     if (showBookButton === false) return false;
 
     const isEditorialOrMedicine =
-      pathWithoutBn === '/blog' ||
-      pathWithoutBn.startsWith('/blog/') ||
-      pathWithoutBn === '/medicines' ||
-      pathWithoutBn.startsWith('/medicines/') ||
+      pathWithoutBn === '/dentistry' ||
+      pathWithoutBn.startsWith('/dentistry/') ||
+      pathWithoutBn === '/medication' ||
+      pathWithoutBn.startsWith('/medication/') ||
       pathWithoutBn === '/medicine' ||
       pathWithoutBn.startsWith('/medicine/') ||
       pathWithoutBn === '/dental-guides' ||
@@ -299,21 +305,21 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     }
 
     // Only for single blog & medicine & patient rights: dynamically switch URL
-    const singleBlogMatch = cleanPath.match(/^(?:\/bn)?\/blog\/([^\/]+)$/i);
-    const singleMedicineMatch = cleanPath.match(/^(?:\/bn)?\/medicines\/([^\/]+)$/i);
-    const singleBranchMatch = cleanPath.match(/^(?:\/bn)?\/branch\/([^\/]+)$/i);
+    const singleBlogMatch = cleanPath.match(/^(?:\/bn)?\/dentistry\/([^\/]+)$/i);
+    const singleMedicineMatch = cleanPath.match(/^(?:\/bn)?\/medication\/([^\/]+)$/i);
+    const branchKey = branchKeyFromPath(cleanPath);
     const isPatientRights = cleanPath.match(/^(?:\/bn)?\/patient-rights(?:\/.*)?$/i);
-    const isServiceList = cleanPath === '/services' || cleanPath === '/bn/services';
+    const isServiceList = cleanPath === '/our-services' || cleanPath === '/bn/services';
     const singleServiceMatch = cleanPath.match(/^(?:\/bn)?\/services?\/([^\/]+)$/i);
-    const isBlogList = pathWithoutBn === '/blog';
-    const isBlogOthers = pathWithoutBn === '/blog/others';
+    const isBlogList = pathWithoutBn === '/dentistry';
+    const isBlogOthers = pathWithoutBn === '/dentistry/others';
 
     if (isBlogList) {
-      router.visit(targetLang === 'bn' ? '/bn/blog' : '/blog');
+      router.visit(targetLang === 'bn' ? '/bn/dentistry' : '/dentistry');
     } else if (isBlogOthers) {
-      router.visit(targetLang === 'bn' ? '/bn/blog/others' : '/blog/others');
+      router.visit(targetLang === 'bn' ? '/bn/dentistry/others' : '/dentistry/others');
     } else if (isServiceList) {
-      router.visit(targetLang === 'bn' ? '/bn/services' : '/services');
+      router.visit(targetLang === 'bn' ? '/bn/services' : '/our-services');
     } else if (singleServiceMatch) {
       if (languageUrls) {
         const target = targetLang === 'bn' ? languageUrls.bn : languageUrls.en;
@@ -321,7 +327,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       } else {
         const targetUrl = targetLang === 'bn'
           ? `/bn/services/${singleServiceMatch[1]}`
-          : `/services/${singleServiceMatch[1]}`;
+          : `/service/${singleServiceMatch[1]}`;
         if (cleanPath !== targetUrl.toLowerCase()) {
           router.visit(targetUrl);
         }
@@ -331,21 +337,20 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       if (cleanPath !== targetUrl.toLowerCase()) {
         router.visit(targetUrl);
       }
-    } else if (singleBranchMatch) {
-      const slug = singleBranchMatch[1];
-      const targetUrl = targetLang === 'bn' ? `/bn/branch/${slug}` : `/branch/${slug}`;
+    } else if (branchKey) {
+      const targetUrl = branchPathFromKey(branchKey, targetLang === 'bn');
       if (cleanPath !== targetUrl.toLowerCase()) {
         router.visit(targetUrl);
       }
     } else if (singleBlogMatch) {
       const slug = singleBlogMatch[1];
-      const targetUrl = targetLang === 'bn' ? `/bn/blog/${slug}` : `/blog/${slug}`;
+      const targetUrl = targetLang === 'bn' ? `/bn/dentistry/${slug}` : `/dentistry/${slug}`;
       if (cleanPath !== targetUrl.toLowerCase()) {
         router.visit(targetUrl);
       }
     } else if (singleMedicineMatch) {
       const slug = singleMedicineMatch[1];
-      const targetUrl = targetLang === 'bn' ? `/bn/medicines/${slug}` : `/medicines/${slug}`;
+      const targetUrl = targetLang === 'bn' ? `/bn/medication/${slug}` : `/medication/${slug}`;
       if (cleanPath !== targetUrl.toLowerCase()) {
         router.visit(targetUrl);
       }
@@ -379,32 +384,24 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     });
   }, [locations]);
 
-  // Determine active branch: ONLY on branch-specific pages (/branch/{slug} or /page/branch-{slug})
+  // Determine active branch on canonical branch URLs (old-site slugs).
   const activeBranch = useMemo(() => {
-    const isSpecificBranchRoute =
-      pathWithoutBn.startsWith('/branch/') ||
-      pathWithoutBn.startsWith('/page/branch-');
+    const key = branchKeyFromPath(cleanPath) || branchKeyFromPath(pathWithoutBn);
 
-    if (isSpecificBranchRoute) {
-      for (const b of formattedBranches) {
-        if (
-          pathWithoutBn === `/branch/${b.slug}` ||
-          pathWithoutBn.startsWith(`/branch/${b.slug}/`) ||
-          pathWithoutBn === `/page/branch-${b.slug}` ||
-          pathWithoutBn === `/page/${b.slug}`
-        ) {
-          return b;
-        }
-      }
-      if (selectedBranch) {
-        const match = formattedBranches.find(
-          b => b.slug === String(selectedBranch).toLowerCase() || b.id === String(selectedBranch)
-        );
-        if (match) return match;
-      }
+    if (key) {
+      const match = formattedBranches.find(
+        (b) => b.slug === key || b.id === key
+      );
+      if (match) return match;
+    }
+    if (selectedBranch) {
+      const match = formattedBranches.find(
+        (b) => b.slug === String(selectedBranch).toLowerCase() || b.id === String(selectedBranch)
+      );
+      if (match) return match;
     }
     return null;
-  }, [formattedBranches, pathWithoutBn, selectedBranch]);
+  }, [formattedBranches, cleanPath, pathWithoutBn, selectedBranch]);
 
   // Parse Menu Items from saved NavMenu or fallback
   const rawMenuItems = useMemo(() => {
@@ -421,19 +418,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     return [
       { title: 'Doctors', url: '/doctors', level: 0 },
       { title: 'Branch', url: '#', level: 0 },
-      { title: 'Mirpur', url: '/branch/mirpur', level: 1 },
-      { title: 'Uttara', url: '/branch/uttara', level: 1 },
-      { title: 'Badda', url: '/branch/badda', level: 1 },
-      { title: 'Jatrabari', url: '/branch/jatrabari', level: 1 },
-      { title: 'Services', url: '/services', level: 0 },
-      { title: 'Price List', url: '/price-list', level: 0 },
+      { title: 'Mirpur', url: '/mirpur-branch', level: 1 },
+      { title: 'Uttara', url: '/best-dentist-in-uttara', level: 1 },
+      { title: 'Badda', url: '/best-dentist-in-badda', level: 1 },
+      { title: 'Jatrabari', url: '/best-dentist-jatrabari-en', level: 1 },
+      { title: 'Services', url: '/our-services', level: 0 },
+      { title: 'Price List', url: priceListPath(false), level: 0 },
       { title: 'Blog', url: '#', level: 0 },
-      { title: 'Dental', url: '/blog', level: 1 },
-      { title: 'Medicine', url: '/medicines', level: 1 },
-      { title: 'Others', url: '/blog/others', level: 1 },
+      { title: 'Dental', url: '/dentistry', level: 1 },
+      { title: 'Medicine', url: '/medication', level: 1 },
+      { title: 'Others', url: '/dentistry/others', level: 1 },
       { title: 'About us', url: '#', level: 0 },
-      { title: 'About Tech Dental', url: '/about', level: 1 },
-      { title: 'Corporate Team', url: '/team', level: 1 },
+      { title: 'About Tech Dental', url: '/about-tech-dental', level: 1 },
+      { title: 'Corporate Team', url: '/corporate-tram-en', level: 1 },
     ];
   }, [navMenu]);
 
@@ -457,24 +454,24 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       const level = Number(rawItem.level || 0);
       let targetUrl = rawItem.url || '#';
 
-      // Ensure branch submenu items link directly to /branch/{slug}
+      // Branch submenu items link straight to the canonical old-site URL.
       const titleLower = String(rawItem.title || '').toLowerCase().trim();
       if (['mirpur', 'uttara', 'badda', 'jatrabari'].includes(titleLower)) {
-        targetUrl = `/branch/${titleLower}`;
+        targetUrl = branchPathFromKey(titleLower, false);
       } else if (targetUrl.startsWith('/page/branch-')) {
-        targetUrl = targetUrl.replace('/page/branch-', '/branch/');
+        targetUrl = branchPathFromSlug(targetUrl.replace('/page/branch-', ''), false);
       } else if (targetUrl === '/page/badda') {
-        targetUrl = '/branch/badda';
+        targetUrl = '/best-dentist-in-badda';
       } else if (targetUrl === '/page/jatrabari') {
-        targetUrl = '/branch/jatrabari';
+        targetUrl = '/best-dentist-jatrabari-en';
       } else if (targetUrl === '/page/about') {
-        targetUrl = '/about';
+        targetUrl = '/about-tech-dental';
       } else if (targetUrl === '/page/team') {
-        targetUrl = '/team';
+        targetUrl = '/corporate-tram-en';
       } else if (targetUrl === '/page/medicines') {
-        targetUrl = '/medicines';
+        targetUrl = '/medication';
       } else if (targetUrl === '/page/blog') {
-        targetUrl = '/blog';
+        targetUrl = '/dentistry';
       }
 
       const item = { ...rawItem, url: targetUrl, children: [] };
@@ -567,7 +564,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             {menuTree
               .filter((item) => {
                 const t = String(item.title || "").toLowerCase().trim();
-                return t !== "appointment" && item.url !== "/appointment";
+                return t !== "appointment" && item.url !== "/book-an-appointment";
               })
               .map((item) => {
                 const hasChildren = Array.isArray(item.children) && item.children.length > 0;
@@ -693,7 +690,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {/* Book Appointment CTA Button (Mobile & Desktop Web) - Hidden on Blog & Medicine */}
           {isBookButtonVisible && (
             <Link
-              href="/book"
+              href="/book-an-appointment"
               className="book-btn h-7 sm:h-8 md:h-11 px-2.5 sm:px-3 md:px-5 gap-1 md:gap-2 text-[11px] sm:text-xs md:text-[15px] font-sans font-medium shrink-0"
               aria-label="Book Appointment"
             >
@@ -705,7 +702,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           {/* Variant-specific CTA Actions */}
           {currentVariant === 'minimal' && (
             <a
-              href="/appointment"
+              href="/book-an-appointment"
               className="inline-flex items-center gap-1.5 bg-[#800038] hover:bg-[#990044] text-white px-3 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-bold shadow-xs hover:shadow transition-all no-underline shrink-0"
             >
               <Calendar className="w-3.5 h-3.5" />

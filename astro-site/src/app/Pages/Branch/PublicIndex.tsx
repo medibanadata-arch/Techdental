@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { TopHeader } from "@/components/TopHeader";
 import { GlobalFooter } from "@/Components/GlobalFooter";
 import Seo from "@/Components/Seo";
 import type { PageProps } from '@inertiajs/core';
+import { branchPathFromSlug } from "../../../lib/publicPaths";
 
 interface BranchItem {
   id: number;
@@ -24,13 +25,19 @@ interface Props extends PageProps {
 
 export default function BranchPublicIndex({ branches = [], nav_menu, locations = [] }: Props) {
   const [selectedBranch, setSelectedBranch] = useState("");
+  const page = usePage();
+  const isBn = (page.props as any)?.locale === 'bn';
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 antialiased pb-5 sm:pb-6" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-800 antialiased pb-5 sm:pb-6" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}>
       <Seo
-        title="Dental Clinic Branches in Dhaka — Mirpur, Uttara, Badda & Jatrabari"
-        description="Find your nearest Tech Dental Care branch in Dhaka. View addresses, opening hours, phone numbers and directions for Mirpur, Uttara, Badda and Jatrabari."
-        path="/branches"
+        title={isBn
+          ? 'ঢাকায় টেক ডেন্টালের ডেন্টাল ক্লিনিক শাখা — মিরপুর, উত্তরা, বাড্ডা ও যাত্রাবাড়ী'
+          : 'Dental Clinic Branches in Dhaka — Mirpur, Uttara, Badda & Jatrabari'}
+        description={isBn
+          ? 'ঢাকায় আপনার নিকটবর্তী টেক ডেন্টাল কেয়ার শাখা খুঁজুন। মিরপুর, উত্তরা, বাড্ডা ও যাত্রাবাড়ী শাখার ঠিকানা, খোলার সময়, ফোন নম্বর ও দিকনির্দেশনা দেখুন।'
+          : 'Find your nearest Tech Dental Care branch in Dhaka. View addresses, opening hours, phone numbers and directions for Mirpur, Uttara, Badda and Jatrabari.'}
+        path={isBn ? '/bn/contact' : '/contact'}
       />
       <TopHeader locations={locations.length ? locations : branches} selectedBranch={selectedBranch} onBranchChange={setSelectedBranch} navMenu={nav_menu} />
 
@@ -39,7 +46,7 @@ export default function BranchPublicIndex({ branches = [], nav_menu, locations =
           {branches.map((b) => (
             <Link
               key={b.id}
-              href={`/branch/${b.slug || b.short_name || b.id}`}
+              href={branchPathFromSlug(String(b.slug || b.short_name || b.id))}
               className="bg-white rounded-3xl p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow border border-slate-100 block"
             >
               <div className="flex items-center gap-3 mb-3">

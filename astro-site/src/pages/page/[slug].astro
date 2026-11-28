@@ -4,11 +4,13 @@ import AboutPage from '../../app/wrappers/About_PublicIndexPage';
 import CustomPage from '../../app/wrappers/CustomPages_ShowPage';
 import { pagePayload } from '../../lib/shared';
 import { pageShow } from '../../lib/pages/custom';
+import { canonicalMismatch } from '../../lib/legacyRender';
 
 const { slug = '' } = Astro.params;
 const result = pageShow(String(slug));
 if (!result) return new Response('Not Found', { status: 404 });
 if (result.kind === 'redirect') return Astro.redirect(result.location, result.status || 301);
+if (canonicalMismatch(result.seo, Astro.url.pathname)) return new Response('Not Found', { status: 404 });
 
 const isAbout = result.component === 'About/PublicIndex';
 const page = pagePayload(result.component, result.props, `/page/${slug}`);

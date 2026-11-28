@@ -257,6 +257,12 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
         if (!selectedDoctor) return;
         router.put(route('doctors.update', selectedDoctor.id), editForm, {
             onSuccess: () => alert('Doctor profile updated successfully!'),
+            onError: (errors) => {
+                const detail = Object.entries(errors || {})
+                    .map(([field, message]) => `${field}: ${message}`)
+                    .join('\n');
+                alert(`Doctor profile was NOT saved.\n\n${detail || 'Please check the form and try again.'}`);
+            },
         });
     };
 
@@ -576,7 +582,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                                         </div>
                                                     </div>
                                                     <p className="text-[11px] font-semibold text-gray-600 mt-2 text-center">
-                                                        Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.id}</code>)
+                                                        Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.slug || selectedDoctor.id}</code>)
                                                     </p>
                                                     <span className="text-[10px] text-gray-400">Desktop 3:4 portrait (w: 288px, h: 384px)</span>
                                                 </div>
@@ -598,7 +604,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                                         </div>
                                                     </div>
                                                     <p className="text-[11px] font-semibold text-gray-600 mt-4 text-center">
-                                                        Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.id}</code>)
+                                                        Single Profile (<code className="text-[#800038] font-mono">/doctors/{selectedDoctor.slug || selectedDoctor.id}</code>)
                                                     </p>
                                                     <span className="text-[10px] text-gray-400">Mobile responsive 4:3 card (object center 20%)</span>
                                                 </div>
@@ -804,12 +810,12 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-700 mb-1">Academic Degrees (BDS, PGT, etc.)</label>
-                                        <input
-                                            type="text"
+                                        <label className="block text-xs font-bold text-gray-700 mb-1">Academic Degrees (one per line)</label>
+                                        <textarea
+                                            rows={3}
                                             value={editForm.deg}
                                             onChange={(e) => setEditForm({ ...editForm, deg: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl"
+                                            className="w-full px-3.5 py-2 text-xs border border-gray-200 rounded-xl resize-y"
                                         />
                                     </div>
                                     <div>
@@ -1003,11 +1009,11 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                             More About {editForm.name || 'Doctor'} Drawer Content (Rich HTML &amp; Headings)
                                         </h3>
                                         <p className="text-xs text-gray-500">
-                                            This content appears in the expandable accordion drawer at the bottom of the single doctor profile page (<span className="font-mono text-rose-700 bg-rose-50 px-1 py-0.5 rounded">/doctors/{selectedDoctor.id}</span>).
+                                            This content appears in the expandable accordion drawer at the bottom of the single doctor profile page (<span className="font-mono text-rose-700 bg-rose-50 px-1 py-0.5 rounded">/doctors/{selectedDoctor.slug || selectedDoctor.id}</span>).
                                         </p>
                                     </div>
                                     <a
-                                        href={`/doctors/${selectedDoctor.id}`}
+                                        href={`/doctors/${selectedDoctor.slug || selectedDoctor.id}`}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition"
@@ -1075,7 +1081,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                     }}
                                     pageType="doctor"
                                     defaultSlug={`doctors/${selectedDoctor.id}`}
-                                    previewUrl={`https://techdentalcare.com/doctors/${selectedDoctor.id}`}
+                                    previewUrl={`https://techdentalcare.com/doctors/${selectedDoctor.slug || selectedDoctor.id}`}
                                 />
                             </div>
 
@@ -1215,7 +1221,7 @@ export default function DoctorsIndex({ data = [], settings }: Props) {
                                         <td className="py-3 px-4 text-right">
                                             <div className="inline-flex items-center gap-1.5">
                                                 <a
-                                                    href={`/doctors/${doc.id}`}
+                                                    href={`/doctors/${doc.slug || doc.id}`}
                                                     target="_blank"
                                                     className="p-1.5 text-gray-400 hover:text-gray-700"
                                                     title="View Public Profile"

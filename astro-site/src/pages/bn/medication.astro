@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Page from '../../app/wrappers/Medicines_PublicIndexPage';
+import { pagePayload } from '../../lib/shared';
+import { medicinesIndexProps, medicinesIndexSeo, medicinesIndexSchema } from '../../lib/pages/medicines';
+
+const props = medicinesIndexProps(true);
+const page = pagePayload('Medicines/PublicIndex', props, '/bn/medication', 'bn');
+const seo = { ...medicinesIndexSeo(true), schema: medicinesIndexSchema(props.medicines, true) };
+---
+
+<BaseLayout seo={seo} lang="bn">
+  <Page client:load page={page} />
+</BaseLayout>

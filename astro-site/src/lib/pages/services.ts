@@ -1,5 +1,6 @@
 import { all, get, json, model, models } from '../db';
 import { SITE_URL, applyBangla, distinctValues, locations, navMenu, websiteTexts } from '../shared';
+import { corePath } from '../publicPaths';
 
 export const SERVICE_CATEGORY_FALLBACK = 'Dental';
 
@@ -24,11 +25,11 @@ export function servicesIndexSeo(isBn: boolean) {
   return {
     title,
     description,
-    path: isBn ? '/bn/services' : '/services',
+    path: corePath('services', isBn),
     alternates: {
-      en: `${SITE_URL}/services`,
-      bn: `${SITE_URL}/bn/services`,
-      'x-default': `${SITE_URL}/services`,
+      en: `${SITE_URL}${corePath('services', false)}`,
+      bn: `${SITE_URL}${corePath('services', true)}`,
+      'x-default': `${SITE_URL}${corePath('services', false)}`,
     },
     noSuffix: isBn,
   };
@@ -190,7 +191,7 @@ export function serviceSeo(item: any, isBn: boolean) {
         '@type': 'ListItem',
         position: 2,
         name: isBn ? 'সেবাসমূহ' : 'Services',
-        item: `${SITE_URL}${isBn ? '/bn/services' : '/services'}`,
+        item: `${SITE_URL}${corePath('services', isBn)}`,
       },
       { '@type': 'ListItem', position: 3, name: title, item: url },
     ],

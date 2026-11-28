@@ -208,7 +208,7 @@ export default function CustomPageShow({ item, locations = [], nav_menu }: Custo
                         </a>
 
                         <Link
-                            href="/appointment"
+                            href="/book-an-appointment"
                             className="px-6 py-3 bg-white text-[#800038] hover:bg-rose-50 font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
                         >
                             <span>{copy.custom_cta_button}</span>

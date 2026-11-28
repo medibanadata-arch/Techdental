@@ -7,6 +7,7 @@ import type { PageProps } from '@inertiajs/core';
 import { getBranchStatus, parseAllBranchShifts } from "@/utils/branchStatus";
 import { HOTLINE, WHATSAPP, buildWhatsAppUrl } from "@/utils/contact";
 import { useLanguage } from "@/utils/useLanguage";
+import { branchPath as branchPublicPath } from "../../../lib/publicPaths";
 import {
   BRANCH_LABELS,
   BRANCH_VIDEOS,
@@ -14,6 +15,7 @@ import {
   getBranchContent,
   getBranchPlaceName,
 } from "../../../data/branchContent";
+import { BRANCH_REVIEWS, reviewAge } from "../../../data/branchReviews";
 import {
   CalendarCheck,
   Clock,
@@ -27,7 +29,6 @@ import {
   Star,
   X,
   ZoomIn,
-  ExternalLink,
   Info
 } from "lucide-react";
 
@@ -165,6 +166,11 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
   const branchExtras = getBranchContent(branch?.slug || branch?.short_name || branch?.name);
   const labels = BRANCH_LABELS[lang];
 
+  // Google review summary for this branch. Falls back to the shared Mirpur
+  // profile only when a slug has no entry, so no branch ever shows invented data.
+  const reviewData = BRANCH_REVIEWS[branch?.slug || ''] || BRANCH_REVIEWS.mirpur;
+  const reviewCountLabel = new Intl.NumberFormat(isBn ? 'bn-BD' : 'en-US').format(reviewData.count);
+
   // Small tooth mark used by the Services & Pricing heading
   const ToothIcon = ({ className = '' }: { className?: string }) => (
     <svg
@@ -283,7 +289,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
   const directionsLabel = branch?.directions_label || 'Directions';
   const whatsappLabel = branch?.whatsapp_label || 'WhatsApp';
   const bookLabel = branch?.book_label || 'Book';
-  const bookingUrl = branch?.booking_url || '/appointment';
+  const bookingUrl = branch?.booking_url || '/book-an-appointment';
 
   const branchStatus = React.useMemo(() => {
     return getBranchStatus({
@@ -334,7 +340,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
     setLightboxOpen(true);
   };
 
-  // Services & Pricing: four treatments in the list, the fifth as its own feature card; the rest live on /services.
+  // Services & Pricing: four treatments in the list, the fifth as its own feature card; the rest live on /our-services.
   const topServices = useMemo(() => (Array.isArray(services) ? services.slice(0, 4) : []), [services]);
   const featuredService = useMemo(
     () => (Array.isArray(services) ? services[4] || services[0] : null),
@@ -343,7 +349,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
-  const branchPath = isBn ? `/bn/branch/${branch?.slug || branch?.id}` : `/branch/${branch?.slug || branch?.id}`;
+  const branchPath = branchPublicPath(branch, isBn);
   const pageCanonical = `${siteUrl}${branchPath}`;
   const metaTitle = isBn
     ? branchExtras.seo.bn.title
@@ -458,7 +464,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
   return (
     <div
       className="min-h-screen antialiased w-full"
-      style={{ backgroundColor: '#F8F9FA', color: '#1E293B', fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}
+      style={{ backgroundColor: '#F8F9FA', color: '#1E293B', fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}
     >
       <Seo
         title={metaTitle}
@@ -479,8 +485,8 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
         navMenu={nav_menu}
         showLanguageSwitcher={true}
         languageUrls={{
-          en: `/branch/${branch?.slug || branch?.id}`,
-          bn: `/bn/branch/${branch?.slug || branch?.id}`,
+          en: branchPublicPath(branch, false),
+          bn: branchPublicPath(branch, true),
         }}
       />
 
@@ -599,7 +605,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             box-shadow: 0 0 0 4px rgba(138,90,0,.12);
           }
           .bs-h1 {
-            font-family: 'Playfair Display', Georgia, serif;
+            font-family: 'Times New Roman', Times, 'SolaimanLipi', serif;
             font-weight: 600;
             font-size: clamp(34px, 8.5vw, 58px);
             line-height: 1.06;
@@ -733,7 +739,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
             color: #A16B7E;
           }
           .bs-shift strong {
-            font-family: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
+            font-family: 'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif;
             font-size: 14px;
             font-weight: 800;
             line-height: 1.2;
@@ -928,7 +934,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                   </p>
                   {doc.deg && (
                     <p className="text-[10px] text-slate-500 mt-0.5 text-center line-clamp-1" title={doc.deg}>
-                      {doc.deg.split(',')[0].trim()}
+                      {doc.deg.split(/[,\n]/)[0].trim()}
                     </p>
                   )}
                   {doctorExtraQuals(doc.name).length > 0 && (
@@ -946,13 +952,13 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
                   <div className="flex gap-2 mt-auto w-full pt-1">
                     <Link
-                      href={`/doctors/${doc.id}`}
+                      href={`/doctors/${doc.slug || doc.id}`}
                       className="flex-1 py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center justify-center shadow-2xs text-center"
                     >
                       <span>Profile</span>
                     </Link>
                     <Link
-                      href="/appointment"
+                      href="/book-an-appointment"
                       className="flex-1 py-1.5 px-2 text-white text-[11px] font-bold rounded-lg transition-opacity hover:opacity-95 flex items-center justify-center shadow-2xs text-center"
                       style={{ backgroundColor: BRAND }}
                     >
@@ -1022,7 +1028,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                       <div className="min-w-0">
                         <h3
                           className="text-[24px] leading-[1.2] max-w-[20ch]"
-                          style={{ fontFamily: 'Fraunces, Georgia, "Times New Roman", serif' }}
+                          style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', serif" }}
                         >
                           {serviceName(featuredService)}
                         </h3>
@@ -1040,7 +1046,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
               <div className="flex justify-center mt-[26px]">
                 <Link
-                  href="/services"
+                  href="/our-services"
                   className="bg-[#9b1445] hover:bg-[#6e0d31] text-white font-semibold px-[34px] py-[13px] rounded-full transition-all hover:-translate-y-px active:translate-y-0"
                 >
                   See all services
@@ -1074,7 +1080,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
             {/* See more → full services category page (plain link, no dropdown) */}
             <Link
-              href="/services"
+              href="/our-services"
               className="md:hidden mt-4 w-full py-2.5 rounded-xl border border-slate-200 text-primary-maroon font-bold text-xs hover:bg-rose-50/50 transition-colors flex justify-center items-center cursor-pointer shadow-2xs"
             >
               <span>See more</span>
@@ -1085,48 +1091,85 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           {/* Google Reviews Section (Exact Card Style) */}
           <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-100 mb-4">
             {/* Top Rating Header */}
-            <div className="flex items-center gap-3.5 sm:gap-4">
-              {/* Star Icon Badge */}
-              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#fff7ed] flex items-center justify-center shrink-0 border border-amber-100/80 shadow-2xs">
-                <Star size={26} className="text-[#f97316] fill-[#f97316]" />
-              </div>
+            <div className="flex items-center justify-between gap-3.5 sm:gap-4">
+              <div className="flex items-center gap-3.5 sm:gap-4">
+                {/* Star Icon Badge */}
+                <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#fff7ed] flex items-center justify-center shrink-0 border border-amber-100/80 shadow-2xs">
+                  <Star size={26} className="text-[#f97316] fill-[#f97316]" />
+                </div>
 
-              {/* Rating Text & Stars */}
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
-                    4.9
-                  </span>
-                  <div className="flex text-[#f97316] gap-0.5">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} size={15} fill="#f97316" color="#f97316" />
-                    ))}
+                {/* Rating Text & Stars */}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
+                      {reviewData.rating.toFixed(1)}
+                    </span>
+                    <div className="flex text-[#f97316] gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          size={15}
+                          fill={s <= Math.round(reviewData.rating) ? '#f97316' : 'none'}
+                          color="#f97316"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="text-[12.5px] sm:text-[13.5px] font-semibold text-slate-600">
+                      {isBn
+                        ? `${reviewCountLabel}টি গুগল রিভিউ`
+                        : `${reviewCountLabel} Google reviews`}
+                    </span>
+                    {/* Blue Verified Badge */}
+                    <svg className="w-4 h-4 text-[#1d9bf0] fill-[#1d9bf0] shrink-0" viewBox="0 0 24 24">
+                      <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm3.707 7.293a1 1 0 0 0-1.414 0L10.5 13.086l-1.793-1.793a1 1 0 0 0-1.414 1.414l2.5 2.5a1 1 0 0 0 1.414 0l4.5-4.5a1 1 0 0 0 0-1.414z" />
+                    </svg>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[12.5px] sm:text-[13.5px] font-semibold text-slate-600">
-                    2,500+ Verified Patient Reviews
-                  </span>
-                  {/* Blue Verified Badge */}
-                  <svg className="w-4 h-4 text-[#1d9bf0] fill-[#1d9bf0] shrink-0" viewBox="0 0 24 24">
-                    <path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm3.707 7.293a1 1 0 0 0-1.414 0L10.5 13.086l-1.793-1.793a1 1 0 0 0-1.414 1.414l2.5 2.5a1 1 0 0 0 1.414 0l4.5-4.5a1 1 0 0 0 0-1.414z" />
-                  </svg>
-                </div>
               </div>
+
             </div>
 
-            {/* Testimonial Quotes: one on mobile, two side by side (with a gap) on web */}
-            <div className="grid md:grid-cols-2 gap-4 md:gap-6 my-4">
-              {[
-                branch?.reviews_text || 'Extremely gentle and painless treatment! The doctors explained every procedure clearly, and the clinic environment was spotless and reassuring.',
-                'The doctors are very professional and the clinic is spotless. I got my braces treatment here and the follow-up care was excellent. Highly recommended!',
-              ].map((text, i) => (
+            {/* Patient reviews: two on mobile, four on desktop */}
+            <div className="grid sm:grid-cols-2 gap-4 md:gap-5 my-4">
+              {reviewData.reviews.slice(0, 4).map((review, i) => (
                 <div
-                  key={i}
-                  className={`bg-[#f8fafc] rounded-2xl p-4 sm:p-5 border-l-4 border-[#d62858] ${i === 1 ? 'hidden md:block' : ''}`}
+                  key={`${review.name}-${i}`}
+                  className={`bg-[#f8fafc] rounded-2xl p-4 sm:p-5 border-l-4 border-[#d62858] ${
+                    i >= 2 ? 'hidden md:block' : ''
+                  }`}
                 >
-                  <p className="italic text-slate-700 text-[13.5px] sm:text-[14.5px] leading-relaxed">
-                    "{text}"
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <span
+                      className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-black shrink-0 ${review.avatar}`}
+                      aria-hidden="true"
+                    >
+                      {review.initials}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-slate-900 truncate leading-tight">
+                        {review.name}
+                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex text-[#f97316]">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              size={11}
+                              fill={s <= review.rating ? '#f97316' : 'none'}
+                              color="#f97316"
+                            />
+                          ))}
+                        </div>
+                        <span className="text-[10.5px] text-slate-400 font-medium">
+                          {reviewAge(review.date, isBn)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-slate-700 text-[13px] sm:text-[13.5px] leading-relaxed">
+                    {review.text[lang]}
                   </p>
                 </div>
               ))}
@@ -1134,7 +1177,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
 
             {/* See All Google Reviews Button */}
             <a
-              href={branch?.review_url || branch?.map_url || 'https://maps.google.com'}
+              href={reviewData.reviewUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2.5 shadow-2xs group cursor-pointer"
@@ -1159,7 +1202,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                 />
               </svg>
               <span className="text-slate-800 font-bold text-sm sm:text-[15px] group-hover:text-slate-900">
-                See All Google Reviews
+                {isBn ? 'সব গুগল রিভিউ দেখুন' : 'See All Google Reviews'}
               </span>
             </a>
           </div>
@@ -1167,7 +1210,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
           {/* CTA & Collapsible More About Section */}
           <div className="flex flex-col gap-4">
             <Link
-              href={branch.booking_url || "/appointment"}
+              href={branch.booking_url || "/book-an-appointment"}
               className="w-full py-4 rounded-2xl text-white font-bold shadow-lg shadow-[#8B1538]/20 hover:opacity-95 transition-all flex justify-center items-center gap-2 text-base sm:text-lg text-center cursor-pointer active:scale-98"
               style={{ backgroundColor: BRAND }}
             >
@@ -1205,7 +1248,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                   </p>
                   {branch.seo_content ? (
                     <div
-                      className="branch-more-about rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed mt-4"
+                      className="branch-more-about more-about-content rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed mt-4"
                       dangerouslySetInnerHTML={{ __html: branch.seo_content }}
                     />
                   ) : (
@@ -1225,7 +1268,7 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                   {/* Treatment cost — SEO copy only, no calculator */}
                   <div className="pt-4 border-t border-slate-100">
                     <div
-                      className="branch-more-about rich-content-view prose prose-slate max-w-none text-slate-700 leading-relaxed"
+                      className="branch-more-about more-about-content rich-content-view prose prose-slate max-w-none text-slate-700 leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: branchExtras.cost[lang] }}
                     />
                   </div>
@@ -1286,7 +1329,10 @@ export default function BranchPublicShow({ branch, gallery = [], doctors = [], s
                           {(faqGroups[cat] || []).map((faq, i) => (
                             <details className="branch-faq-item" key={`${cat}-${i}`}>
                               <summary>{faq.q}</summary>
-                              <p>{faq.a}</p>
+                              <div
+                                className="branch-faq-answer"
+                                dangerouslySetInnerHTML={{ __html: faq.a }}
+                              />
                             </details>
                           ))}
                         </div>

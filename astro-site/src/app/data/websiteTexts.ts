@@ -14,7 +14,7 @@ export interface WebsiteTextField {
 
 export const WEBSITE_TEXTS_DEFAULTS: Record<string, string> = {
     // Doctors page
-    doctors_h1: 'Best Dentists in Dhaka, Bangladesh',
+    doctors_h1: 'Best Dentists in Dhaka – Meet Our Specialist Dental Surgeons',
 
     // Services page
     services_h1: 'Dental Services & Treatments in Dhaka',

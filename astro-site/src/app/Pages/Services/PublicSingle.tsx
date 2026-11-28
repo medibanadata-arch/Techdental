@@ -391,7 +391,7 @@ export default function ServicesPublicSingle({
       "@id": `${url}#breadcrumb`,
       "itemListElement": [
         { "@type": "ListItem", "position": 1, "name": isBn ? 'হোম' : 'Home', "item": siteUrl },
-        { "@type": "ListItem", "position": 2, "name": isBn ? 'সেবাসমূহ' : 'Services', "item": `${siteUrl}${isBn ? '/bn/services' : '/services'}` },
+        { "@type": "ListItem", "position": 2, "name": isBn ? 'সেবাসমূহ' : 'Services', "item": `${siteUrl}${isBn ? '/bn/services' : '/our-services'}` },
         { "@type": "ListItem", "position": 3, "name": title, "item": url },
       ],
     });
@@ -400,7 +400,7 @@ export default function ServicesPublicSingle({
   }, [isBn, title, shortName, pageDesc, pagePath, faqs, item, siteUrl]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 antialiased font-sans" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+    <div className="min-h-screen bg-white text-gray-800 antialiased font-sans" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}>
       <Seo
         title={pageTitle}
         description={pageDesc}
@@ -485,7 +485,7 @@ export default function ServicesPublicSingle({
                       <FeatureIcon index={i} />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 text-[12px] sm:text-sm leading-tight">{f.title}</h4>
+                      <p className="font-semibold text-gray-900 text-[12px] sm:text-sm leading-tight">{f.title}</p>
                       <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 leading-tight">{f.sub}</p>
                     </div>
                   </div>
@@ -496,7 +496,7 @@ export default function ServicesPublicSingle({
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href={`/appointment?service=${encodeURIComponent(title)}`}
+                href={`/book-an-appointment?service=${encodeURIComponent(title)}`}
                 className="flex-1 bg-[#e11d48] hover:bg-[#be123c] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition flex justify-center items-center gap-2 cursor-pointer"
               >
                 <CalendarCheck size={18} />
@@ -618,7 +618,7 @@ export default function ServicesPublicSingle({
                 <div className="w-full text-gray-700 text-sm sm:text-base leading-relaxed">
                   {detailsBody ? (
                     <div
-                      className="rich-content-view wp-editor-content prose max-w-none text-slate-800 leading-relaxed"
+                      className="more-about-content rich-content-view wp-editor-content prose max-w-none text-slate-800 leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: detailsBody }}
                     />
                   ) : (

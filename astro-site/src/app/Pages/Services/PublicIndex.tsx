@@ -45,11 +45,11 @@ export default function ServicesPublicIndex({ services = [], locations = [], nav
       <Seo
         title={title}
         description={description}
-        path={isBn ? '/bn/services' : '/services'}
+        path={isBn ? '/bn/services' : '/our-services'}
         alternates={{
-          en: `${siteUrl}/services`,
+          en: `${siteUrl}/our-services`,
           bn: `${siteUrl}/bn/services`,
-          'x-default': `${siteUrl}/services`,
+          'x-default': `${siteUrl}/our-services`,
         }}
         noSuffix={isBn}
         schema={{

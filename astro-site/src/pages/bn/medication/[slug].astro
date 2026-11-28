@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Page from '../../../app/wrappers/Medicines_PublicSinglePage';
+import { pagePayload } from '../../../lib/shared';
+import { medicineShow } from '../../../lib/pages/medicines';
+
+const { slug = '' } = Astro.params;
+const result = medicineShow(slug, true);
+if (!result) return new Response('Not Found', { status: 404 });
+if (result.kind === 'redirect') return Astro.redirect(result.location, 301);
+const page = pagePayload('Medicines/PublicSingle', result.props, `/bn/medication/${slug}`, 'bn');
+---
+
+<BaseLayout seo={result.seo} lang="bn">
+  <Page client:load page={page} />
+</BaseLayout>

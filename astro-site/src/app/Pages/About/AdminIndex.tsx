@@ -142,7 +142,7 @@ export default function AboutAdminIndex({ content }: Props) {
 
                 <div className="flex items-center gap-3">
                     <a
-                        href="/about"
+                        href="/about-tech-dental"
                         target="_blank"
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-2xs"
                     >

@@ -322,7 +322,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
             reply: '',
             action_type: 'appointment',
             action_label: 'Book Appointment',
-            action_url: '/appointment',
+            action_url: '/book-an-appointment',
             priority: 0,
         });
         setIsRuleModalOpen(true);
@@ -1383,7 +1383,7 @@ export default function AiAssistantAdminIndex({ settings, rules = [], logs = [] 
                                         className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                                     >
                                         <option value="none">No Button</option>
-                                        <option value="appointment">Online Appointment Booking (/appointment)</option>
+                                        <option value="appointment">Online Appointment Booking (/book-an-appointment)</option>
                                         <option value="directions">Branch Map / Directions</option>
                                         <option value="call">Direct Call (Hotline)</option>
                                         <option value="whatsapp">WhatsApp Chat</option>

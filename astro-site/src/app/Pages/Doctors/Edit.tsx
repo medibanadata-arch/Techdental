@@ -37,7 +37,14 @@ export default function DoctorsEdit({ doctor }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('doctors.update', doctor.id));
+        put(route('doctors.update', doctor.id), {
+            onError: (errors) => {
+                const detail = Object.entries(errors || {})
+                    .map(([field, message]) => `${field}: ${message}`)
+                    .join('\n');
+                alert(`Doctor profile was NOT saved.\n\n${detail || 'Please check the form and try again.'}`);
+            },
+        });
     };
 
     return (

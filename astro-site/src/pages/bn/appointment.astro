@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Page from '../../app/wrappers/BookAppointment_PublicIndexPage';
+import { pagePayload } from '../../lib/shared';
+import { appointmentProps, appointmentSeo } from '../../lib/pages/info';
+
+const props = appointmentProps();
+const page = pagePayload('BookAppointment/PublicIndex', props, '/bn/appointment', 'bn');
+const seo = appointmentSeo(true);
+---
+
+<BaseLayout seo={seo} lang="bn">
+  <Page client:load page={page} />
+</BaseLayout>

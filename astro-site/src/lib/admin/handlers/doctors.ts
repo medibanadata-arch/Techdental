@@ -46,7 +46,7 @@ const STRING_FIELDS = [
 
 const MAX_LENGTHS: Record<string, number> = {
   name: 255,
-  deg: 255,
+  deg: 2000,
   exp: 255,
   branch: 255,
   phone: 50,

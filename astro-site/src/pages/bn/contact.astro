@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Page from '../../app/wrappers/Branch_PublicIndexPage';
+import { pagePayload } from '../../lib/shared';
+import { branchIndexProps, branchIndexSeo } from '../../lib/pages/branches';
+
+const props = branchIndexProps();
+const page = pagePayload('Branch/PublicIndex', props, '/bn/contact', 'bn');
+const seo = branchIndexSeo(true);
+---
+
+<BaseLayout seo={seo} lang="bn">
+  <Page client:load page={page} />
+</BaseLayout>

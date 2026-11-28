@@ -18,7 +18,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   const directionsLabel = currentBranch.directionsLabel || 'Directions';
   const whatsappLabel = currentBranch.whatsappLabel || 'WhatsApp';
   const bookLabel = currentBranch.bookLabel || 'Book';
-  const bookingUrl = currentBranch.bookingUrl || '/appointment';
+  const bookingUrl = currentBranch.bookingUrl || '/book-an-appointment';
 
   const rawBranchName = currentBranch.shortName || currentBranch.name || 'Mirpur';
   const branchShort = rawBranchName.replace(/branch/gi, '').trim();
@@ -96,7 +96,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       <Link
         href={bookingUrl}
         onClick={(e) => {
-          if (bookingUrl === '#book' || bookingUrl === '/appointment' || !bookingUrl) {
+          if (bookingUrl === '#book' || bookingUrl === '/book-an-appointment' || !bookingUrl) {
             e.preventDefault();
             onOpenBooking();
           }

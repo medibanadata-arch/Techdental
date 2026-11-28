@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
@@ -356,7 +356,7 @@ export default function MedicinesAdminEdit({ item }: Props) {
         setForm({ ...form, gallery: next });
     };
 
-    const publicUrl = isEdit ? `/medicines/${form.slug || item?.id}` : null;
+    const publicUrl = isEdit ? `/medication/${form.slug || item?.id}` : null;
 
     return (
         <AdminLayout>
@@ -1625,7 +1625,7 @@ export default function MedicinesAdminEdit({ item }: Props) {
                         </h2>
                         {isEdit && (
                             <a
-                                href={`/medicines/${form.slug || item?.id}`}
+                                href={`/medication/${form.slug || item?.id}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="inline-flex items-center gap-1.5 text-xs text-[#800038] hover:underline font-bold"
@@ -1740,7 +1740,7 @@ export default function MedicinesAdminEdit({ item }: Props) {
                             }}
                             pageType="page"
                             defaultSlug={form.slug ? `medicines/${form.slug}` : (item?.id ? `medicines/${item.id}` : 'medicines')}
-                            previewUrl={`https://techdentalcare.com/medicines/${form.slug || item?.id || ''}`}
+                            previewUrl={`https://techdentalcare.com/medication/${form.slug || item?.id || ''}`}
                         />
                     </div>
                 </div>

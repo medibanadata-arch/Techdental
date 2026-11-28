@@ -26,6 +26,28 @@ export function materializeLegacy(result: LegacyRender): LegacyRenderResult | Re
 }
 
 /**
+ * Canonical path a rendered page advertises (works for both absolute URLs and
+ * bare paths). Returns '' when the page does not declare one.
+ */
+export function canonicalPathOf(seo: any): string {
+  const raw = String(seo?.canonical || seo?.path || '').trim();
+  if (!raw) return '';
+  try {
+    return new URL(raw, 'https://techdentalcare.com').pathname.replace(/\/+$/, '') || '/';
+  } catch {
+    return '';
+  }
+}
+
+/** True when a legacy URL would render a page that claims a different canonical. */
+export function canonicalMismatch(seo: any, pathname: string): boolean {
+  const canonical = canonicalPathOf(seo);
+  if (!canonical) return false;
+  const request = String(pathname || '').replace(/\/+$/, '') || '/';
+  return canonical !== request;
+}
+
+/**
  * Fallback used by entity routes whose current slug no longer resolves: serve
  * the mapped current page (or redirect) that the old URL belongs to.
  */

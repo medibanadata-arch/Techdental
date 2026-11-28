@@ -157,7 +157,7 @@ export default function PostsIndex(props: Props) {
 
                     <div className="flex flex-wrap items-center gap-3">
                         <a
-                            href={props.isOthers ? '/blog/others' : '/blog'}
+                            href={props.isOthers ? '/dentistry/others' : '/dentistry'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-2xs"
@@ -352,7 +352,7 @@ export default function PostsIndex(props: Props) {
                                                     )}
                                                 </div>
                                                 <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-                                                    slug: /blog/{post.slug}
+                                                    slug: /dentistry/{post.slug}
                                                 </div>
                                             </td>
                                             <td className="py-4 px-4 text-slate-700 font-semibold align-middle whitespace-nowrap">
@@ -369,7 +369,7 @@ export default function PostsIndex(props: Props) {
                                             <td className="py-4 px-4 text-right align-middle whitespace-nowrap">
                                                 <div className="inline-flex items-center gap-2">
                                                     <a
-                                                        href={`/blog/${post.slug}`}
+                                                        href={`/dentistry/${post.slug}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"

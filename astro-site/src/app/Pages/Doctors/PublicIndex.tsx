@@ -141,12 +141,12 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
   return (
     <div
       className="min-h-screen bg-[#f8fafc] text-slate-800 antialiased flex flex-col"
-      style={{ fontFamily: "'Inter', 'SolaimanLipi', 'Hind Siliguri', sans-serif" }}
+      style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}
     >
       <Seo
         title={settings?.page_title || 'Specialist Dentists & Dental Surgeons'}
         description={settings?.meta_desc || 'Meet our certified dental surgeons and specialists across Mirpur, Uttara, Badda and Jatrabari in Dhaka.'}
-        path="/doctors"
+        path={is_bn ? '/bn/doctor' : '/doctors'}
         robots={`${settings?.robots_index ?? true ? 'index' : 'noindex'}, ${settings?.robots_follow ?? true ? 'follow' : 'nofollow'}`}
         schema={doctorIndexSchemas}
       />
@@ -178,7 +178,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
             <div key={doc.id} className="relative bg-white rounded-xl p-5 text-center flex flex-col justify-between shadow-sm border-2 border-[#a21caf] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
               {/* Whole card opens the doctor profile; action buttons below sit above this overlay */}
               <Link
-                href={`/doctors/${doc.id}`}
+                href={`/doctors/${doc.slug || doc.id}`}
                 className="absolute inset-0 z-0 rounded-xl"
                 aria-label={`View profile of ${doc.name}`}
                 tabIndex={-1}
@@ -201,8 +201,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
                 {/* Doctor Name */}
                 <h2 className="text-lg font-bold text-teal-600 mb-1 leading-snug">{doc.name}</h2>
 
-                {/* Degree & Designation */}
-                <p className="text-xs font-semibold text-slate-700 mb-0.5">{doc.deg}</p>
+                {/* Designation */}
                 <p className="text-xs text-slate-500 mb-3">{doc.designation}</p>
 
                 {/* Key Details Box – unified 4-box grid (2x2) */}
@@ -214,23 +213,18 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
                     <DetailBox icon="fa-award" label="Experience" value={doc.experience_years} />
                   </div>
                 </div>
-
-                {/* Main Specialty */}
-                <div className="text-xs text-slate-600 mb-4">
-                  <span className="font-bold text-slate-800">Specialty:</span> {doc.spec}
-                </div>
               </div>
 
               {/* Action Buttons */}
               <div className="relative z-10 flex items-center justify-center gap-3 pt-2 border-t border-slate-100">
                 <Link
-                  href={`/doctors/${doc.id}`}
+                  href={`/doctors/${doc.slug || doc.id}`}
                   className="w-1/2 py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded transition shadow-sm flex items-center justify-center gap-1"
                 >
                   <i className="fa-solid fa-user-doctor text-[11px]"></i> View Profile
                 </Link>
                 <Link
-                  href={`/appointment?doctor=${encodeURIComponent(doc.name)}`}
+                  href={`/book-an-appointment?doctor=${encodeURIComponent(doc.name)}`}
                   className="w-1/2 py-2 px-3 bg-pink-800 hover:bg-pink-900 text-white font-bold text-xs rounded transition shadow-sm flex items-center justify-center gap-1 text-center"
                 >
                   <i className="fa-solid fa-calendar-check text-[11px]"></i> Appointment
@@ -250,7 +244,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
                 aria-expanded={moreInfoOpen}
               >
                 <span className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
-                  {settings?.seo_title || 'Best Dentists in Dhaka – Meet Our Specialist Dental Surgeons'}
+                  More About Our Dentists
                 </span>
                 <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${moreInfoOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -261,7 +255,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
               className="border-t border-slate-100 p-4 sm:p-6 text-slate-700 bg-white space-y-6"
             >
                 <div
-                  className="rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
+                  className="more-about-content rich-content-view wp-editor-content prose prose-slate max-w-none text-slate-700 leading-relaxed"
                   dangerouslySetInnerHTML={{
                     __html: settings?.seo_content || `
                       <h3>Best Dentists in Dhaka, Bangladesh</h3>
@@ -275,10 +269,10 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
                 {safeFaqs.length > 0 && (
                   <div className="pt-6 border-t border-slate-100">
                     <div className="mb-4">
-                      <h4 className="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
                         <span className="w-1.5 h-4 bg-pink-700 rounded-full" />
                         Frequently Asked Questions (FAQ)
-                      </h4>
+                      </h3>
                       <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
                         Common questions and answers regarding our specialist dental surgeons and care.
                       </p>
@@ -311,10 +305,9 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
                             </button>
                             <div
                               hidden={!isOpen}
-                              className="px-4 pb-4 pt-1 text-xs sm:text-sm text-slate-600 bg-white border-t border-slate-100 leading-relaxed animate-in fade-in duration-150"
-                            >
-                              {faq.a}
-                            </div>
+                              className="px-4 pb-4 pt-1 text-xs sm:text-sm text-slate-600 bg-white border-t border-slate-100 leading-relaxed animate-in fade-in duration-150 [&_a]:text-pink-700 [&_a]:font-semibold [&_a]:underline [&_p]:mt-1.5 [&_p:first-child]:mt-0"
+                              dangerouslySetInnerHTML={{ __html: faq.a }}
+                            />
                           </div>
                         );
                       })}
@@ -383,7 +376,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl bg-[#8b1d41] px-4 py-3.5">
               <p className="text-xs sm:text-sm font-semibold text-rose-50 text-center sm:text-left">{R.cta}</p>
               <Link
-                href="/appointment"
+                href="/book-an-appointment"
                 className="shrink-0 rounded-lg bg-white px-4 py-2 text-xs font-bold text-[#8b1d41] hover:bg-rose-50 transition"
               >
                 {R.book}
@@ -499,7 +492,7 @@ export default function DoctorsPublicIndex({ data = [], settings, locations = []
       >
         <i className="fa-solid fa-circle-check text-lg"></i>
         <div>
-          <h4 className="font-bold text-xs">Appointment Requested!</h4>
+          <h3 className="font-bold text-xs">Appointment Requested!</h3>
           <p className="text-[11px] text-emerald-100">We will confirm your appointment shortly.</p>
         </div>
       </div>

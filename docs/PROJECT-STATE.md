@@ -140,6 +140,10 @@ Only the last **10 messages** of the current conversation are sent, each truncat
 4. **`fallback_reply` = "Test fallback"** — a patient could see this.
 5. **Railway filesystem is ephemeral.** Admin edits and uploads are lost on redeploy
    unless volumes are attached at `/app/database` and `/app/public/uploads`.
+6. **Per-branch Google review links (pending owner data).** `src/data/branchReviews.ts`
+   still needs the real "Reviews" tab URL for Uttara, Badda and Jatrabari (Mirpur has the
+   listing URL), plus confirmed rating and review count. Placeholder ratings/counts are
+   marked `TODO` in that file.
 
 ---
 
@@ -152,6 +156,33 @@ Only the last **10 messages** of the current conversation are sent, each truncat
 - Gap-teeth image shows only for gap-teeth cost answers (verified local + live).
 - Chat: persona = তানিয়া, greeting, gap cost → image, broken tooth → no image,
   bKash/insurance/parking → "no info + hotline", English → English (when it complies).
+- SEO/UX pass: every "More About" block on service, branch, doctor and price-list pages
+  carries internal links plus external Google Maps/YouTube links (77 internal content
+  links checked, 0 broken). The `More About` accordions on doctor and medicine pages are
+  now always in the HTML (`hidden` until opened) so crawlers can read them.
+- 4 new EN/BN guides (digital RVG X-ray, intraoral camera, live patient portal, 4-step
+  sterilization) are published and linked from the About technology cards.
+- Dermatologist post removed with 301s to `/blog` and `/bn/blog`; doctor cards no longer
+  show Degree/Specialty text; doctors page H1 is
+  "Best Dentists in Dhaka – Meet Our Specialist Dental Surgeons".
+- Sitemap: 208 URLs, 0 duplicates, 20 EN + 20 BN services, 470 hreflang links.
+- Media rename pass: 75 files renamed with 301 redirects (`src/lib/imageRedirects.ts`)
+  and 163 DB references updated.
+- Bengali pages no longer contain stray U+0000 bytes; `src/middleware.ts` drops the byte
+  while streaming HTML. 0 heading-level skips on the checked public pages.
+- Doctor profile saves no longer fail silently: the `deg` cap in
+  `src/lib/admin/handlers/doctors.ts` was 255 while a real profile had 260 characters,
+  so every save returned 422 and the public page kept the old data. The cap is now 2000,
+  and both doctor editors (`Doctors/Index.tsx`, `Doctors/Edit.tsx`) show the validation
+  error in an alert instead of doing nothing.
+- Root cause of "backend changes never reach the frontend": `route()` in
+  `src/lib/routes.ts` ignored scalar parameters, so `route('doctors.update', 5)` produced
+  `/doctors/` (no id). The PUT hit no admin route and was dropped. `fillParams` now
+  accepts a scalar like Ziggy, which fixes every admin edit that passes an id directly
+  (doctors, posts, pages, services, medicines, branches, media, users, featured images).
+- Branch Google review buttons point at each branch's own review list
+  (`search.google.com/local/reviews?placeid=…`) and use the live ratings/counts
+  (Mirpur 4.9/1.3K, Uttara 4.8/344, Badda 4.9/521, Jatrabari 4.7/235).
 
 ## 7. Recent commits
 
@@ -175,3 +206,60 @@ Only the last **10 messages** of the current conversation are sent, each truncat
   and the live site fails with `no such table: redirects`.
 - After changing `training_data` in the admin panel, the change lives only in the local
   DB file; it reaches production only on the next `railway up`.
+
+---
+
+## 9. November 2026 canonical URL overhaul
+
+Every public page now has exactly one canonical URL, matching the old WordPress slug.
+
+- Canonical paths live in `src/lib/publicPaths.ts`:
+  - Mirpur `/mirpur-branch` / `/bn/best-dentist-mirpur`
+  - Badda `/best-dentist-in-badda` / `/bn/best-dentist-badda`
+  - Uttara `/best-dentist-in-uttara` / `/bn/best-dentist-uttara`
+  - Jatrabari `/best-dentist-jatrabari-en` / `/bn/best-dentist-jatrabari`
+  - Price list `/tech-dental-treatment-price-list-bangladesh` / `/bn/tech-dental-treatment-price-list-bn`
+  - About `/about-tech-dental` / `/bn/about-tech-dental-en`
+  - Team `/corporate-tram-en` / `/bn/corporate-tram`
+  - Services `/our-services` / `/bn/services`
+  - Branches `/contact` / `/bn/contact`
+  - Appointment `/book-an-appointment` / `/bn/appointment`
+  - Doctors `/doctors` / `/bn/doctor`; doctor single `/doctors/<slug>` / `/bn/doctor/<slug>`
+- Legacy aliases 404; only trailing slashes 301 to the clean path. `/blog` → `/dentistry`
+  and `/medicines` → `/medication` are the only section renames.
+- Renamed blog and medicine item URLs 301 directly to the canonical item. The 49 old
+  medicine slugs (`napa-extra-tablet`, `xyril-25mg-bd`, `bactrocin-ontment-bd`, ...)
+  are mapped in `src/lib/medicineAliases.ts` and resolve in one hop.
+- Doctor pages use the old slug (`/doctors/dr-aysha-siddika`); numeric `/doctors/<id>`
+  returns 404. The three departed doctors and all job pages are gone (404).
+- `redirects` table rows are deactivated. `src/pages/[...path].astro` still resolves
+  archived content, but a canonical mismatch now 301s to the canonical path instead of
+  rendering a duplicate.
+- Sitemap rebuilt from the canonical paths: 215 URLs, 0 duplicates, all 200 and
+  self-canonical. Old live sitemap parity: 245 old URLs, 74 live at the same URL,
+  97 redirected to their canonical URL, 74 intentionally gone (jobs, departed doctors,
+  removed posts).
+- Favicon repaired: `public/favicon.ico` was a 0-byte file. Rebuilt from the site's own
+  tooth icon `uploads/images/tech-dental-favicon.webp`, keeping its transparent
+  background (no white square in the tab). Generated a real multi-size ICO,
+  16/32/48/180/192/512 PNGs and `apple-touch-icon.png`. `BaseLayout.astro` /
+  `AdminShell.astro` use correct MIME types plus `?v=4` cache busting.
+  `home_content.favicon` points at `/favicon.ico`.
+- Homepage video gallery, Gallery lightbox and About page video use
+  `src/app/Components/YouTubePlayer.tsx`: clicking the middle of the video toggles
+  play/pause through the YouTube IFrame API (`enablejsapi=1`). The top 8% and bottom
+  56px stay uncovered so YouTube's title, progress bar, volume and fullscreen controls
+  keep working.
+- Removed the bottom-right "TECH DENTAL" logo from 10 images with a Laplace/SOR
+  inpaint (original files backed up in the temp `watermark-backup` folder):
+  `medicines/image-15.webp`, `medicines/tooth-cavity-progression-stages-bengali.webp`,
+  `medicines/dental-cavity-remedies-infographic-bengali.webp`,
+  `old-site/services/professional-root-canal-results-at-tech-dental-300x169.webp`,
+  `old-site/services/root-canal-treatment-result-tech-dental.jpeg`,
+  `posts/root-canal-crown-before-after-bangla.webp`,
+  `posts/tooth-cavity-progression-stages-bengali.webp`,
+  `posts/tooth-cavity-progression-stages-bengali-300x169.webp`,
+  `posts/dental-cavity-remedies-infographic-bengali.webp`,
+  `posts/dental-cavity-remedies-infographic-bengali-300x169.webp`.
+- `old-site/services/wisdom-teeth-removal.png` cannot be decoded by sharp
+  (`libspng read error`); it was not scanned and was left untouched.

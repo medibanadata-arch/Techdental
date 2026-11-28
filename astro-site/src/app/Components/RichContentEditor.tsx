@@ -930,14 +930,14 @@ export default function RichContentEditor({
                                 </div>
                                 <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto pr-1">
                                     {[
-                                        { label: 'Services', path: '/services' },
-                                        { label: 'Price List', path: '/price-list' },
-                                        { label: 'Mirpur Branch', path: '/branch/mirpur' },
-                                        { label: 'Uttara Branch', path: '/branch/uttara' },
-                                        { label: 'Appointment', path: '/appointment' },
+                                        { label: 'Services', path: '/our-services' },
+                                        { label: 'Price List', path: '/tech-dental-treatment-price-list-bangladesh' },
+                                        { label: 'Mirpur Branch', path: '/mirpur-branch' },
+                                        { label: 'Uttara Branch', path: '/best-dentist-in-uttara' },
+                                        { label: 'Appointment', path: '/book-an-appointment' },
                                         { label: 'Doctors', path: '/doctors' },
-                                        { label: 'About Us', path: '/about' },
-                                        { label: 'Blog & Guides', path: '/blog' },
+                                        { label: 'About Us', path: '/about-tech-dental' },
+                                        { label: 'Blog & Guides', path: '/dentistry' },
                                     ].map((item) => (
                                         <button
                                             key={item.path}

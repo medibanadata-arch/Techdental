@@ -433,7 +433,7 @@ export default function CustomPagesBuilder({ page }: Props) {
                             <h1 style="font-size: 38px; margin: 18px 0 12px; font-weight: 800; line-height: 1.2;">Advanced Digital Dentistry in Dhaka</h1>
                             <p style="font-size: 16px; max-width: 620px; margin: 0 auto 24px; color: #fce7f3; line-height: 1.6;">Painless root canals, single-visit laser teeth whitening, and precision dental implants backed by certified specialists.</p>
                             <div>
-                                <a href="/appointment" style="background: #ffffff; color: #700030; font-weight: 800; padding: 13px 32px; border-radius: 30px; text-decoration: none; display: inline-block; box-shadow: 0 4px 18px rgba(0,0,0,0.18); font-size: 15px;">Book Appointment Now &rarr;</a>
+                                <a href="/book-an-appointment" style="background: #ffffff; color: #700030; font-weight: 800; padding: 13px 32px; border-radius: 30px; text-decoration: none; display: inline-block; box-shadow: 0 4px 18px rgba(0,0,0,0.18); font-size: 15px;">Book Appointment Now &rarr;</a>
                             </div>
                         </section>
                     `,
@@ -444,7 +444,7 @@ export default function CustomPagesBuilder({ page }: Props) {
                     category: 'Dental Components',
                     media: `<span style="font-size: 20px;">💎</span>`,
                     content: `
-                        <div style="padding: 30px 10px; margin: 15px 0; font-family: sans-serif;">
+                        <div style="padding: 30px 10px; margin: 15px 0; font-family: 'Times New Roman', Times, serif;">
                             <h2 style="text-align: center; font-size: 28px; color: #0f172a; margin-bottom: 24px; font-weight: 800;">Our Specialized Treatments</h2>
                             <div style="display: flex; gap: 18px; flex-wrap: wrap; justify-content: center;">
                                 <div style="flex: 1; min-width: 240px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 22px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); text-align: left;">

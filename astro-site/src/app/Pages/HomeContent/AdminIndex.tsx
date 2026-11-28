@@ -376,7 +376,7 @@ export default function HomeContentAdminIndex({
             whatsapp: b.whatsapp || '01400786162',
             time: b.time || '10 AM – 9 PM',
             map_url: b.map_url || '',
-            booking_url: b.booking_url || '/appointment',
+            booking_url: b.booking_url || '/book-an-appointment',
             call_label: b.call_label || 'Call',
             directions_label: b.directions_label || 'Directions',
             whatsapp_label: b.whatsapp_label || 'WhatsApp',
@@ -1499,9 +1499,9 @@ export default function HomeContentAdminIndex({
                                                 <label className="block text-[11px] font-bold text-gray-600 mb-1">Booking URL / Page Link</label>
                                                 <input
                                                     type="text"
-                                                    value={branchForm.booking_url || '/appointment'}
+                                                    value={branchForm.booking_url || '/book-an-appointment'}
                                                     onChange={(e) => setBranchForm({ ...branchForm, booking_url: e.target.value })}
-                                                    placeholder="/appointment"
+                                                    placeholder="/book-an-appointment"
                                                     className="w-full px-3 py-1.5 border border-gray-200 rounded-lg bg-white"
                                                 />
                                             </div>

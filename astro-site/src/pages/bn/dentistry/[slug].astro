@@ -1,0 +1,16 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Page from '../../../app/wrappers/Blog_PublicSinglePage';
+import { pagePayload } from '../../../lib/shared';
+import { blogShow } from '../../../lib/pages/blog';
+
+const { slug = '' } = Astro.params;
+const result = blogShow(slug, true);
+if (!result) return new Response('Not Found', { status: 404 });
+if (result.kind === 'redirect') return Astro.redirect(result.location, 301);
+const page = pagePayload('Blog/PublicSingle', result.props, `/bn/dentistry/${slug}`, 'bn');
+---
+
+<BaseLayout seo={result.seo} lang="bn">
+  <Page client:load page={page} />
+</BaseLayout>

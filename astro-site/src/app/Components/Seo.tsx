@@ -11,7 +11,7 @@ interface SeoProps {
     /** Page title without the brand suffix (the suffix is added automatically). */
     title: string;
     description?: string;
-    /** Canonical path such as "/blog/my-post" (defaults to the current URL path). */
+    /** Canonical path such as "/dentistry/my-post" (defaults to the current URL path). */
     path?: string;
     /** Fully qualified canonical URL. Wins over `path`. */
     canonical?: string;

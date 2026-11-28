@@ -1,6 +1,7 @@
 import { all, get, json, model, models } from '../db';
 import { SITE_URL, applyBangla, locations, navMenu, websiteTexts } from '../shared';
 import { ABOUT_CONTENT_BN } from '../../app/data/aboutContentBn';
+import { corePath } from '../publicPaths';
 
 /* ----------------------------- About ----------------------------- */
 
@@ -50,7 +51,7 @@ export function aboutSeo(content: any, isBn = false) {
       content?.seo_title ||
       `${content?.hero_title || 'About Tech Dental Care'} — Digital Oral Healthcare`,
     description: content?.meta_desc || content?.hero_subtitle || content?.story_p1,
-    path: isBn ? '/bn/about-tech-dental-en/' : '/about',
+    path: corePath('about', isBn),
     robots: `${content?.robots_index !== false ? 'index' : 'noindex'}, ${
       content?.robots_follow !== false ? 'follow' : 'nofollow'
     }`,
@@ -76,21 +77,18 @@ export function teamIndexProps() {
   };
 }
 
-export function teamIndexSeo() {
+export function teamIndexSeo(isBn = false) {
   const copy = websiteTexts();
   return {
     title: copy.team_seo_title,
     description: copy.team_seo_desc,
-    path: '/team',
+    path: corePath('team', isBn),
   };
 }
 
 export function teamMember(slug: string): any | null {
-  const members = models<any>(
-    'team_members',
-    all("SELECT * FROM team_members WHERE section = 'management'")
-  );
-  const byId = get('SELECT * FROM team_members WHERE section = ? AND id = ?', ['management', slug]);
+  const members = models<any>('team_members', all('SELECT * FROM team_members ORDER BY sort_order'));
+  const byId = get('SELECT * FROM team_members WHERE id = ?', [slug]);
   if (byId) return model('team_members', byId);
   const found = members.find((member: any) => teamSlug(member.name).includes(slug));
   return found || null;
@@ -164,7 +162,7 @@ export function doctorsIndexProps(isBn = false) {
   };
 }
 
-export function doctorsIndexSeo(settings: any) {
+export function doctorsIndexSeo(settings: any, isBn = false) {
   const schemas: any[] = [];
   if (settings?.schema_json) {
     try {
@@ -192,7 +190,7 @@ export function doctorsIndexSeo(settings: any) {
     description:
       settings?.meta_desc ||
       'Meet our certified dental surgeons and specialists across Mirpur, Uttara, Badda and Jatrabari in Dhaka.',
-    path: '/doctors',
+    path: corePath('doctors', isBn),
     robots: `${settings?.robots_index ?? true ? 'index' : 'noindex'}, ${
       settings?.robots_follow ?? true ? 'follow' : 'nofollow'
     }`,
@@ -200,20 +198,27 @@ export function doctorsIndexSeo(settings: any) {
   };
 }
 
-export function findDoctor(id: string): any | null {
-  if (/^\d+$/.test(id)) {
-    const row = get('SELECT * FROM doctors WHERE id = ?', [Number(id)]);
-    return row ? model('doctors', row) : null;
-  }
-  const slugClean = String(id).toLowerCase().replace(/dr-|dr\./g, '').replace(/-/g, ' ');
-  const row =
-    get('SELECT * FROM doctors WHERE name LIKE ?', [`%${slugClean}%`]) ||
-    get('SELECT * FROM doctors WHERE id = ?', [id]);
-  return row ? model('doctors', row) : null;
+export function doctorSlug(item: any): string {
+  const explicit = String(item?.slug || '').trim();
+  if (explicit) return explicit;
+  return teamSlug(item?.name || '').replace(/^dr-/, '');
 }
 
-export function doctorProps(id: string, isBn = false) {
-  const item = findDoctor(id);
+export function findDoctor(id: string, allowId = true): any | null {
+  const key = String(id || '').trim();
+  if (!key) return null;
+  const bySlug = get('SELECT * FROM doctors WHERE lower(slug) = lower(?)', [key]);
+  if (bySlug) return model('doctors', bySlug);
+  if (/^\d+$/.test(key)) {
+    if (!allowId) return null;
+    const row = get('SELECT * FROM doctors WHERE id = ?', [Number(key)]);
+    return row ? model('doctors', row) : null;
+  }
+  return null;
+}
+
+export function doctorProps(id: string, isBn = false, allowId = true) {
+  const item = findDoctor(id, allowId);
   if (!item) return null;
   if (isBn) applyBangla(item, ['bio', 'seo_content']);
   return {
@@ -224,7 +229,7 @@ export function doctorProps(id: string, isBn = false) {
   };
 }
 
-export function doctorSeo(item: any, hotline: string) {
+export function doctorSeo(item: any, hotline: string, isBn = false) {
   const schemas: any[] = [];
   if (item.schema_json) {
     try {
@@ -269,7 +274,7 @@ export function doctorSeo(item: any, hotline: string) {
       ? `${item.name} – ${item.seo_title}`
       : `${item.name} - Senior Dental Specialist Profile`,
     description: item.meta_desc || item.bio,
-    path: `/doctors/${item.id}`,
+    path: `${corePath('doctors', isBn)}/${doctorSlug(item)}`,
     image: item.img,
     type: 'profile',
     robots: `${item.robots_index !== false ? 'index' : 'noindex'}, ${

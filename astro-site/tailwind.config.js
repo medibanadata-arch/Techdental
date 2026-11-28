@@ -24,9 +24,9 @@ export default {
         success: { green: '#16a34a' },
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', 'system-ui', 'sans-serif'],
-        inter: ['Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', 'system-ui', 'sans-serif'],
-        serif: ['Playfair Display', 'Georgia', 'serif'],
+        sans: ['Times New Roman', 'Times', 'SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', 'serif'],
+        inter: ['Times New Roman', 'Times', 'SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', 'serif'],
+        serif: ['Times New Roman', 'Times', 'SolaimanLipi', 'serif'],
         bengali: ['SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', 'system-ui', 'sans-serif'],
         solaiman: ['SolaimanLipi', 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', 'system-ui', 'sans-serif'],
       },

@@ -47,7 +47,7 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
   const page = usePage();
   const siteUrl = String((page.props as any)?.site_url || 'https://techdentalcare.com').replace(/\/+$/, '');
   const copy = getWebsiteTexts((page.props as any)?.site_settings?.website_texts);
-  const currentPath = (page.url || '/blog').split('?')[0];
+  const currentPath = (page.url || '/dentistry').split('?')[0];
   const isOthers = /\/blog\/others\/?$/.test(currentPath);
   const isBnPage = Boolean(is_bn) || currentPath.startsWith('/bn/');
 
@@ -66,8 +66,8 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
         ? 'দাঁত ব্যথা, রুট ক্যানেল, ইমপ্লান্ট, ব্রেসেস, মাড়ির রোগ ও মুখের স্বাস্থ্য নিয়ে ঢাকার বিশেষজ্ঞ ডেন্টিস্টদের লেখা নির্ভরযোগ্য বাংলা নিবন্ধ ও চিকিৎসা গাইড পড়ুন।'
         : 'Expert dental articles from the BDS dentists at Tech Dental Care, Dhaka — tooth pain relief, root canal, implants, braces, gum disease and daily oral hygiene guides.');
 
-  const enPath = isOthers ? '/blog/others' : '/blog';
-  const bnPath = isOthers ? '/bn/blog/others' : '/bn/blog';
+  const enPath = isOthers ? '/dentistry/others' : '/dentistry';
+  const bnPath = isOthers ? '/bn/dentistry/others' : '/bn/dentistry';
 
   const hasEn = (p: any) => Boolean((p.content || '').trim());
   const hasBn = (p: any) => Boolean((p.content_bn || '').trim());
@@ -76,7 +76,7 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
   const activePosts = readablePosts.filter((p) => (isBnPage ? hasBn(p) : hasEn(p)));
 
   return (
-    <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}>
+    <div className="min-h-screen antialiased text-gray-800 bg-[#f8fafc]" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}>
       <Seo
         title={seoTitle}
         description={seoDescription}
@@ -91,7 +91,7 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
             '@type': 'ListItem',
             position: i + 1,
             name: isBnPage ? (p.title_bn || p.title) : p.title,
-            url: `${siteUrl}${isBnPage ? '/bn/blog/' : '/blog/'}${p.slug}`,
+            url: `${siteUrl}${isBnPage ? '/bn/dentistry/' : '/dentistry/'}${p.slug}`,
           })),
         }}
       />
@@ -149,8 +149,8 @@ export default function BlogPublicIndex({ posts = [], locations = [], nav_menu, 
             const activeTitle = isBnPage ? (p.title_bn || p.title) : p.title;
             const activeExcerpt = isBnPage ? (p.excerpt_bn || p.excerpt) : p.excerpt;
             const cardHref = isBnPage
-              ? (postHasBangla ? `/bn/blog/${p.slug}` : `/blog/${p.slug}`)
-              : `/blog/${p.slug}`;
+              ? (postHasBangla ? `/bn/dentistry/${p.slug}` : `/dentistry/${p.slug}`)
+              : `/dentistry/${p.slug}`;
 
             return (
               <article

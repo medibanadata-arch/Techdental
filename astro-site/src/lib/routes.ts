@@ -8,7 +8,7 @@
  * Keep this file dependency-free: it is bundled into the browser as well.
  */
 
-type Params = Record<string, any> | any[] | undefined;
+type Params = Record<string, any> | any[] | string | number | undefined;
 
 /** Route name → path pattern. Patterns use {param} placeholders, like Laravel. */
 export const ROUTES: Record<string, string> = {
@@ -18,35 +18,39 @@ export const ROUTES: Record<string, string> = {
   sitemap: '/sitemap.xml',
   'posts.public.show': '/post/{slug}',
   'pages.public.show': '/page/{slug}',
-  'medicines.public': '/medicines',
-  'medicines.public.show': '/medicines/{slug}',
-  'medicines.public.show.bn': '/bn/medicines/{slug}',
-  'services.public': '/services',
+  'medicines.public': '/medication',
+  'medicines.public.show': '/medication/{slug}',
+  'medicines.public.show.bn': '/bn/medication/{slug}',
+  'services.public': '/our-services',
   'services.public.bn': '/bn/services',
   'service.public.show': '/service/{slug}',
   'service.public.bn.show': '/bn/service/{slug}',
-  'blog.public': '/blog',
-  'blog.public.bn': '/bn/blog',
-  'blog.public.others': '/blog/others',
-  'blog.public.others.bn': '/bn/blog/others',
-  'blog.public.show': '/blog/{slug}',
-  'blog.public.show.bn': '/bn/blog/{slug}',
-  'about.public': '/about',
-  'team.public': '/team',
+  'blog.public': '/dentistry',
+  'blog.public.bn': '/bn/dentistry',
+  'blog.public.others': '/dentistry/others',
+  'blog.public.others.bn': '/bn/dentistry/others',
+  'blog.public.show': '/dentistry/{slug}',
+  'blog.public.show.bn': '/bn/dentistry/{slug}',
+  'about.public': '/about-tech-dental',
+  'team.public': '/corporate-tram-en',
+  'team.public.bn': '/bn/corporate-tram',
   'team.public.show': '/team/{slug}',
   'doctors.public': '/doctors',
-  'doctors.public.show': '/doctors/{id}',
-  'pricelist.public': '/price-list',
+  'doctors.public.bn': '/bn/doctor',
+  'doctors.public.show': '/doctors/{slug}',
+  'doctors.public.show.bn': '/bn/doctor/{slug}',
+  'pricelist.public': '/tech-dental-treatment-price-list-bangladesh',
   'patient-rights.public': '/patient-rights',
   'patient-rights.public.bn': '/bn/patient-rights',
   'complaints.public': '/complaint-box',
   'complaints.store': '/complaint-box',
   'how-to-pay.public': '/how-to-pay',
-  'appointment.public': '/appointment',
-  'book.public': '/appointment',
+  'appointment.public': '/book-an-appointment',
+  'appointment.public.bn': '/bn/appointment',
+  'book.public': '/book-an-appointment',
   'appointments.store': '/appointments',
   'gallery.public': '/gallery',
-  'branches.public': '/branches',
+  'branches.public': '/contact',
   'branch.public.show': '/branch/{slug}',
   'ai-chat.api': '/api/ai-chat',
   'featured-images.increment-view': '/api/featured-images/{id}/view',
@@ -271,7 +275,12 @@ export function matchRouteName(pathname = currentPath()): string | null {
 function fillParams(pattern: string, params: Params): { path: string; rest: Array<[string, any]> } {
   const used = new Set<string>();
   const rest: Array<[string, any]> = [];
-  const positional = Array.isArray(params) ? params : null;
+  // Ziggy accepts a scalar for single-parameter routes: route('doctors.update', 5).
+  const positional = Array.isArray(params)
+    ? params
+    : params !== undefined && params !== null && typeof params !== 'object'
+      ? [params]
+      : null;
   let index = 0;
 
   const path = pattern.replace(/\{([a-zA-Z0-9_]+)\}/g, (_m, key: string) => {

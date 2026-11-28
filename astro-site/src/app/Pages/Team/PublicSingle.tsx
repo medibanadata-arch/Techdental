@@ -51,7 +51,7 @@ export default function TeamPublicSingle({ member, locations = [], nav_menu }: P
   return (
     <div
       className="antialiased text-[#2C2A29] min-h-screen flex flex-col w-full"
-      style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif", backgroundColor: PAGES_BG }}
+      style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif", backgroundColor: PAGES_BG }}
     >
       <Seo
         title={`${member.name} — ${member.role} at Tech Dental Care`}
@@ -89,14 +89,14 @@ export default function TeamPublicSingle({ member, locations = [], nav_menu }: P
               {/* Title & Quote Section */}
               <div className="md:col-span-8 flex flex-col justify-center pt-2">
                 <p className="tracking-[0.2em] uppercase text-xs sm:text-sm mb-2" style={{ color: '#C5A059' }}>Tech Dental</p>
-                <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', serif" }}>
                   A Message From Our CEO
                 </h1>
 
                 {/* Quote with Gold Left Border */}
                 {member.quote && (
                   <div className="pl-6 border-l-2 my-2" style={{ borderColor: '#C5A059' }}>
-                    <p className="text-white/90 italic text-lg sm:text-xl leading-relaxed" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    <p className="text-white/90 italic text-lg sm:text-xl leading-relaxed" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', serif" }}>
                       {member.quote}
                     </p>
                   </div>
@@ -119,7 +119,7 @@ export default function TeamPublicSingle({ member, locations = [], nav_menu }: P
             {/* Signature Block */}
             <div className="mt-8 pt-6 border-t border-gray-200 w-full flex flex-col sm:flex-row justify-between items-start sm:items-center">
               <div>
-                <p className="text-xl font-bold text-[#2C2A29]" style={{ fontFamily: "'Playfair Display', serif" }}>{member.name}</p>
+                <p className="text-xl font-bold text-[#2C2A29]" style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', serif" }}>{member.name}</p>
                 <p className="text-xs sm:text-sm text-gray-500 font-medium tracking-wider uppercase mt-1">{member.role}</p>
               </div>
             </div>

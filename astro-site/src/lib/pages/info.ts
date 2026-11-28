@@ -1,6 +1,9 @@
 import { all, get, model, models } from '../db';
 import { SITE_URL, applyBangla, locations, navMenu, uniqueBy, websiteTexts } from '../shared';
 import { SPECIAL_OFFERS_BN } from '../../app/data/specialOffersBn';
+import { corePath, PRICE_LIST_PATHS, priceListPath } from '../publicPaths';
+
+export { PRICE_LIST_PATHS, priceListPath };
 
 /* ----------------------------- Price list ----------------------------- */
 
@@ -32,7 +35,9 @@ export function priceListProps(isBn = false, withOffers = false) {
   };
 }
 
-export function priceListSeo(settings: any) {
+/** Canonical price-list URLs from the old WordPress site. */
+
+export function priceListSeo(settings: any, isBn = false) {
   const schemas: any[] = [];
   if (settings?.schema_json) {
     try {
@@ -62,7 +67,7 @@ export function priceListSeo(settings: any) {
       settings?.meta_desc ||
       settings?.seo_content ||
       'Updated treatment prices for dental implants, braces, root canal, crowns and more at Tech Dental Care in Dhaka.',
-    path: '/price-list',
+    path: priceListPath(isBn),
     robots: `${settings?.robots_index !== false ? 'index' : 'noindex'}, ${
       settings?.robots_follow !== false ? 'follow' : 'nofollow'
     }`,
@@ -159,12 +164,12 @@ export function appointmentProps() {
   };
 }
 
-export function appointmentSeo() {
+export function appointmentSeo(isBn = false) {
   const copy = websiteTexts();
   return {
     title: copy.appointment_seo_title,
     description: copy.appointment_seo_desc,
-    path: '/appointment',
+    path: corePath('appointment', isBn),
   };
 }
 

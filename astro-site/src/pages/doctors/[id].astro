@@ -3,11 +3,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import LegacyEntity from '../../components/LegacyEntity.astro';
 import Page from '../../app/wrappers/Doctors_PublicSinglePage';
 import { pagePayload } from '../../lib/shared';
-import { doctorProps, doctorSeo } from '../../lib/pages/people';
-import { resolveLegacyEntity } from '../../lib/legacyRender';
+import { doctorProps, doctorSeo, doctorSlug } from '../../lib/pages/people';
+import { resolveLegacyEntity, canonicalMismatch } from '../../lib/legacyRender';
 
 const { id = '' } = Astro.params;
-const props = doctorProps(String(id));
+const props = doctorProps(String(id), false, false);
 
 let legacyResult: any = null;
 if (!props) {
@@ -16,8 +16,11 @@ if (!props) {
   legacyResult = legacy;
 }
 if (!props && !legacyResult) return new Response('Not Found', { status: 404 });
+if (legacyResult && canonicalMismatch(legacyResult.seo, Astro.url.pathname)) {
+  return new Response('Not Found', { status: 404 });
+}
 
-const page = props ? pagePayload('Doctors/PublicSingle', props, `/doctors/${id}`) : null;
+const page = props ? pagePayload('Doctors/PublicSingle', props, `/doctors/${doctorSlug(props.item)}`) : null;
 const seo = props ? doctorSeo(props.item, props.hotline) : null;
 ---
 

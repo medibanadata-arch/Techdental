@@ -71,7 +71,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Edit Mirpur Branch',
-        publicUrl: '/branch/mirpur',
+        publicUrl: '/mirpur-branch',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. Clinic Info & Hours', '2. 4 Action Buttons & Book Now', '3. Assigned Doctors', '4. Treatments', '5. More About Mirpur (SEO)']
     },
@@ -80,7 +80,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Edit Uttara Branch',
-        publicUrl: '/branch/uttara',
+        publicUrl: '/best-dentist-in-uttara',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. Clinic Info & Hours', '2. 4 Action Buttons & Book Now', '3. Assigned Doctors', '4. Treatments', '5. More About Uttara (SEO)']
     },
@@ -89,7 +89,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Edit Badda Branch',
-        publicUrl: '/branch/badda',
+        publicUrl: '/best-dentist-in-badda',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. Clinic Info & Hours', '2. 4 Action Buttons & Book Now', '3. Assigned Doctors', '4. Treatments', '5. More About Badda (SEO)']
     },
@@ -98,7 +98,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Edit Jatrabari Branch',
-        publicUrl: '/branch/jatrabari',
+        publicUrl: '/best-dentist-jatrabari-en',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. Clinic Info & Hours', '2. 4 Action Buttons & Book Now', '3. Assigned Doctors', '4. Treatments', '5. More About Jatrabari (SEO)']
     },
@@ -107,7 +107,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Edit Mirpur Branch',
-        publicUrl: '/branch/mirpur',
+        publicUrl: '/mirpur-branch',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. Clinic Info & Hours', '2. 4 Action Buttons & Book Now', '3. Assigned Doctors', '4. Treatments', '5. More About Mirpur (SEO)']
     },
@@ -116,7 +116,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Edit Uttara Branch',
-        publicUrl: '/branch/uttara',
+        publicUrl: '/best-dentist-in-uttara',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. Clinic Info & Hours', '2. 4 Action Buttons & Book Now', '3. Assigned Doctors', '4. Treatments', '5. More About Uttara (SEO)']
     },
@@ -125,7 +125,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Edit Badda Branch',
-        publicUrl: '/branch/badda',
+        publicUrl: '/best-dentist-in-badda',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. Clinic Info & Hours', '2. 4 Action Buttons & Book Now', '3. Assigned Doctors', '4. Treatments', '5. More About Badda (SEO)']
     },
@@ -134,7 +134,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Edit Jatrabari Branch',
-        publicUrl: '/branch/jatrabari',
+        publicUrl: '/best-dentist-jatrabari-en',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. Clinic Info & Hours', '2. 4 Action Buttons & Book Now', '3. Assigned Doctors', '4. Treatments', '5. More About Jatrabari (SEO)']
     },
@@ -143,7 +143,7 @@ const PAGE_CONFIG: Record<string, {
         icon: MapPin,
         backendUrl: '/branch-admin',
         backendLabel: 'Manage All Branches',
-        publicUrl: '/branches',
+        publicUrl: '/contact',
         badgeColor: 'bg-teal-50 text-teal-700 border-teal-200',
         sections: ['1. All Clinics Overview', '2. Operating Hours', '3. Hotlines & Maps', '4. More About (SEO)']
     },
@@ -152,7 +152,7 @@ const PAGE_CONFIG: Record<string, {
         icon: Sparkles,
         backendUrl: '/services-admin',
         backendLabel: 'Edit Services Page',
-        publicUrl: '/services',
+        publicUrl: '/our-services',
         badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
         sections: ['1. Procedure Catalog', '2. Pricing Cards', '3. Treatment Info', '4. More About (SEO)']
     },
@@ -161,7 +161,7 @@ const PAGE_CONFIG: Record<string, {
         icon: DollarSign,
         backendUrl: '/price-list-admin',
         backendLabel: 'Edit Price List Page',
-        publicUrl: '/price-list',
+        publicUrl: '/tech-dental-treatment-price-list-bangladesh',
         badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
         sections: ['1. Transparent Rates Table', '2. EMI Options', '3. More About (SEO)']
     },
@@ -179,7 +179,7 @@ const PAGE_CONFIG: Record<string, {
         icon: Files,
         backendUrl: '/about-cms',
         backendLabel: 'Edit About Us Page',
-        publicUrl: '/about',
+        publicUrl: '/about-tech-dental',
         badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
         sections: ['1. Hero Banner', '2. Our Story & Video', '3. Equipment Cards', '4. Vision & Mission', '5. Why Us', '6. More About (SEO)']
     },
@@ -188,7 +188,7 @@ const PAGE_CONFIG: Record<string, {
         icon: Users,
         backendUrl: '/team-admin',
         backendLabel: 'Edit Corporate Team',
-        publicUrl: '/team',
+        publicUrl: '/corporate-tram-en',
         badgeColor: 'bg-cyan-50 text-cyan-700 border-cyan-200',
         sections: ['1. Executive Profiles', '2. Designations & Bios', '3. More About (SEO)']
     },
@@ -197,7 +197,7 @@ const PAGE_CONFIG: Record<string, {
         icon: Calendar,
         backendUrl: '/appointments',
         backendLabel: 'Manage Appointments',
-        publicUrl: '/appointment',
+        publicUrl: '/book-an-appointment',
         badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
         sections: ['1. Booking Form', '2. Branch & Doctor Selectors', '3. Patient Requests List']
     },
@@ -206,7 +206,7 @@ const PAGE_CONFIG: Record<string, {
         icon: BookOpen,
         backendUrl: '/posts',
         backendLabel: 'Manage Blog & Guides',
-        publicUrl: '/blog',
+        publicUrl: '/dentistry',
         badgeColor: 'bg-orange-50 text-orange-700 border-orange-200',
         sections: ['1. Articles & Guides', '2. Categories & Tags', '3. Medicines Directory']
     },
@@ -215,7 +215,7 @@ const PAGE_CONFIG: Record<string, {
         icon: Pill,
         backendUrl: '/medicines-admin',
         backendLabel: 'Manage Medicines',
-        publicUrl: '/medicines',
+        publicUrl: '/medication',
         badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
         sections: ['1. Medicine Directory', '2. Dental Prescriptions', '3. Dosage Info']
     },

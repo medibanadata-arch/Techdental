@@ -120,7 +120,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
         {isExpanded && (
           <div className="pt-3">
             <Link
-              href="/services"
+              href="/our-services"
               className="group w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-[#800038]/5 via-[#800038]/10 to-[#800038]/5 hover:from-[#800038] hover:via-[#800038] hover:to-[#a01246] border border-[#800038]/20 hover:border-[#800038] text-[#800038] hover:text-white font-extrabold text-[0.84rem] shadow-xs hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
             >
               <span>View All Services</span>

@@ -60,18 +60,18 @@ const HEADER_FOOTER_DEFAULTS = () => {
   const year = new Date().getFullYear();
   const defaultQuickLinks = [
     { label: 'Home', url: '/' },
-    { label: 'Services & Pricing', url: '/services' },
+    { label: 'Services & Pricing', url: '/our-services' },
     { label: 'Specialist Doctors', url: '/doctors' },
-    { label: 'Treatment Price List', url: '/price-list' },
-    { label: 'Medicines & Care', url: '/medicines' },
-    { label: 'About Tech Dental', url: '/about' },
-    { label: 'Book Appointment', url: '/appointment' },
+    { label: 'Treatment Price List', url: '/tech-dental-treatment-price-list-bangladesh' },
+    { label: 'Medicines & Care', url: '/medication' },
+    { label: 'About Tech Dental', url: '/about-tech-dental' },
+    { label: 'Book Appointment', url: '/book-an-appointment' },
   ];
   const defaultBranches = [
-    { name: 'Mirpur Branch', address: 'Shewrapara, Rokeya Sarani (Pillar 318)', url: '/branch/mirpur' },
-    { name: 'Uttara Branch', address: 'Sector 7, Jasimuddin Avenue, Dhaka', url: '/branch/uttara' },
-    { name: 'Badda Branch', address: 'Middle Badda, Pragati Sarani, Dhaka', url: '/branch/badda' },
-    { name: 'Jatrabari Branch', address: 'Shahid Faruk Road, Jatrabari, Dhaka', url: '/branch/jatrabari' },
+    { name: 'Mirpur Branch', address: 'Shewrapara, Rokeya Sarani (Pillar 318)', url: '/mirpur-branch' },
+    { name: 'Uttara Branch', address: 'Sector 7, Jasimuddin Avenue, Dhaka', url: '/best-dentist-in-uttara' },
+    { name: 'Badda Branch', address: 'Middle Badda, Pragati Sarani, Dhaka', url: '/best-dentist-in-badda' },
+    { name: 'Jatrabari Branch', address: 'Shahid Faruk Road, Jatrabari, Dhaka', url: '/best-dentist-jatrabari-en' },
   ];
   const defaultBottomLinks = [
     { label: 'Facebook', url: 'https://facebook.com/techdentalbd' },
@@ -197,7 +197,7 @@ const HEADER_FOOTER_DEFAULTS = () => {
     cta_subtext:
       'Consult with our specialist oral surgeons across Mirpur, Uttara, Badda, and Jatrabari branches.',
     cta_button_text: 'Make Appointment',
-    cta_button_url: '/appointment',
+    cta_button_url: '/book-an-appointment',
   };
 
   return { headerSettings, footerSettings };

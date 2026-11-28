@@ -23,7 +23,7 @@ interface Props extends PageProps {
 
 type ProfileSize = 'lead' | 'regular' | 'medium' | 'ceo' | 'small';
 
-const lora = { fontFamily: "'Lora', Georgia, serif" };
+const lora = { fontFamily: "'Times New Roman', Times, 'SolaimanLipi', serif" };
 const heroLine = 'linear-gradient(90deg, transparent, #E9D5A8, transparent)';
 const goldLine = 'linear-gradient(90deg, transparent, #B08A4A, transparent)';
 
@@ -112,12 +112,12 @@ export default function TeamPublicIndex({ members = [], locations = [], nav_menu
   return (
     <div
       className="min-h-screen w-full bg-[#FAF5EF] font-sans text-[#2A1D20] antialiased"
-      style={{ fontFamily: "'Inter', 'Plus Jakarta Sans', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif" }}
+      style={{ fontFamily: "'Times New Roman', Times, 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', serif" }}
     >
       <Seo
         title={copy.team_seo_title}
         description={copy.team_seo_desc}
-        path="/team"
+        path={(page.props as any)?.locale === 'bn' ? '/bn/corporate-tram' : '/corporate-tram-en'}
       />
       <Head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />

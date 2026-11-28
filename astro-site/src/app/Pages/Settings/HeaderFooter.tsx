@@ -125,19 +125,19 @@ export default function HeaderFooterAdmin({
   const [footerForm, setFooterForm] = useState<FooterSettings>(() => {
     const defaultQuickLinks: LinkItem[] = [
       { label: 'Home', url: '/' },
-      { label: 'Services & Pricing', url: '/services' },
+      { label: 'Services & Pricing', url: '/our-services' },
       { label: 'Specialist Doctors', url: '/doctors' },
-      { label: 'Treatment Price List', url: '/price-list' },
-      { label: 'Medicines & Care', url: '/medicines' },
+      { label: 'Treatment Price List', url: '/tech-dental-treatment-price-list-bangladesh' },
+      { label: 'Medicines & Care', url: '/medication' },
       { label: 'How to Pay', url: '/how-to-pay' },
-      { label: 'About Tech Dental', url: '/about' },
-      { label: 'Book Appointment', url: '/appointment' },
+      { label: 'About Tech Dental', url: '/about-tech-dental' },
+      { label: 'Book Appointment', url: '/book-an-appointment' },
     ];
     const defaultBranches: BranchItem[] = [
-      { name: 'Mirpur Branch', address: 'Shewrapara, Rokeya Sarani (Pillar 318)', url: '/branch/mirpur' },
-      { name: 'Uttara Branch', address: 'Sector 7, Jasimuddin Avenue, Dhaka', url: '/branch/uttara' },
-      { name: 'Badda Branch', address: 'Middle Badda, Pragati Sarani, Dhaka', url: '/branch/badda' },
-      { name: 'Jatrabari Branch', address: 'Shahid Faruk Road, Jatrabari, Dhaka', url: '/branch/jatrabari' },
+      { name: 'Mirpur Branch', address: 'Shewrapara, Rokeya Sarani (Pillar 318)', url: '/mirpur-branch' },
+      { name: 'Uttara Branch', address: 'Sector 7, Jasimuddin Avenue, Dhaka', url: '/best-dentist-in-uttara' },
+      { name: 'Badda Branch', address: 'Middle Badda, Pragati Sarani, Dhaka', url: '/best-dentist-in-badda' },
+      { name: 'Jatrabari Branch', address: 'Shahid Faruk Road, Jatrabari, Dhaka', url: '/best-dentist-jatrabari-en' },
     ];
     const defaultBottomLinks: LinkItem[] = [
       { label: 'Facebook', url: initialFooterSettings?.facebook_url || 'https://facebook.com/techdentalbd' },
@@ -235,12 +235,12 @@ export default function HeaderFooterAdmin({
   const handleResetQuickLinks = () => {
     handleFooterChange('quick_links', [
       { label: 'Home', url: '/' },
-      { label: 'Services & Pricing', url: '/services' },
+      { label: 'Services & Pricing', url: '/our-services' },
       { label: 'Specialist Doctors', url: '/doctors' },
-      { label: 'Treatment Price List', url: '/price-list' },
-      { label: 'Medicines & Care', url: '/medicines' },
-      { label: 'About Tech Dental', url: '/about' },
-      { label: 'Book Appointment', url: '/appointment' },
+      { label: 'Treatment Price List', url: '/tech-dental-treatment-price-list-bangladesh' },
+      { label: 'Medicines & Care', url: '/medication' },
+      { label: 'About Tech Dental', url: '/about-tech-dental' },
+      { label: 'Book Appointment', url: '/book-an-appointment' },
     ]);
   };
 
@@ -254,7 +254,7 @@ export default function HeaderFooterAdmin({
 
   const handleAddBranch = () => {
     const list = [...(footerForm.branches || [])];
-    list.push({ name: 'New Branch', address: 'Area, Dhaka', url: '/branch/mirpur' });
+    list.push({ name: 'New Branch', address: 'Area, Dhaka', url: '/mirpur-branch' });
     handleFooterChange('branches', list);
   };
 
@@ -266,10 +266,10 @@ export default function HeaderFooterAdmin({
 
   const handleResetBranches = () => {
     handleFooterChange('branches', [
-      { name: 'Mirpur Branch', address: 'Shewrapara, Rokeya Sarani (Pillar 318)', url: '/branch/mirpur' },
-      { name: 'Uttara Branch', address: 'Sector 7, Jasimuddin Avenue, Dhaka', url: '/branch/uttara' },
-      { name: 'Badda Branch', address: 'Middle Badda, Pragati Sarani, Dhaka', url: '/branch/badda' },
-      { name: 'Jatrabari Branch', address: 'Shahid Faruk Road, Jatrabari, Dhaka', url: '/branch/jatrabari' },
+      { name: 'Mirpur Branch', address: 'Shewrapara, Rokeya Sarani (Pillar 318)', url: '/mirpur-branch' },
+      { name: 'Uttara Branch', address: 'Sector 7, Jasimuddin Avenue, Dhaka', url: '/best-dentist-in-uttara' },
+      { name: 'Badda Branch', address: 'Middle Badda, Pragati Sarani, Dhaka', url: '/best-dentist-in-badda' },
+      { name: 'Jatrabari Branch', address: 'Shahid Faruk Road, Jatrabari, Dhaka', url: '/best-dentist-jatrabari-en' },
     ]);
   };
 
@@ -1010,7 +1010,7 @@ export default function HeaderFooterAdmin({
                           type="text"
                           value={link.url || ''}
                           onChange={(e) => handleQuickLinkChange(idx, 'url', e.target.value)}
-                          placeholder="URL (e.g. /services)"
+                          placeholder="URL (e.g. /our-services)"
                           className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-lg bg-white font-mono"
                         />
                       </div>
@@ -1134,7 +1134,7 @@ export default function HeaderFooterAdmin({
                             type="text"
                             value={branch.url || ''}
                             onChange={(e) => handleBranchChange(idx, 'url', e.target.value)}
-                            placeholder="/branch/mirpur"
+                            placeholder="/mirpur-branch"
                             className="w-full px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg bg-white font-mono"
                           />
                         </div>
@@ -1297,7 +1297,7 @@ export default function HeaderFooterAdmin({
                         type="text"
                         value={footerForm.cta_button_url || ''}
                         onChange={(e) => handleFooterChange('cta_button_url', e.target.value)}
-                        placeholder="/appointment"
+                        placeholder="/book-an-appointment"
                         className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg bg-white font-mono"
                       />
                     </div>

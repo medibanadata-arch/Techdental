@@ -131,7 +131,7 @@ export default function RedirectsIndex({ redirects, filters }: Props) {
                     <p className="text-[11px] text-sky-800">
                         • <strong>301 Moved Permanently</strong> transfers 95-99% of page ranking authority (link equity). Use when pages or clinic branches are renamed or moved permanently.<br />
                         • <strong>302 Found (Temporary)</strong> is used when relocating traffic temporarily without altering search engine index rankings.<br />
-                        • <strong>Trailing Slash Consistency:</strong> Any incoming request with an unnecessary trailing slash (e.g. <code className="bg-sky-100 px-1 rounded">/services/</code>) is automatically 301-redirected to the canonical clean path (<code className="bg-sky-100 px-1 rounded">/services</code>).
+                        • <strong>Trailing Slash Consistency:</strong> Any incoming request with an unnecessary trailing slash (e.g. <code className="bg-sky-100 px-1 rounded">/service/</code>) is automatically 301-redirected to the canonical clean path (<code className="bg-sky-100 px-1 rounded">/our-services</code>).
                     </p>
                 </div>
             </div>
@@ -273,7 +273,7 @@ export default function RedirectsIndex({ redirects, filters }: Props) {
                                     required
                                     value={form.target_url}
                                     onChange={(e) => setForm({ ...form, target_url: e.target.value })}
-                                    placeholder="/branch/mirpur or https://..."
+                                    placeholder="/mirpur-branch or https://..."
                                     className="w-full px-3 py-2 border border-gray-200 rounded-xl font-mono text-xs"
                                 />
                                 <p className="text-[10px] text-gray-400 mt-1">New canonical page destination or external URL.</p>

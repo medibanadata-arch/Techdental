@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Page from '../../../app/wrappers/Doctors_PublicSinglePage';
+import { pagePayload } from '../../../lib/shared';
+import { doctorProps, doctorSeo, doctorSlug } from '../../../lib/pages/people';
+
+const { id = '' } = Astro.params;
+const props = doctorProps(String(id), true, false);
+if (!props) return new Response('Not Found', { status: 404 });
+
+const page = pagePayload('Doctors/PublicSingle', props, `/bn/doctor/${doctorSlug(props.item)}`, 'bn');
+const seo = doctorSeo(props.item, props.hotline, true);
+---
+
+<BaseLayout seo={seo} lang="bn">
+  <Page client:load page={page} />
+</BaseLayout>

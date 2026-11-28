@@ -4,7 +4,7 @@ import LegacyEntity from '../../../components/LegacyEntity.astro';
 import Page from '../../../app/wrappers/Services_PublicSinglePage';
 import { pagePayload } from '../../../lib/shared';
 import { serviceProps, serviceSeo } from '../../../lib/pages/services';
-import { resolveLegacyEntity } from '../../../lib/legacyRender';
+import { resolveLegacyEntity, canonicalMismatch } from '../../../lib/legacyRender';
 
 const { slug = '' } = Astro.params;
 const data = serviceProps(slug, true);
@@ -17,6 +17,9 @@ if (!data) {
   legacyResult = legacy;
 }
 if (!data && !legacyResult) return new Response('Not Found', { status: 404 });
+if (legacyResult && canonicalMismatch(legacyResult.seo, Astro.url.pathname)) {
+  return new Response('Not Found', { status: 404 });
+}
 
 const page = data ? pagePayload('Services/PublicSingle', data.props, `/bn/service/${slug}`, 'bn') : null;
 const seo = data ? serviceSeo(data.props.item, true) : null;

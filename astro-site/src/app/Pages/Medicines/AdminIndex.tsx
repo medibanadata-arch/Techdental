@@ -133,7 +133,7 @@ export default function MedicinesAdminIndex({ data = [] }: Props) {
 
                     <div className="flex flex-wrap items-center gap-3">
                         <a
-                            href="/medicines"
+                            href="/medication"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-2xs"
@@ -340,7 +340,7 @@ export default function MedicinesAdminIndex({ data = [] }: Props) {
                                             <td className="py-3.5 px-4 text-right">
                                                 <div className="inline-flex items-center gap-2">
                                                     <a
-                                                        href={`/medicines/${item.slug || item.id}`}
+                                                        href={`/medication/${item.slug || item.id}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"

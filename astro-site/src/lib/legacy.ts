@@ -6,6 +6,7 @@ import { branchIndexProps, branchIndexSeo, branchShowProps, branchShowSeo } from
 import { blogShow } from './pages/blog';
 import { aboutProps, aboutSeo, doctorProps, doctorSeo, doctorsIndexProps, doctorsIndexSeo } from './pages/people';
 import { medicineShow } from './pages/medicines';
+import { medicineAlias } from './medicineAliases';
 import { serviceProps, serviceSeo } from './pages/services';
 import { homeProps, homeSeo } from './pages/home';
 import { pageShow } from './pages/custom';
@@ -26,6 +27,7 @@ const REMOVED_PATHS = [
   '/doctors/dr-tasnova-rahman-mohona',
   '/doctors/dr-afsana-haque-joty',
   '/doctors/dr-reshma-islam',
+  '/doctors/dr-sadia-afrin',
   '/bn/patiant-gogle-review-tech-dental',
   '/patiant-gogle-review-tech-dental-en',
 ];
@@ -161,7 +163,7 @@ export function renderMappedEntity(pathname: string, entity: LegacyEntity): Lega
       case 'doctor': {
         const props = doctorProps(String(entity.id ?? entity.slug ?? ''), localeIsBn);
         if (!props) return null;
-        return page('Doctors/PublicSingle', props, doctorSeo(props.item, props.hotline));
+        return page('Doctors/PublicSingle', props, doctorSeo(props.item, props.hotline, localeIsBn));
       }
 
       case 'page': {
@@ -173,7 +175,7 @@ export function renderMappedEntity(pathname: string, entity: LegacyEntity): Lega
 
       case 'appointment': {
         const props = appointmentProps();
-        return page('BookAppointment/PublicIndex', props, appointmentSeo());
+        return page('BookAppointment/PublicIndex', props, appointmentSeo(localeIsBn));
       }
 
       case 'home': {
@@ -188,7 +190,7 @@ export function renderMappedEntity(pathname: string, entity: LegacyEntity): Lega
 
       case 'branches': {
         const props = branchIndexProps();
-        return page('Branch/PublicIndex', props, branchIndexSeo());
+        return page('Branch/PublicIndex', props, branchIndexSeo(localeIsBn));
       }
 
       case 'branch': {
@@ -199,12 +201,12 @@ export function renderMappedEntity(pathname: string, entity: LegacyEntity): Lega
 
       case 'doctors': {
         const props = doctorsIndexProps(localeIsBn);
-        return page('Doctors/PublicIndex', props, doctorsIndexSeo(props.settings));
+        return page('Doctors/PublicIndex', props, doctorsIndexSeo(props.settings, localeIsBn));
       }
 
       case 'price_list': {
         const props = priceListProps(localeIsBn, /special-offer/i.test(pathname));
-        return page('PriceList/PublicIndex', props, priceListSeo(props.settings));
+        return page('PriceList/PublicIndex', props, priceListSeo(props.settings, localeIsBn));
       }
 
       default:
@@ -354,63 +356,78 @@ export interface OldPattern {
 const OLD_PATTERNS: Array<{ re: RegExp; build: (match: RegExpMatchArray) => OldPattern }> = [
   {
     re: /^\/dental\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/dental/${m[1]}`, fallback: `/blog/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/dental/${m[1]}`, fallback: `/dentistry/${m[1]}` }),
   },
   {
     re: /^\/blog-en\/dental(?:\/([^/]+))?$/,
-    build: (m) => ({ candidatePath: normalizeKey(`/blog-en/dental${m[1] ? '/' + m[1] : ''}`), fallback: m[1] ? `/blog/${m[1]}` : '/blog' }),
+    build: (m) => ({ candidatePath: normalizeKey(`/blog-en/dental${m[1] ? '/' + m[1] : ''}`), fallback: m[1] ? `/dentistry/${m[1]}` : '/dentistry' }),
   },
   {
     re: /^\/bn\/blog\/dental(?:\/([^/]+))?$/,
-    build: (m) => ({ candidatePath: normalizeKey(`/bn/blog/dental${m[1] ? '/' + m[1] : ''}`), fallback: m[1] ? `/bn/blog/${m[1]}` : '/bn/blog' }),
+    build: (m) => ({ candidatePath: normalizeKey(`/bn/blog/dental${m[1] ? '/' + m[1] : ''}`), fallback: m[1] ? `/bn/dentistry/${m[1]}` : '/bn/dentistry' }),
   },
   {
     re: /^\/bn\/dentistry\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/bn/dentistry/${m[1]}`, fallback: `/bn/blog/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/bn/dentistry/${m[1]}`, fallback: '/bn/dentistry' }),
   },
   {
     re: /^\/medicine\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/medicine/${m[1]}`, fallback: `/medicines/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/medicine/${m[1]}`, fallback: `/medication/${medicineAlias(m[1]) || m[1]}` }),
   },
   {
     re: /^\/bn\/medicine\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/bn/medicine/${m[1]}`, fallback: `/bn/medicines/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/bn/medicine/${m[1]}`, fallback: `/bn/medication/${medicineAlias(m[1]) || m[1]}` }),
   },
   {
     re: /^\/bn\/medication\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/bn/medication/${m[1]}`, fallback: `/bn/medicines/${m[1]}` }),
+    build: (m) => ({
+      candidatePath: `/bn/medication/${m[1]}`,
+      fallback: medicineAlias(m[1]) ? `/bn/medication/${medicineAlias(m[1])}` : '/bn/medication',
+    }),
   },
   {
     re: /^\/blog-en\/medical(?:\/([^/]+))?$/,
-    build: (m) => ({ candidatePath: normalizeKey(`/blog-en/medical${m[1] ? '/' + m[1] : ''}`), fallback: m[1] ? `/medicines/${m[1]}` : '/medicines' }),
+    build: (m) => ({ candidatePath: normalizeKey(`/blog-en/medical${m[1] ? '/' + m[1] : ''}`), fallback: m[1] ? `/medication/${m[1]}` : '/medication' }),
   },
   {
     re: /^\/bn\/blog\/medical(?:\/([^/]+))?$/,
-    build: (m) => ({ candidatePath: normalizeKey(`/bn/blog/medical${m[1] ? '/' + m[1] : ''}`), fallback: m[1] ? `/bn/medicines/${m[1]}` : '/medicines' }),
+    build: (m) => ({ candidatePath: normalizeKey(`/bn/blog/medical${m[1] ? '/' + m[1] : ''}`), fallback: m[1] ? `/bn/medication/${m[1]}` : '/bn/medication' }),
   },
   {
     re: /^\/physician\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/physician/${m[1]}`, fallback: `/blog/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/physician/${m[1]}`, fallback: `/dentistry/${m[1]}` }),
+  },
+  {
+    re: /^\/bn\/physicians\/([^/]+)$/,
+    build: (m) => ({ candidatePath: `/bn/physicians/${m[1]}`, fallback: `/bn/dentistry/${m[1]}` }),
+  },
+  {
+    re: /^\/bn\/wellness\/([^/]+)$/,
+    build: (m) => ({ candidatePath: `/bn/wellness/${m[1]}`, fallback: `/bn/dentistry/${m[1]}` }),
+  },
+  {
+    re: /^\/bn\/updates\/([^/]+)$/,
+    build: (m) => ({ candidatePath: `/bn/updates/${m[1]}`, fallback: `/bn/dentistry/${m[1]}` }),
   },
   {
     re: /^\/update\/case-study\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/update/case-study/${m[1]}`, fallback: `/blog/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/update/case-study/${m[1]}`, fallback: `/dentistry/${m[1]}` }),
   },
   {
     re: /^\/update\/centres\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/update/centres/${m[1]}`, fallback: `/blog/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/update/centres/${m[1]}`, fallback: `/dentistry/${m[1]}` }),
   },
   {
     re: /^\/update\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/update/${m[1]}`, fallback: `/blog/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/update/${m[1]}`, fallback: `/dentistry/${m[1]}` }),
   },
   {
     re: /^\/uncategorized-en\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/uncategorized-en/${m[1]}`, fallback: `/blog/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/uncategorized-en/${m[1]}`, fallback: `/dentistry/${m[1]}` }),
   },
   {
     re: /^\/tech-physio\/([^/]+)$/,
-    build: (m) => ({ candidatePath: `/tech-physio/${m[1]}`, fallback: `/blog/${m[1]}` }),
+    build: (m) => ({ candidatePath: `/tech-physio/${m[1]}`, fallback: `/dentistry/${m[1]}` }),
   },
 ];
 
@@ -445,31 +462,14 @@ const SPECIAL_REDIRECTS: Record<string, SpecialRedirect> = {
   '/howtopay': { location: '/how-to-pay' },
   '/photos': { location: '/gallery' },
   '/videos': { location: '/gallery#videos' },
-  '/mirpur': { location: '/branch/mirpur' },
-  '/uttara': { location: '/branch/uttara' },
-  '/badda': { location: '/branch/badda' },
-  '/jatrabari': { location: '/branch/jatrabari' },
-  '/mirpur-branch': { location: '/branch/mirpur', resolve: true },
-  '/uttara-branch': { location: '/branch/uttara' },
-  '/badda-branch': { location: '/branch/badda' },
-  '/jatrabari-branch': { location: '/branch/jatrabari' },
-  '/branch-mirpur': { location: '/branch/mirpur' },
-  '/branch-uttara': { location: '/branch/uttara' },
-  '/branch-badda': { location: '/branch/badda' },
-  '/branch-jatrabari': { location: '/branch/jatrabari' },
-  '/about-us': { location: '/about' },
-  '/aboutus': { location: '/about' },
-  '/contact': { location: '/branches', resolve: true },
-  '/contact-us': { location: '/branches' },
-  '/contacts': { location: '/branches' },
-  '/our-doctors': { location: '/doctors' },
-  '/our-services': { location: '/services' },
-  '/blog-en': { location: '/blog' },
-  '/tech-physio': { location: '/blog/tech-physio-launch' },
-  '/veneers': { location: '/bn/service/direct-composite-veneers' },
-  '/message-from-ceo': { location: '/team' },
-  '/message-from-medical-director': { location: '/team' },
-  '/corporate-tram-en': { location: '/team' },
+  // Canonical branch URLs from the old site. The remaining old branch aliases
+  // (/mirpur, /branch-mirpur, /uttara-branch, …) must 404, never redirect.
+  '/mirpur-branch': { location: '/mirpur-branch', resolve: true },
+  // Structural pages (about-tech-dental, corporate-tram-en, our-services,
+  // contact, book-an-appointment, /bn/doctor) are real routes in src/pages.
+  '/message-from-ceo': { location: '/corporate-tram-en' },
+  '/message-from-medical-director': { location: '/corporate-tram-en' },
+  '/message-from-head-of-human-resources': { location: '/corporate-tram-en' },
   '/bn/updates/patient-bill-of-rights': { location: '/bn/patient-rights' },
   '/bn/patient-speaks': { location: '/' },
   '/terms-of-service': { location: '/page/terms-of-service' },

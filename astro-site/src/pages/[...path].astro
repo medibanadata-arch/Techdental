@@ -1,7 +1,7 @@
 ---
 import LegacyEntity from '../components/LegacyEntity.astro';
 import { notFoundResponse } from '../lib/notFound';
-import { materializeLegacy, type LegacyRenderResult } from '../lib/legacyRender';
+import { materializeLegacy, canonicalMismatch, canonicalPathOf, type LegacyRenderResult } from '../lib/legacyRender';
 import {
   encodeLocation,
   findLegacyPage,
@@ -56,6 +56,14 @@ if (special) {
       const archived = findLegacyPage(oldPattern.candidatePath) || findLegacyPage(rawPath);
       if (archived) use(renderLegacyPage(rawPath, archived));
     }
+    // A renamed section (blog, medicine) keeps its old item URLs working with a
+    // single 301 to the canonical item, never a duplicate render.
+    if (renderResult && canonicalMismatch(renderResult.seo, rawPath)) {
+      const canonical = canonicalPathOf(renderResult.seo);
+      renderResult = null;
+      handled = false;
+      if (canonical) return go(canonical, 301);
+    }
     if (!handled) return go(oldPattern.fallback, 301);
   } else {
     const entity = lookupEntity(rawPath);
@@ -72,6 +80,10 @@ if (special) {
 
 if (response) return response;
 if (!renderResult) return notFound();
+
+// Exactly one URL per page: a legacy alias that resolves to a page with a
+// different canonical must 404 instead of duplicating that page.
+if (canonicalMismatch(renderResult.seo, rawPath)) return notFound();
 ---
 
 <LegacyEntity result={renderResult} />

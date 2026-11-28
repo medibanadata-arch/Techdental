@@ -8,6 +8,7 @@ import { handleAdminRoute } from './lib/admin/router';
 import { authUserFromRequest } from './lib/auth';
 import { isAdminPath, isAuthPath, isGuestPath } from './lib/admin/paths';
 import { filamentTarget } from './lib/admin/filament';
+import { IMAGE_REDIRECTS } from './lib/imageRedirects';
 import { notFoundResponse } from './lib/notFound';
 
 /**
@@ -91,7 +92,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
     });
   }
 
-  if (shouldSkip(pathname)) return next();
+  if (shouldSkip(pathname)) {
+    // Renamed media keeps its old URL working with a permanent redirect.
+    const renamed = IMAGE_REDIRECTS[pathname];
+    if (renamed) return redirect(renamed, 301);
+    return next();
+  }
 
   const rawPath = pathname;
   const path = normalized(rawPath);
@@ -122,27 +128,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Permanently removed old URLs must 404 without chaining through a 301.
-  if (isRemovedPath(path) || isRemovedPath(rawPath)) return withErrorPage(await next());
+  if (isRemovedPath(path) || isRemovedPath(rawPath)) return finalize(await next());
 
-  // 1. Trailing slash consistency. Archived pages and old URLs that now serve
-  //    a current page keep the exact path they were published with.
+  // 1. Exactly one URL per page: trailing slashes are redirected away.
   if (rawPath.length > 1 && rawPath.endsWith('/')) {
-    const cleanPath = rawPath.replace(/\/+$/, '');
-    const isLegacy =
-      hasLegacyPage(rawPath) ||
-      hasLegacyPage(cleanPath) ||
-      hasLegacyPage(path) ||
-      hasLegacyPage(normalized(cleanPath));
-
-    if (!isLegacy) {
-      const isMapped = hasMappedEntity(rawPath) || hasMappedEntity(cleanPath);
-      const redirectRow = managedRedirect(normalized(cleanPath), rawPath);
-      const hasManagedRedirect = !!redirectRow;
-
-      if (!hasManagedRedirect && !isMapped) {
-        return redirect(cleanPath + (search || ''));
-      }
-    }
+    return redirect(path + (search || ''));
   }
 
   // 2. Managed 301/302 redirects.
@@ -166,7 +156,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  return withErrorPage(await next());
+  return finalize(await next());
 });
 
 /**
@@ -175,4 +165,43 @@ export const onRequest = defineMiddleware(async (context, next) => {
  */
 function withErrorPage(response: Response): Response {
   return response.status === 404 ? notFoundResponse() : response;
+}
+
+/**
+ * Astro's SSR stream occasionally injects stray U+0000 bytes inside multi-byte
+ * text (visible on Bengali pages as broken words). NUL is never valid in HTML
+ * and a 0x00 byte can never be part of a valid UTF-8 sequence, so drop the byte
+ * while the response streams instead of shipping corrupted text.
+ */
+function stripNulBytes(response: Response): Response {
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('text/html') || !response.body) return response;
+
+  const reader = response.body.getReader();
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      const { done, value } = await reader.read();
+      if (done) {
+        controller.close();
+        return;
+      }
+      if (!value || value.length === 0) return;
+      controller.enqueue(value.includes(0) ? value.filter((byte) => byte !== 0) : value);
+    },
+    cancel(reason) {
+      return reader.cancel(reason);
+    },
+  });
+
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function finalize(response: Response): Response {
+  return stripNulBytes(withErrorPage(response));
 }
